@@ -197,7 +197,35 @@ void serialWrite(char * iter) {
 
 void serialSendDevice(associated_devices_t * device){
 }
+
+// format: DI: network id, node relation, dev status, assoc count,   age   , txCounter, txCost  , rxLqi, 
+//             4 digits  ,   2 digits   , 2 digits  , 2 digits   , 2 digits, 2 digits , 2 digits, 2 digits  
 void serialSendDeviceInfo(associated_devices_t * device){
+	char * iter;
+	iter = addMem(dbIter,  "DI: ", 4);
+	iter = addNwkId(iter, device->shortAddr);
+	iter = addSep(iter);
+	iter = adduint8(iter,device->nodeRelation);
+	iter = addSep(iter);
+	iter = adduint8(iter,device->devStatus);
+	iter = addSep(iter);
+	iter = adduint8(iter,device->assocCnt);
+	iter = addSep(iter);
+	iter = adduint8(iter,device->age);
+	iter = addSep(iter);
+	iter = adduint8(iter,device->linkInfo.txCounter);
+	iter = addSep(iter);
+	iter = adduint8(iter,device->linkInfo.txCost);
+	iter = addSep(iter);
+	iter = adduint8(iter,device->linkInfo.rxLqi);
+	*iter = '\n';
+	iter++;
+	if (iter == dbEnd){
+		iter = db;
+	}	
+	while(iter == dbIter);
+	*iter=0;
+	serialWrite(iter);
 }
 // format: AEE: networkId, status
 //               4digit,   2digit

@@ -286,7 +286,7 @@
         </option>
         <option>
           <name>CCDefines</name>
-          <state>xHAL_PA_LNA</state>
+          <state>HAL_PA_LNA</state>
           <state>SECURE=0</state>
           <state>OSALMEM_METRICS</state>
           <state>REFLECTOR</state>
@@ -1163,19 +1163,10 @@
         <name>$PROJ_DIR$\..\Source\ZigBeeSerialBridge.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\Source\ZigBeeSerialBridge.h</name>
+        <name>$PROJ_DIR$\..\Source\ZigbeeSerialBridge.h</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\Source\ZigbeeSerialBridge_data.h</name>
-      </file>
-    </group>
-    <group>
-      <name>usb</name>
-      <file>
-        <name>$PROJ_DIR$\..\Source\UsbIrqHookProcessEvents.c</name>
-      </file>
-      <file>
-        <name>$PROJ_DIR$\..\Source\UsbIrqHookProcessEvents.h</name>
       </file>
     </group>
     <file>

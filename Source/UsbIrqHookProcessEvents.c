@@ -52,16 +52,7 @@ struct WriteAttributeValueUsbMsg {
 	uint8       dataValue[];
 };
 
-
-
-static void attributeValue(osal_event_hdr_t *);
-
-static void eventDeviceInfo(osal_event_hdr_t *);
-static void eventBindReq(osal_event_hdr_t *);
 static void eventWriteValue(osal_event_hdr_t *);
-static void eventBindRequest(osal_event_hdr_t *);
-static void eventUnbindRequest(osal_event_hdr_t *);
-static struct UsbISR * createMsgForBind(void);
 
 // ************************ USB interrupt event processing *************************
 void usbirqHookProcessEvents(void)
@@ -78,26 +69,6 @@ void usbirqHookProcessEvents(void)
 			struct UsbISR * msg =NULL;
 			uint8 code = USBF2;
 			switch( code){
-			case REQ_BIND_TABLE: {
-					uint8 addr[2];
-					addr[0] = USBF2;
-					addr[1] = USBF2;
-					struct BindTableRequestMsg * msgReq = (struct BindTableRequestMsg *)osal_msg_allocate(sizeof(struct BindTableRequestMsg) );
-					msg = &(msgReq->isr);
-					msg->isr = eventBindReq;
-					msg->msg.event = EVENT_USB_ISR;
-					msgReq->afAddrType.addrMode = Addr16Bit;
-					msgReq->afAddrType.addr.shortAddr = *(uint16 *)(addr);
-					}
-					break;
-			case REQ_ADD_BIND_TABLE_ENTRY:
-					msg = createMsgForBind();
-					msg->isr = eventBindRequest;
-					break;
-			case REQ_REMOVE_BIND_TABLE_ENTRY:
-					msg = createMsgForBind();
-					msg->isr = eventUnbindRequest;
-					break;
 			case WRITE_ATTRIBUTE_VALUE:{
 					struct WriteAttributeValueUsbMsg usbMsg;
 					uint8  * data = (uint8 *)(&usbMsg);
@@ -126,17 +97,6 @@ void usbirqHookProcessEvents(void)
 					}
 					}
 					break;
-			
-			case REQ_DEVICE_INFO:{
-				struct ReqDeviceInformationEvent * msgEP = (struct ReqDeviceInformationEvent *)osal_msg_allocate(sizeof(struct ReqDeviceInformationEvent) );
-				msg = &(msgEP->isr);
-				msg->isr = eventDeviceInfo;
-				msg->msg.event = EVENT_USB_ISR;
-				msgEP->data[0] = USBF2;
-				msgEP->data[1] = USBF2;
-				}
-				break;
-					
 			}
 			if (msg != NULL) {
 				uint8 low = T1CNTL;
@@ -155,60 +115,6 @@ void usbirqHookProcessEvents(void)
 	}
 }
 
-static struct UsbISR * createMsgForBind(void) {
-	uint8 * data;
-	uint8  i;
-	struct BindRequestMsg * msgBind = (struct BindRequestMsg *)osal_msg_allocate(sizeof(struct BindRequestMsg) );
-	msgBind->isr.msg.event = EVENT_USB_ISR;
-	msgBind->destAddr.addrMode = Addr16Bit;
-	data = (uint8 *)msgBind->destAddr.addr.shortAddr;
-	*data = USBF2;
-	data++;
-	*data = USBF2;
-	data = (uint8 *)msgBind->outClusterAddr;
-	for (i=0; i < Z_EXTADDR_LEN+3; i++){
-		*data = USBF2;
-		data++;
-	}
-
-	msgBind->inCluster.addrMode = Addr64Bit;
-	data = (uint8 *)msgBind->inCluster.addr.extAddr;
-	for(i=0; i< Z_EXTADDR_LEN; i++){
-		*data = USBF2;
-		data++;
-	}
-	msgBind->inClusterEP = USBF2;
-	return 	&(msgBind->isr);			
-}
-
-void eventDeviceInfo(osal_event_hdr_t * hdrEvent){
-	struct ReqDeviceInformationEvent * msgEP = (struct ReqDeviceInformationEvent *)hdrEvent;
-	associated_devices_t * device= AssocGetWithShort( msgEP->nwkAddr);
-	if (device == NULL){
-	} else {
-		serialSendDeviceInfo(device);
-	}	
-}
-
-
-void eventBindReq(osal_event_hdr_t * hdrEvent) {
-	uint8 first=0;
-	struct BindTableRequestMsg * msg = (struct BindTableRequestMsg *)hdrEvent;
-	
-	ZDP_MgmtBindReq( &(msg->afAddrType),first, 0 );
-}
-
-void eventBindRequest(osal_event_hdr_t * hdrEvent) {
-	struct BindRequestMsg * msg = (struct BindRequestMsg *)hdrEvent;
-	
-	ZDP_BindReq(&(msg->destAddr),  msg->outClusterAddr, msg->outClusterEP, msg->clusterID, &(msg->inCluster),  msg->inClusterEP, 0);
-}
-
-void eventUnbindRequest(osal_event_hdr_t * hdrEvent) {
-	struct BindRequestMsg * msg = (struct BindRequestMsg *)hdrEvent;
-	
-	ZDP_UnbindReq(&(msg->destAddr),  msg->outClusterAddr, msg->outClusterEP, msg->clusterID, &(msg->inCluster),  msg->inClusterEP, 0);
-}
 
 void eventWriteValue(osal_event_hdr_t * hdrEvent) {
 	struct WriteAttributeValueMsg * msgCmd = (struct WriteAttributeValueMsg * )hdrEvent;

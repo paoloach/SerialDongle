@@ -146,7 +146,7 @@ UINT16 processEvent( byte task_id, UINT16 events ){
 			break;
 		case AF_DATA_CONFIRM_CMD:
 			break;
-		case EVENT_USB_ISR:	{
+		case EVENT_SERIAL_CMD:	{
 			struct UsbISR * isr = (struct UsbISR*)hdrEvent;
 			isr->isr(hdrEvent);
 			}

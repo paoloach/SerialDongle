@@ -14,5 +14,5 @@
 // USB Annunce message
 #define ENDPOINT_REQUEST_MSG		  0x0004
 #define SEND_FIFO_DATA				  0x0008
-#define EVENT_USB_ISR					0xE0
+#define EVENT_SERIAL_CMD					0xE0
 
