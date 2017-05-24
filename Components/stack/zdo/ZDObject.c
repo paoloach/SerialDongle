@@ -626,32 +626,25 @@ void ZDO_ProcessNodeDescReq( zdoIncomingMsg_t *inMsg )
 /*********************************************************************
  * @fn          ZDO_ProcessPowerDescReq
  *
- * @brief       This function processes and responds to the
- *              Node_Power_req message.
+ * @brief       This function processes and responds to the Node_Power_req message.
  *
  * @param       inMsg  - incoming request
  *
  * @return      none
  */
-void ZDO_ProcessPowerDescReq( zdoIncomingMsg_t *inMsg )
-{
-  uint16 aoi = BUILD_UINT16( inMsg->asdu[0], inMsg->asdu[1] );
-  NodePowerDescriptorFormat_t *desc = NULL;
+void ZDO_ProcessPowerDescReq( zdoIncomingMsg_t *inMsg ){
+	uint16 aoi = BUILD_UINT16( inMsg->asdu[0], inMsg->asdu[1] );
+	NodePowerDescriptorFormat_t *desc = NULL;
 
-  if ( aoi == ZDAppNwkAddr.addr.shortAddr )
-  {
-    desc = &ZDO_Config_Power_Descriptor;
-  }
+	if ( aoi == ZDAppNwkAddr.addr.shortAddr )  {
+		desc = &ZDO_Config_Power_Descriptor;
+	}
 
-  if ( desc != NULL )
-  {
-    ZDP_PowerDescMsg( inMsg, aoi, desc );
-  }
-  else
-  {
-    ZDP_GenericRsp( inMsg->TransSeq, &(inMsg->srcAddr),
-              ZDP_INVALID_REQTYPE, aoi, Power_Desc_rsp, inMsg->SecurityUse );
-  }
+	if ( desc != NULL )  {
+		ZDP_PowerDescMsg( inMsg, aoi, desc );
+	}  else  {
+		ZDP_GenericRsp( inMsg->TransSeq, &(inMsg->srcAddr), ZDP_INVALID_REQTYPE, aoi, Power_Desc_rsp, inMsg->SecurityUse );
+	}
 }
 
 /*********************************************************************
@@ -2724,22 +2717,20 @@ void ZDO_ParseNodeDescRsp( zdoIncomingMsg_t *inMsg, ZDO_NodeDescRsp_t *pNDRsp )
  *
  * @return      none
  */
-void ZDO_ParsePowerDescRsp( zdoIncomingMsg_t *inMsg, ZDO_PowerRsp_t *pNPRsp )
-{
-  uint8 *msg;
+void ZDO_ParsePowerDescRsp( zdoIncomingMsg_t *inMsg, ZDO_PowerRsp_t *pNPRsp ){
+	uint8 *msg;
 
-  msg = inMsg->asdu;
-  pNPRsp->status = *msg++;
-  pNPRsp->nwkAddr = BUILD_UINT16( msg[0], msg[1] );
+	msg = inMsg->asdu;
+	pNPRsp->status = *msg++;
+	pNPRsp->nwkAddr = BUILD_UINT16( msg[0], msg[1] );
 
-  if ( pNPRsp->status == ZDP_SUCCESS )
-  {
-    msg += 2;
-    pNPRsp->pwrDesc.AvailablePowerSources = *msg >> 4;
-    pNPRsp->pwrDesc.PowerMode = *msg++ & 0x0F;
-    pNPRsp->pwrDesc.CurrentPowerSourceLevel = *msg >> 4;
-    pNPRsp->pwrDesc.CurrentPowerSource = *msg++ & 0x0F;
-  }
+	if ( pNPRsp->status == ZDP_SUCCESS ){
+		msg += 2;
+		pNPRsp->pwrDesc.AvailablePowerSources = *msg >> 4;
+		pNPRsp->pwrDesc.PowerMode = *msg++ & 0x0F;
+		pNPRsp->pwrDesc.CurrentPowerSourceLevel = *msg >> 4;
+		pNPRsp->pwrDesc.CurrentPowerSource = *msg++ & 0x0F;
+	}
 }
 
 /*********************************************************************

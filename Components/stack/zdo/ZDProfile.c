@@ -829,20 +829,18 @@ afStatus_t ZDP_NodeDescMsg( zdoIncomingMsg_t *inMsg,
 afStatus_t ZDP_PowerDescMsg( zdoIncomingMsg_t *inMsg,
                      uint16 nwkAddr, NodePowerDescriptorFormat_t *pPowerDesc )
 {
-  uint8 *pBuf = ZDP_TmpBuf;
-  byte len = 1 + 2 + 2;  // Status + nwkAddr + Node Power descriptor.
+	uint8 *pBuf = ZDP_TmpBuf;
+	byte len = 1 + 2 + 2;  // Status + nwkAddr + Node Power descriptor.
 
-  *pBuf++ = ZDP_SUCCESS;
+	*pBuf++ = ZDP_SUCCESS;
 
-  *pBuf++ = LO_UINT16( nwkAddr );
-  *pBuf++ = HI_UINT16( nwkAddr );
+	*pBuf++ = LO_UINT16( nwkAddr );
+	*pBuf++ = HI_UINT16( nwkAddr );
 
-  *pBuf++ = (byte)((pPowerDesc->AvailablePowerSources << 4)
-                    | (pPowerDesc->PowerMode & 0x0F));
-  *pBuf++ = (byte)((pPowerDesc->CurrentPowerSourceLevel << 4)
-                    | (pPowerDesc->CurrentPowerSource & 0x0F));
+	*pBuf++ = (byte)((pPowerDesc->AvailablePowerSources << 4) | (pPowerDesc->PowerMode & 0x0F));
+	*pBuf++ = (byte)((pPowerDesc->CurrentPowerSourceLevel << 4) | (pPowerDesc->CurrentPowerSource & 0x0F));
 
-  return fillAndSend( &(inMsg->TransSeq), &(inMsg->srcAddr), Power_Desc_rsp, len );
+	return fillAndSend( &(inMsg->TransSeq), &(inMsg->srcAddr), Power_Desc_rsp, len );
 }
 
 /*********************************************************************

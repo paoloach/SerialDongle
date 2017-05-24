@@ -109,6 +109,8 @@ void serialDongleAppInit( byte task_id ){
 	ZDO_RegisterForZDOMsg( serialDongleTaskID, Active_EP_rsp);
 	ZDO_RegisterForZDOMsg( serialDongleTaskID, Simple_Desc_rsp);
 	ZDO_RegisterForZDOMsg( serialDongleTaskID, IEEE_addr_rsp);
+	ZDO_RegisterForZDOMsg( serialDongleTaskID, Power_Desc_rsp);
+	
 	
 	T1CTL=1;
 }

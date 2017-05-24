@@ -31,4 +31,5 @@ void serialSendAnnunce(ZDO_DeviceAnnce_t * );
 void serialSendSimpleDescriptor(ZDO_SimpleDescRsp_t *);
 void serialSendIeeeAddress(zdoIncomingMsg_t * );
 void serialSendBindTable(struct BindTableResponseEntry * bindTable);
+void nodePowerResponseMessage(zdoIncomingMsg_t * msg);
 #endif

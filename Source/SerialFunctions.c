@@ -335,6 +335,45 @@ void serialSendAnnunce(ZDO_DeviceAnnce_t * deviceAnnce ){
 }
 
 
+// NPR: networkdId, powerMode, availablePowerSources, currentPowerSource, currentPowerSourceLevel
+//       4digit       1Digit        1Digit               1Digit                1Digit
+//  or if error
+// NPRE: networkId, status
+//        4Digit    2 digit
+void nodePowerResponseMessage(zdoIncomingMsg_t * inMsg) {
+	uint8 *msg;
+	uint8 status;
+	uint16 nwkAddr;
+	char * iter;
+	char * buffer = dbIter;
+	
+	msg = inMsg->asdu;
+	status = *msg++;
+	nwkAddr = BUILD_UINT16( msg[0], msg[1] );
+	if (status == ZDP_SUCCESS){
+		iter = addMem(buffer, "NPR: ", 5);
+		iter = addNwkId(iter, nwkAddr);
+		iter = addSep(iter);
+		msg += 2;
+		*iter = hexDigit[*msg >> 4];
+		iter = addSep(iter);
+		*iter = hexDigit[*msg++ & 0x0F];
+		iter = addSep(iter);
+		*iter = hexDigit[*msg >> 4];
+		iter = addSep(iter);
+		*iter = hexDigit[*msg++ & 0x0F];
+		*iter = 0;
+	} else {
+		iter = addMem(buffer, "NPRE: ", 6);
+		iter = addNwkId(iter, nwkAddr);
+		iter = adduint8(iter, status);
+		*iter=0;
+		iter++;
+	}
+	serialWrite(iter);
+}
+
+
 // SD: networkID, endpoint, AppProfId, deviceId, deviceVersion, numInClusters, firstInCluster, ..., lastInCluster, numOutClusters, firstOutCluster, ..., lastOutCluster
 //      4digits,   2digits,  4digits,   4digits,    2digits,       2digits,      4digits,    , ...,  4digits   ,        2digits,     4digits,     , ..., 4digits 
 void serialSendSimpleDescriptor(ZDO_SimpleDescRsp_t * simpleDesc){
