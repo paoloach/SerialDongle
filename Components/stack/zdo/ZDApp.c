@@ -178,7 +178,7 @@ uint8 ZDO_UseExtendedPANID[Z_EXTADDR_LEN];
 pfnZdoCb zdoCBFunc[MAX_ZDO_CB_FUNC];
 
 #if !defined ( ZDP_BIND_SKIP_VALIDATION )
-ZDO_PendingBindReq_t *ZDAppPendingBindReq = NULL;
+ZDO_PendingBindReq_t  ZDAppPendingBindReq[MAX_PENDING_BIND_REQ];
 #endif
 
 /*********************************************************************
@@ -201,7 +201,6 @@ uint8 ZDApp_ReadNetworkRestoreState( void );
 uint8 ZDApp_RestoreNetworkState( void );
 void ZDAppDetermineDeviceType( void );
 void ZDApp_InitUserDesc( void );
-void ZDAppCheckForHoldKey( void );
 void ZDApp_ProcessOSALMsg( osal_event_hdr_t *msgPtr );
 void ZDApp_ProcessNetworkJoin( void );
 void ZDApp_SetCoordAddress( uint8 endPoint, uint8 dstEP );
@@ -290,9 +289,6 @@ void ZDApp_Init( uint8 task_id )
   ZDAppNwkAddr.addr.shortAddr = INVALID_NODE_ADDR;
   (void)NLME_GetExtAddr();  // Load the saveExtAddr pointer.
 
-  // Check for manual "Hold Auto Start"
-  ZDAppCheckForHoldKey();
-
   // Initialize ZDO items and setup the device - type of device to create.
   ZDO_Init();
 
@@ -313,8 +309,6 @@ void ZDApp_Init( uint8 task_id )
   else
   {
     ZDOInitDevice( ZDO_INIT_HOLD_NWK_START );
-    // Blink LED to indicate HOLD_START
-    HalLedBlink ( HAL_LED_4, 0, 50, 500 );
   }
 
   // Initialize the ZDO callback function pointers zdoCBFunc[]
@@ -1031,18 +1025,6 @@ void ZDApp_InitUserDesc( void )
   }
 }
 
-/*********************************************************************
- * @fn      ZDAppCheckForHoldKey()
- *
- * @brief   Check for key to set the device into Hold Auto Start
- *
- * @param   none
- *
- * @return  none
- */
-void ZDAppCheckForHoldKey( void )
-{
-}
 
 /*********************************************************************
  * @fn      ZDApp_ProcessOSALMsg()
@@ -3315,10 +3297,6 @@ void ZDApp_SetPendingBindDefault( ZDO_PendingBindReq_t *pendBindReq )
  */
 void ZDApp_InitPendingBind( void )
 {
-  if ( ZDAppPendingBindReq == NULL )
-  {
-    if ( ( ZDAppPendingBindReq = osal_mem_alloc( sizeof(ZDO_PendingBindReq_t) * MAX_PENDING_BIND_REQ ) ) != NULL )
-    {
       uint8 i;
 
       for ( i = 0; i < MAX_PENDING_BIND_REQ; i++ )
@@ -3326,8 +3304,6 @@ void ZDApp_InitPendingBind( void )
         // Set to default values
         ZDApp_SetPendingBindDefault( &ZDAppPendingBindReq[i] );
       }
-    }
-  }
 }
 
 /*********************************************************************
@@ -3343,8 +3319,6 @@ ZDO_PendingBindReq_t *ZDApp_GetEmptyPendingBindReq( void )
 {
   uint8 i;
 
-  if ( ZDAppPendingBindReq != NULL )
-  {
     for ( i = 0; i < MAX_PENDING_BIND_REQ; i++ )
     {
       if ( ZDAppPendingBindReq[i].age == 0 )
@@ -3352,7 +3326,6 @@ ZDO_PendingBindReq_t *ZDApp_GetEmptyPendingBindReq( void )
         return ( &ZDAppPendingBindReq[i] );
       }
     }
-  }
 
   // No empty entry was found
   return NULL;
@@ -3373,8 +3346,6 @@ void ZDApp_ProcessPendingBindReq( uint8 *extAddr )
 
   // Loop through all the pending entries for that Ext Address
   // to create Bind Entries and send Bind Rsp
-  if ( ZDAppPendingBindReq != NULL )
-  {
     for ( i = 0; i < MAX_PENDING_BIND_REQ; i++ )
     {
       if ( osal_memcmp( ZDAppPendingBindReq[i].bindReq.dstAddress.addr.extAddr,
@@ -3402,7 +3373,6 @@ void ZDApp_ProcessPendingBindReq( uint8 *extAddr )
         // Set the pending request entry to default values
         ZDApp_SetPendingBindDefault( &ZDAppPendingBindReq[i] );
       }
-    }
   }
 }
 

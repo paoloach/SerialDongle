@@ -1,0 +1,87 @@
+
+
+// params
+// R1: start relation
+// R2: end relation
+
+// return
+	R3:R2 -> count
+
+		MOV	A,#0xF6
+		LCALL BANKED_ENTER_XDATA
+		MOV		A,R2
+		MOV		R0,A
+		MOV		V0,#00		V0 --> foundCount
+		MOV		R5,#0x00	R5 --> index
+		SJMP	L1
+L3:
+		MOV		A,R5
+		LCALL	0x5D70   A = AssociatedDevList[r5].nodeRelation
+		CLR		C
+		SUBB	A,R1
+		JC		L2
+		MOVX	A,@DPTR
+		MOV		R2,A
+		MOV		A,R0
+		CLR		C
+		SUBB	A,R2
+		JC		L2
+		INC		V0
+L2:
+		INC		R5
+L1:
+		MOV		DPTR,#0x2871 (gNWK_MAX_DEVICE_LIST)
+		CLR		A
+		MOVC	A,@A+DPTR
+		MOV		R2,A
+		MOV		A,R5
+		CLR		C
+		SUBB	A,R2
+		JC		L3
+		MOV		R2,V0
+		MOV		R3,#0x00
+		LJMP	SP136
+		
+SP136:
+		MOV		R7,#0x02
+		LJMP	BANKED_LEAVE_XDATA
+
+
+typedef struct
+{
+  uint8  txCounter; (+8)   // Counter of transmission success/failures
+  uint8  txCost;    (+9)   // Average of sending rssi values if link staus is enabled
+                       // i.e. NWK_LINK_STATUS_PERIOD is defined as non zero
+  uint8  rxLqi;     (+10)   )// average of received rssi values
+                       // needs to be converted to link cost (1-7) before used
+  uint8  inKeySeqNum;  (+11)// security key sequence number
+  uint32 inFrmCntr;    (+12)// security frame counter..
+  uint16 txFailure;    (+16)// higher values indicate more failures
+} linkInfo_t;
+
+typedef struct
+{
+  uint16 shortAddr;   (+0)              // Short address of associated device
+  uint16 addrIdx;     (+2)             // Index from the address manager
+  byte nodeRelation;  (+4) 
+  byte devStatus;     (+5)              // bitmap of various status values
+  byte assocCnt;	  (+6) 
+  byte age;    		  (+7)
+  linkInfo_t linkInfo; (+8)
+  uint16 timeoutCounter;  (+18)
+  uint16 endDevKaTimeout; (+20)
+} associated_devices_t
+
+mette in A	AssociatedDevList[R5]	
+05D70	MOV		B,0x16
+		MUL		AB
+		MOV		R2,A
+		MOV		R3,B
+		MOV		A,#0x38
+		ADD		R2
+		MOV		DPL,A
+		MOV		A,#0x09
+		ADDC	A,R3
+		MOV		DPH,A
+		MOVX	A,@DPTR
+		RET	

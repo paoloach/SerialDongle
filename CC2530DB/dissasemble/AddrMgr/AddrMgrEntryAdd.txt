@@ -1,0 +1,420 @@
+//----------------------------------
+// AddrMgrEntryAdd(AddrMgrEntry_t * entry)
+// R3:R2 --> pointer to AddrMgrEntry_t
+//----------------------------------
+
+AddrMgrEntryAdd:
+L_2A16:
+	MOV		A,#F4
+	LCALL	BANKED_ENTER_XDATA
+	LCALL	SP108	// Mette ne entry->index il valore FFFE e in R7:R6 il valore di entry
+	MOV		R1,0
+	MOV		DPL,R6
+	MOV		DPH,R7
+	MOVX	A,@DPTR
+	JZ		L_2A9C		// Se il campo user è 0 non fa nulla
+	MOV		V2,R1
+	MOV		V3,R1
+	JSMP	L_2A91
+L_2A2D:
+	// V3:V2 indice
+	//   ------ verifica il campo user puntato da V3,V2
+	MOV		A,V2
+	MOV		B,#B
+	MUL		AB
+	MOV		R2,A
+	MOV		R0,B
+	MOV		B,#B
+	MOV		A,V3
+	LCALL	SP40
+	JNZ		L_2A89 // Se il campo user puntato da V3:V2 ha i 4 bit meno sinificativi diversi da 0, salta a L_2A89
+	
+	MOV		A,V2
+	MOV		B,#B
+	MUL		AB
+	MOV		R0,A
+	MOV		R2,B
+	MOV		B,#B
+	MOV		A,V3
+	LCALL	SP68 // Mette  in V1:V0 l'indirizzo di elements[V3:V2]
+	MOV		DPL,R6
+	MOV		DPH,R7
+	MOVX	A,@DPTR	 // A -->  campo user di entry
+	MOV		DPL,V0
+	MOV		DPH,V1	// DPTR l'indirizzo dell'elemento V3:V2
+	LCALL	SP279   // Copia il campo user da entry all'element V0:V1
+	LCALL	SP97    // Copia il campo nwkAddr da entry all'element V0:V1
+	MOV		A,R6
+	ADD		A,#3
+	MOV		R4,A
+	CLR		A
+	ADDC	A,R7
+	LCALL	
+
+L_2A91:
+	LCALL	SP91   // metter in r3:r2 il numero massimo di elementi 
+	MOV		A,V2
+	SUBB	A,R2
+	MOV		A,V3
+	SUBB	A,R3
+	JC		L_2A2D
+	LJMP	SP415
+	
+	
+	
+----------------	
+// R3:R2 --> pointer to AddrMgrEntry_t	
+----------------
+AddrMgrEntryUpdate:
+	MOV		A,#F2
+	LCALL	BANKED_ENTER_XDATA
+	
+	MOV		A,#E6 (-0x19)
+	LCALL	ALLOC_XSTACK8
+// nello stack ci sono 0x0E byte per un AddrMgrEntry_t
+// stack     campo
+//  0		 user
+//  1		nwk
+//  3		extAddr
+//  0x0B	index
+
+	LCALL	SP108   // Mette in R3:R2+11 il valore FFFE 	e in R7:R6 il valore di R3:R2
+	MOV		V4,#1
+	MOV		V0,0
+	MOV		V1,0
+	MOV		V2,0
+	MOV		V3,0
+	// Azzero il primo byte allocato nello stack
+	MOV		DPL,XSP(L)
+	MOV		DPH,XSP(H)
+	CLR		A
+	MOVX	@DPTR,A
+	MOV		A,R6
+	ADD		A,#3
+	MOV		R4,A
+	CLR		A
+	ADDC	A,R7
+	MOV		R5,A  // R5:R4 indirizzo di entity->extAddr
+	
+	MOV		A,#3
+	LCALL	XSTACK_DISP0_8 // Mette in DPTR l'indirizzo del extAddr
+	
+	MOV		R2,DPL
+	MOV		R3,DPH
+	LCALL	AddrMgrExtAddrSet // copia nello stack  entity->extAddr
+	
+	MOV		R2,XSP(L)
+	MOV		R3,XPL(H)
+	LCALL	AddrMgrEntryLookupExt // Cerca per extAddress
+	
+	MOV		A,R1
+	XRL		A,#1
+	JNZ		L_2F5E //Se non lo trova, salta a ...
+	
+	// trovato
+	MOV		A,#0x0B
+	LCALL	XSTACK_DISP0_8
+	LCALL	SP110
+	MOV		A,#0x01
+	LCALL	XSTACK_DISP0_8
+	LCALL	SP481
+	JNZ		L_2F54
+	INC		DPTR
+	MOVX	A,@DPTR
+	XRL		A,R1
+L_2F54
+	JZ		L_2FA0
+	MOV		R0,XPL(L)
+	MOV		R1,XSP(H)
+	MOV		V0,R0
+	MOV		V1,R1
+L_2F5E	
+	MOV		A,#0x0D
+	LCALL	XSTACK_DISP0_8  // posizione  DPR a STACK+0D
+	LCALL	SP278	// Azzera il primo byte in DPTR e mette in DPTR=R7:R6
+	INC		DPTR
+	CALL	SP286   // Metter in R1:R0 il valore puntato da DPTR (il entry->nwk)
+	MOV		A,#0x0E
+	LCALL	XSTACK_DISP0_8 // posizione  DPR a STACK+0E
+	LCALL	SP309	// // Mette nella locazione puntata da DPTR il valore di R0 e DPTR+1 il valore di R1 (entry->nwk)
+	MOV		A,#0x0D
+	LCALL	XSTACK_DISP101_8  // posizione R2:R3 a STACK+0D
+	LCALL	AddrMgrEntryLookup
+	MOV		A,R1
+	XRL		A,#1
+	JNZ		L_2F88 // Se non lo trova a L_2F88
+	MOV		A,#0x0D
+	LCALL	XSTACK_DISP100_8  // posiziona R1:R0 a stack+0D
+	MOV		V2,R0
+	MOV		V3,R1
+	MOV		R0,0x0A
+	CALL	PUSH_XSTACK_I_TWO
+	MOV		R4,V0
+	MOV		R5,V1
+	MOV		A,R6
+	MOV		R2,A
+	MOV		A,R7
+	MOV		R3,A
+	LCALL	AddrMgrEntryUpdateEx
+	MOV		A,#2
+	LCALL	DEALLOC_XSTACK8
+	MOV		A,R1
+	MOV		V4,A
+	MOV		A,R6
+	MOV		R2,A
+	MOV		A,R7
+	MOV		R3,A
+	LCALL	AddrMgrEntryAddRef
+	MOV		R1,V4
+	MOV		A,#0x1A
+	LJMP	SP472
+	
+-------------------------------------------------------------------------------
+
+--  AddrMgrEntryUpdateEx
+-- R3:R2  pointer to AddrMgrEntry_t	(entry)
+-- R4:R5  pointer 
+-- 2 byte sullo stack 
+------------------------------------------------------------------------------
+	MOV		A,#F5   (-11)
+	LCALL	BANKED_ENTER_XDATA	
+	MOV		A,R2
+	MOV		R6.A
+	MOV		A,R3
+	MOV		R7,A
+--	R7:R6  pointer to AddrMgrEntry_t	
+	MOV		V2,#0x01
+	MOV		A,0x0B
+	CALL	XSTACK_DISP0_8
+	LCALL	SP183		// Mette in V1:V0 il valore del prima argomento dello stack
+	MOV		A,R4
+	ORL		A,R5
+	JZ		L_2ACC      // Se è null, salta al caso correto
+	
+	MOV		A,R4		// mette in DPL R4 + 0x0B 
+	LCALL	SP64
+	ADDC	A,R5
+	LCALL	SP109		// Mette il valore di r4:45+0x0B in entry->index
+	MOV		R1,#1
+	LCALL	AddrMgrEntrySet
+	MOV		A,V0
+	ORL		A,V1
+	JZ		L_2B3F
+	SJMP	L_2AEF
+L_2ACC
+	MOV		A,V0
+	ORL		A,V1
+	JZ		L_2B16		
+	LCALL	SP53
+	ADDC	A,V1
+	LCALL	SP109  // Mette in r7:r6+0x0B il valore di V1:V0+11 
+	LCALL	SP51   // mette in r3:32 V1:V0 + 3
+	LCALL	AddrMgrExtAddrValid
+	MOV		A,R1
+	XLR		A,#1
+	JNZ		L_2B00	// Salta se l'indirizzo non è valido
+	MOV		A,R6
+	MOV		R2,A
+	MOV		A,R7
+	MOV		R3,R7
+	LCALL	AddrMgrEntryAdd
+	MOV		A,R1
+	MOV		V2,A
+L_2AEF
+	MOV		DPL,V0
+	MOV		DPH,V1
+	LCALL	SP16
+	
+	
+	
+SP16:
+	INC		DPTR
+	MOV		A,#0xFE
+	MOV		
+	
+	
+SP40:
+	MUL		AB
+	ADD		R0
+	MOV		R3,A
+	MOV		DPTR,#0x033E
+	MOVX	A,@DPTR
+	ADD		A,R2
+	MOV		R0,A
+	INC		DPTR
+	MOVX	A,@DPTR
+	ADDC	A,R3
+	MOV		DPL,R0
+	MOV		DPH,A
+	MOVX	A,@DPTR
+	ANL		A,#0x0F
+	RET
+	
+SP51:
+	MOV		A,V0
+	ADD		A,#3
+	MOV		R2,A
+	CLR		A
+	ADDC	A,V1
+	MOV		R3,A
+	RET
+	
+SP53:  // mette dpl V0 + 0x0B
+	MOV		A,V0
+	LCALL	552	
+	RET
+	
+SP64:
+	LCALL	SP552
+	MOV		R1,A   (R1:R0 contiene il valore puntato da DPTR)
+	LCALL	SP370 // Carica in DPTR r7:r6+11
+	LCALL	SP265 // mette nell'indirizzo puntato da DPTR il valore di R1:R0
+	RET
+	
+SP68:
+	MUL		AB
+	ADD		A,R2
+	MOV		R1,A
+	MOV		DPTR,#033E
+	MOVX	A,@DPTR
+	ADD		A,R0
+	MOV		V0,A
+	INC		DPTR
+	MOVX	A,@DPTR
+	ADDC	A,R1
+	MOV		V1,A
+	RET
+	
+// metter in r3:r2 il numero massimo di elementi	
+SP91:
+	MOV		DPTR,#033C // Max count element
+	LCALL	SP444
+	CLR		C
+	RET
+	
+	
+SP97:
+	INC		DPTR
+	LCALL	SP316 // Mette in R1:R0 il valore puntato da DPTR
+	MOV		DPL,V0
+	MOV		DPH,V1
+	INC		DPTR
+	LCALL	SP265 // mette in DPTR il valore di R1:R0
+	RET
+	
+SP109:
+	MOV		DPH,A
+	LCALL	SP236
+	MOV		R1,A
+	LCALL	SP379
+	LCALL	SP265
+	RET
+	
+// Mette in R3:R2+11 il valore FFFE 	
+SP108:
+	MOV		A,R2
+	MOV		R6,A
+	MOV		A,R3
+	MOV		R7,A
+	LCALL	SP370
+	MOV		A,#FE
+	MOV		@DPTR,A
+	INC		DPTR
+	INC		A
+	MOVX	#DPTR,A
+	RET
+	
+SP183:
+	MOV		A,@DPTR
+	MOV		V0,A
+	INC		DPTR
+	MOVX	A,@DPTR
+	MOV		V1,A
+	RET
+	
+SP236:
+	MOV		A,@DPTR
+	MOV		R0,A
+	INC		DPTR
+	MOVX	A,@DPTR
+	RET
+
+SP265:
+	MOV		A,R0
+	MOVX	@DPTR,A
+	INC 	DPTR
+	MOV		A,R1
+	MOVX	@DPTR,A
+	RET
+
+// Mette nella locazione puntata da DPTR il valore di R0 e DPTR+1 il valore di R1
+SP266:
+	MOV		A,R0
+	MOVX	@DPTR,A
+	INC		DPTR
+	MOV		A,R1
+	MOVX	@DPTR,A
+	RET
+	
+SP278:
+	CLR		A
+	MOVX	@DPTR,A
+	MOV		DPL,R6
+	MOV		DPH,R7
+	RET
+
+SP279:
+	MOVX	@DPTR,A
+	MOV		DPL,R6
+	MOV		DPH,R7
+	RET
+	
+SP286:
+	CALL	SP316
+	RET
+	
+// Mette nella locazione puntata da DPTR il valore di R0 e DPTR+1 il valore di R1	
+SP309:
+	MOV		A,R0
+	LCALL	SP266
+	RET
+	
+SP316:
+	LCALL	SP317
+	RET
+	
+SP317:
+	MOVX	A,@DPTR
+	MOV		R0,A
+	INC		DPTR
+	MOVX	A,@DPTR
+	MOV		R1,A
+	RET
+	
+
+// Carica in DPTR r7:r6+11
+SP370:
+	MOV		A,R6
+	LCALL	SP553
+	ADDC	A,R7
+	MOV		DPH,A
+	RET
+	
+// metter in r3:r2 il valore puntato da DPTR	
+SP444:
+	MOVX	A,@DPTR
+	MOV		R2,A
+	INC		DPTR
+	MOVX	A,@DPTR
+	MOV		R3,A
+	RET
+	
+SP552:
+	LCALL	SP553:
+	RET
+	
+SP553:
+	ADD		A,#0B
+	MOV		DPL,A
+	CLR		A
+	RET

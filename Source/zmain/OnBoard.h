@@ -200,11 +200,7 @@ extern uint8 aExtendedAddress[8];
  * and should be adjusted to your systems requirements.
  */
 #if !defined INT_HEAP_LEN
-#if defined RTR_NWK
-  #define INT_HEAP_LEN  3600
-#else
-  #define INT_HEAP_LEN  2048
-#endif
+  #define INT_HEAP_LEN  3000
 #endif
 #define MAXMEMHEAP INT_HEAP_LEN
 

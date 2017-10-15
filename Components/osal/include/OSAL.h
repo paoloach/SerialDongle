@@ -117,7 +117,12 @@ typedef void * osal_msg_q_t;
   /*
    * Task Message Allocation
    */
+#ifdef __DEBUG__
+  extern uint8 * osal_msg_allocate_dbg(uint16 len , const char * , uint16 linenum);
+#define osal_msg_allocate( len ) osal_msg_allocate_dbg(len, __FILE__,__LINE__)
+#else  
   extern uint8 * osal_msg_allocate(uint16 len );
+#endif
 
   /*
    * Task Message Deallocation

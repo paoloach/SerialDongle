@@ -57,7 +57,8 @@
 #include "ZMAC.h"
 
 #include "AddrMgr.h"
-
+#include "CheckingChildList.h"
+	 
 /*********************************************************************
  * LOCAL FUNCTIONS
  */
@@ -68,6 +69,32 @@ static void zmain_cert_init( void );
 #endif
 static void zmain_vdd_check( void );
 
+static void halBoardInit(void)
+{                                      
+  uint16 i;                            
+                                       
+  SLEEPCMD &= ~OSC_PD;                       /* turn on 16MHz RC and 32MHz XOSC */                
+  while (!(SLEEPSTA & XOSC_STB));            /* wait for 32MHz XOSC stable */                     
+  asm("NOP");                                /* chip bug workaround */                            
+  for (i=0; i<504; i++) asm("NOP");          /* Require 63us delay for all revs */                
+  CLKCONCMD = (CLKCONCMD_32MHZ | OSC_32KHZ); /* Select 32MHz XOSC and the source for 32K clock */ 
+  while (CLKCONSTA != (CLKCONCMD_32MHZ | OSC_32KHZ)); /* Wait for the change to be effective */   
+  SLEEPCMD |= OSC_PD;                        /* turn off 16MHz RC */                              
+                                                                 
+  /* Turn on cache prefetch mode */                              
+  PREFETCH_ENABLE();                                             
+                                                                 
+  LED1_DDR |= LED1_BV;                                           
+                                                                 
+  /* Set PA/LNA HGM control P0_7 */                              
+  P0DIR |= BV(7);                                                
+                                                                 
+  /* configure tristates */                                      
+  P0INP |= PUSH2_BV;                                             
+                                                                 
+  /* setup RF frontend if necessary */                           
+  HAL_BOARD_RF_FRONTEND_SETUP();                                 
+}
 
 
 /*********************************************************************
@@ -75,23 +102,15 @@ static void zmain_vdd_check( void );
  * @brief   First function called after startup.
  * @return  don't care
  */
-	 uint8 IEEEaddr[8] = {0x80, 0x7F,0x28,0x07,0x00, 0x4b,0x12,0x00};
 int main( void )
 {
-	/*
-	AddrMgrInit(10);
-	
-	AddrMgrEntry_t addrEntry;
-	addrEntry.user = ADDRMGR_USER_DEFAULT;
-	AddrMgrExtAddrSet( addrEntry.extAddr, IEEEaddr);
-	addrEntry.nwkAddr = 1243;
-	AddrMgrEntryUpdate( &addrEntry );*/
-  
+
+
   // Turn off interrupts
   osal_int_disable( INTS_ALL );
 
   // Initialization for board related stuff such as LEDs
-  HAL_BOARD_INIT();
+  halBoardInit();
 
   // Make sure supply voltage is high enough to run
   zmain_vdd_check();

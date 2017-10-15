@@ -10,9 +10,7 @@
 ***************************************************************************************************/
 
 // Application Events (OSAL) - These are bit weighted definitions.
-#define GENERICAPP_SEND_MSG_EVT       0x0001
-// USB Annunce message
+#define CHECHKING_CHILD_TIMER		  0x0001
+#define ALIVE						  0x0002
 #define ENDPOINT_REQUEST_MSG		  0x0004
-#define SEND_FIFO_DATA				  0x0008
-#define EVENT_SERIAL_CMD					0xE0
-
+#define EVENT_SERIAL_CMD			  0x00E0

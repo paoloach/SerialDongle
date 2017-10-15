@@ -1,0 +1,121 @@
+
+typedef struct
+{
+  uint16 shortAddr; +0                 // Short address of associated device
+  uint16 addrIdx;   +2                // Index from the address manager
+  byte nodeRelation; +4
+  byte devStatus;    +5               // bitmap of various status values
+  byte assocCnt;    +6
+  byte age;         +7
+ uint8  txCounter;  +8  // Counter of transmission success/failures
+  uint8  txCost;    +9   // Average of sending rssi values if link staus is enabled
+                       // i.e. NWK_LINK_STATUS_PERIOD is defined as non zero
+  uint8  rxLqi;     +10   // average of received rssi values
+                       // needs to be converted to link cost (1-7) before used
+  uint8  inKeySeqNum; +11 // security key sequence number
+  uint32 inFrmCntr;   +12 // security frame counter..
+  uint16 txFailure;   +16 // higher values indicate more failures
+  uint16 timeoutCounter; +18
+  uint16 endDevKaTimeout; +20
+  						  +22
+} associated_devices_t;
+
+
+
+// -----------------------------------
+// extern associated_devices_t *AssocAddNew( uint16 shortAddr, byte *extAddr,  byte nodeRelation );
+// R1 -->nodeRelation
+// R3:R2 --> shortAddr
+// R5:R4 --> extAddr
+// -----------------------------------
+AssocAddNew:
+	MOV	A,#F0
+	LCALL	BANKED_ENTER_XDATA
+	MOV	A,-0x0D
+	LCALL	ALLOC_XSTACK	
+	MOV		V4,R2
+	MOV		V5,R3
+	MOV		V0,R4
+	MOV		V1,R5 
+	MOV		V2,R1
+	MOV		A,R4
+	ORL		A,V1
+	
+	// V2 --> nodeRelation
+	// V5:V4 --> shotAddr
+	// V1:V0		extAddr
+	
+	MOV		R2,V0
+	MOV		R3,V1
+	LCALL	AssocGetWithExt // Search device list
+	MOV		V6,R2
+	MOV		V7,R3
+	//  V7:V6 --> associated_devices_t *
+	MOV		r6,V6
+	mov		R7,V7
+	MOV		A,R6
+	ORL		A,R7
+	JZ		L_3046	
+	LJMP	L_310A// device found
+L_3046:
+	// Device not found
+	MOV		R3,#0
+	SJMP	L_304b
+	INC		R3
+L_304b:
+	LCALL	509  // Controlla se R3 è minore di gNWK_MAX_DEVICE_LIST
+	JNC		L_305F
+	LCALL	SP125   // Carica in DPTR AssociatedDevList[r3].nodeRelation e mette il valore in A, invertendolo
+	
+	
+	
+	
+// ---------------------------------------------	
+/*
+ * Search the Device list using extended Address.
+ */
+//  extern associated_devices_t *AssocGetWithExt( byte *extAddr );	
+//  R3:R2 --> extAddr
+// ---------------------------------------------
+
+
+
+
+// Carica in DPTR AssociatedDevList[r3].nodeRelation e mette il valore in A, invertendolo
+SP125
+	MOV		A,R3
+	MOV		B,#0x16
+	MUL		AB
+	MOV		R0,A
+	MOV		R1,B
+	LCALL	SP199
+	CPL		A
+	RET
+	
+// Carica in DPTR AssociatedDevList.nodeRelation + R1:R2 e mette in A il valore	
+SP199:
+	MOV		A,#0x21
+	ADD		A,R0
+	MOV		DPL,A
+	MOV		A,#0x0B
+	LCALL	SP670
+	RET
+
+
+// Controlla se R3 è minore di gNWK_MAX_DEVICE_LIST
+SP509:
+	MOV		DPTR,gNWK_MAX_DEVICE_LIST
+	CLR		A
+	MOV		A.@A+DPTR
+	MOV		RO,A
+	MOV		A,R3
+	CLR		C
+	SUBB	A,R0
+	RET
+	
+SP670:
+	ADDC	A,R1
+	MOV		DPH,A
+	MOVX	A,@DPTR
+	RET
+	

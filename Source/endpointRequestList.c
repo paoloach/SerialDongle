@@ -40,7 +40,9 @@ void sendOneEndpointRequest(void){
 	zAddrType.addrMode = SADDR_MODE_SHORT;
 	zAddrType.addr.shortAddr = head->nwkAddr;
 	ZDP_SimpleDescReq(&zAddrType, head->nwkAddr,  head->endpoint, head->security);
+	struct EndpointRequest * toRemove = head;
 	head = head->next;
+	osal_mem_free(toRemove);
 	if (head != NULL){
 		osal_start_timerEx( taskId, ENDPOINT_REQUEST_MSG, ENDPOINT_REQUEST_TIMEOUT );
 	}

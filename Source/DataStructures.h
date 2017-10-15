@@ -62,6 +62,14 @@ struct ReqDeviceInformationEvent {
 	};
 };
 
+struct ReqDeviceNodePower {
+	struct UsbISR	isr;
+	union  {
+		uint16      nwkAddr;
+		uint8		data[2];
+	};
+};
+
 struct SendCmdMsg{
 	struct UsbISR	isr;
 	afAddrType_t afAddrType;

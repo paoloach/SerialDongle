@@ -14,7 +14,7 @@
 #include "hal_types.h"
 #include "ZComDef.h"
 
-#define ENDPOINT_REQUEST_TIMEOUT   1000     // Every 100 ms
+#define ENDPOINT_REQUEST_TIMEOUT   1000     // Every 1000 ms
 
 struct EndpointRequest {
 	uint16 nwkAddr;

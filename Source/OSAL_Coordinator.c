@@ -58,7 +58,8 @@ const pTaskEventHandlerFn tasksArr[] = {
 };
 
 const uint8 tasksCnt = sizeof( tasksArr ) / sizeof( tasksArr[0] );
-uint16 *tasksEvents;
+uint16 * tasksEvents;
+uint16 events[10];
 
 /*********************************************************************
  * FUNCTIONS
@@ -78,7 +79,8 @@ void osalInitTasks( void )
 {
   uint8 taskID = 0;
 
-  tasksEvents = (uint16 *)osal_mem_alloc( sizeof( uint16 ) * tasksCnt);
+  tasksEvents=events;
+ // tasksEvents = (uint16 *)osal_mem_alloc( sizeof( uint16 ) * tasksCnt);
   osal_memset( tasksEvents, 0, (sizeof( uint16 ) * tasksCnt));
 
   macTaskInit( taskID++ );

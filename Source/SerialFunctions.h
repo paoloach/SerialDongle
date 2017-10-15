@@ -22,6 +22,8 @@
 void serialInit(void);
 void serialLoop(void);
 void sendMessage(char * string);
+void sendAliveMsg(void);
+char * sendUInt16(char * buffer, uint16 value);
 void serialSendDevice(associated_devices_t * device);
 void serialSendDeviceInfo(associated_devices_t * device);
 void serialSendActiveEPError(uint16 nwkAdd, afStatus_t ret);
@@ -32,4 +34,5 @@ void serialSendSimpleDescriptor(ZDO_SimpleDescRsp_t *);
 void serialSendIeeeAddress(zdoIncomingMsg_t * );
 void serialSendBindTable(struct BindTableResponseEntry * bindTable);
 void nodePowerResponseMessage(zdoIncomingMsg_t * msg);
+void nodePowerResponseMessageError(uint16 nwkAddress, uint8 status);
 #endif

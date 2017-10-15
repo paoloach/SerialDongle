@@ -1,0 +1,92 @@
+typedef struct
+{
+  uint8  user;		//+0
+  uint16 nwkAddr;   //+1
+  uint8  extAddr[Z_EXTADDR_LEN]; // +3
+  uint16 index;  // +11
+} AddrMgrEntry_t;
+
+uint16	SP6
+uint16	SP7
+
+
+AddrMgrInit:
+// Input
+//  R2:R3 = NWK_MAX_ADDRESSES
+	MOV	A,F7
+	LCALL	BANKED_ENTER_XDATA
+	MOV		DPTR,SP6
+	LCALL	SP381
+	MOV		A,R2
+	ORL		A,R3
+	JZ		L1
+	// calcola la dimensione da allocare (11 * NWK_MAX_ADDRESSES)
+	MOV		A,R2
+	MOV		B,0x0B
+	MUL		AB		
+	MOV		R2,A    
+	MOV		R0,B
+	MOV		B,0x0B
+	MOV		A,R3
+	MUL		AB	
+	ADD		A,R0
+	MOV		R3,A
+	MOV		A,R2
+	MOV		R6,A
+	MOV		A,R3
+	MOV		R7,A
+	LCALL	osal_mem_alloc
+	// Salva in SP7 il puntatore alla memoria allocata
+	MOV		DPTR,SP7
+	LCALL	SP381 
+	MOV		DPTR,SP7
+	LCALL	SP440
+	JZ		L2
+	MOV		A,R6
+	MOV		R4,A
+	MOV		A,R7
+	MOV		R5,A
+	MOV		R1,0
+	LCALL	osal_memset
+	SJMP	L2
+L1: // 2b5d
+	MOV		DPTR,SP7
+	CLR		A
+	MOVX	@DPTR,A
+	INC		DPTR
+	MOVX	@DPTR,A
+L2:	
+	JMP		SP332
+	
+	
+	
+SP316:
+	LCALL	SP317
+	RET
+	
+SP317:
+	MOVX	A,@DPTR
+	MOV		R0,A
+	INC		DPTR
+	MOV		A,@DPTR
+	MOV		R1,A
+	RET
+	
+SP381:
+	MOV		A,R2
+	MOVX	@DPTR,A
+	INC		DPTR
+	MOV		A,R3
+	MOVX	@DPTR,A
+	RET
+	
+SP322:
+	MOV	R7,1
+	LJMP	BANKED_LEAVE_XDATA
+	
+SP440:
+	LCALL	SP316
+	MOV		A,R0
+	ORL		A,R1
+	RET
+	

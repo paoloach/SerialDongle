@@ -1,0 +1,600 @@
+
+uint16 SP6
+struct Element * SP7
+typedef struct
+{
+  uint8  user;
+  uint16 nwkAddr;
+  uint8  extAddr[Z_EXTADDR_LEN];
+  uint16 index;
+} AddrMgrEntry_t;
+
+// -----------------------------------
+//         AddrMgrEntryValidate
+//	R3:R2	--> AddrMgrEntry_t * 
+//  R1 <-- 0 se index >= NWK_MAX_ADDRESSES or (user & 0xF != 0)
+//		   1 se index <	 NWK_MAX_ADDRESSES and (user & 0xF == 0)
+// -----------------------------------
+AddrMgrEntryValidate:
+L_2916:
+	PUSH	DPL
+	PUSH	DPH
+	MOV		R1,#0
+	MOV		A,R2
+	// Mette in DPTR l'indirizzo di index
+	LCALL	SP54
+	ADDC	A,R3
+	MOV		DPH,A
+	PUSH	DPL
+	PUSH	DPH
+	MOV		DPTR,SP6
+	// mette in R4:R5 il valore di SP6 
+	LCALL	SP657
+	POP		DPH
+	POP		DPL
+	// confronta index cont il valore massimo
+	MOVX	A,@DPTR
+	SUBB	A,R4
+	INC		DPTR
+	MOVX	A,@DPTR
+	SUBB	A,R5
+	JNC		L_2945
+	MOV		A,R2
+	ADD		A,#0x0B
+	// Mette in R3:R2 l'index
+	LCALL	SP41
+	LCALL	SP39	
+	JZ		L_2945
+	INC		R1
+L_2945
+	LJMP	SP296
+
+
+
+// -----------------------------------
+//         AddrMgrInitNV
+// -----------------------------------
+	MOV	A,F6
+	LCALL	BANKED_ENTER_DATA
+	CLR		A
+	MOV		V0,A
+	MOV		V1,A
+	MOV		R0,8
+	LCALL	PUSH_XSTACK_I_TWO
+	MOV		DPTR,SP6
+	LCALL	SP182
+	MOV		B,0x0B
+	MUL		AB
+	MOV		R4,A
+	MOV		R0,B
+	MOV		B,0x0B
+	MOV		A,R5
+	MUL		AB
+	ADD		A,R0
+	MOV		R5,A
+	// R5:R4 contengono la dimensione allocata per SP6
+	MOV		R2,0x23
+	MOV		R3,0
+	// R3:R2 --> ZCD_NV_ADDRMGR
+	CALL	osal_nv_item_init
+	MOV		A,2
+	LCALL	DEALLOC_XSTACK8
+	MOV		A,R1
+	MOV		R6,A
+	JZ		L1
+	LCALL	AddrMgrSetDefaultNV
+L1:
+	MOV		A,R6
+	MOV		R1,A
+	LJMP	SP136
+	
+// ----------------------------------------------------------------------
+AddrMgrSetDefaultNV
+	MOV		A,F6
+	LCALL	BANKED_ENTER_XDATA
+	MOV		A,0xFF
+	LCALL	ALLOC_XSTACK8
+	MOV		R6,#0
+	MOV		R7,#0
+	SJMP	L2
+L3:
+	MOV		DPL,XSP(L)
+	MOV		DPH,XSP(H)
+	CLR		A
+	LCALL	SP178
+	LCALL	PUSH_XSTACK_I_TWO
+	MOV		V0,1
+	MOV		V1,0
+	MOV		R0,8
+	LCALL	PUSH_XSTACK_I_TWO
+	MOV		A,R6
+	MOV		R4,A
+	MOV		A,R7
+	MOV		R5,A
+	MOV		A,R4
+	MOV		B,#0x0B
+	MUL		AB
+	MOV		R4,A
+	MOV		R0,B
+	MOV		B,#0x0B
+	ADD		A,R0
+	MOV		R5,A
+	
+	// R2:R3 <-- ZCD_NV_ADDRMGR
+	MOV		R2,#0x23
+	MOC		R3,#0
+	
+	
+	LCALL	osal_nv_write
+	MOV		A,4
+	LCALL	DEALLOC_XSTACK8
+	INC		R6
+	MOV		A,R6
+	JNZ		L2
+	INC		R7
+L2:
+	LCALL	SP73
+	JC		L3
+	MOV		A,1
+	LJMP	SP135
+	
+// -----------------------------------------------------------
+AddrMgrRestoreFromNV
+	MOV		A,#F6
+	LCALL	BANKED_ENTER_XDATA
+	MOV		R6,#0
+	MOV		R7,#0
+	SJMP	L_2C3C
+L_2C03:
+	MOV		A,R6
+	MOV		R0,A
+	MOV		A,R7
+	MOV		R1,A
+	// Mette nello stack l'indirizzo del buffer per la lettura da NV
+	LCALL	SP67
+	MOV		R0,#8
+	LCALL	PUSH_XSTACK_I_TWO
+	// mette nello stack la lunghezza da leggere per la lettura da NV
+	MOV		V0,#0x0B
+	MOV		V1,0
+	MOV		R0,8
+	LCALL	PUSH_XSTACK_I_TWO
+	// r7:r6 indice, mette in r5:r4 l'offset per la lettura da NV
+	MOV		A,R6
+	MOV		R4,A
+	MOV		A,R7
+	MOV		R5,A
+	MOV		B,#0x0B
+	MUL		AB
+	MOV		R4,A
+	MOV		B,#0x0B
+	MOV		A,R5
+	MUL		AB
+	ADD		A,R2
+	MOV		R5,A
+	// r3:r2 <-- ZCD_NV_ADDRMGR
+	MOV		R2,0x23
+	MOV		R3,0
+	LCALL	osal_nv_read
+	MOV		A,#0x04
+	LCALL	DEALLOC_XSTACK8
+	INC		R6
+	MOV		A,R6
+	JNZ		L_2C3C
+	INC		R7
+L_2C3C:
+	LCALL	SP73
+	JC		L_2C03
+	LJMP	SP136
+	
+// --------------------------------------------------------
+// AddrMgrWriteNV
+// --------------------------------------------------------
+AddrMgrWriteNV:
+L_2c60:
+	MOV		A,#0xF6
+	LCALL	BANKED_ENTER_XDATA
+	MOV		R6,0
+	MOV		R7,0
+	SJMP	L_2Cb5
+	MOV		A,R6
+	MOV		R0,A
+	MOV		A,R7
+	LCALL	SP71
+	MOV		DPL,R0
+	MOV		DPH,R1
+	MOVX	A,@DPTR
+	MOV		C,A.7
+	JNC		L_2CB0
+	CLR		A.7
+	MOVX	@DPTR,A
+	MOV		V0,DPL
+	MOV		V1,DPH
+	MOV		R0,#8
+	LCALL	PUSH_XTACK_I_TWO
+	MOV		V0,#B
+	MOV		V1,0
+	MOV		R0,#8
+	LCALL	PUSH_XTACK_I_TWO
+		// r7:r6 indice, mette in r5:r4 l'offset per la lettura da NV
+	MOV		A,R6
+	MOV		R4,A
+	MOV		A,R7
+	MOV		R5,A
+	MOV		B,#0x0B
+	MUL		AB
+	MOV		R4,A
+	MOV		B,#0x0B
+	MOV		A,R5
+	MUL		AB
+	ADD		A,R2
+	MOV		R5,A
+	// r3:r2 <-- ZCD_NV_ADDRMGR
+	MOV		R2,0x23
+	MOV		R3,0
+	LCALL	osal_nv_write
+	MOV		A,#4
+	LCALL	DEALLOC_XSTACK_8
+L_2CB0:
+	INC		R6
+	MOV		A,R6
+	JNZ		L_2CB5
+	INC		R7
+L_2CB5:
+	LCALL	SP73
+	JC		L_2C03
+	LJMP	SP136
+	
+	
+// ------------------------------------
+// AddrMgrExtAddrSet(uint8* dstExtAddr, uint8* srcExtAddr)
+// ------------------------------------
+AddrMgrExtAddrSet:
+L_2CE4:
+	PUSH	DPL
+	PUSH	DPH
+	MOV		A,R4
+	MOV		ORL,R5
+	JZ		L_2CF1
+	LCALL	sAddrExtCpy
+	SJMP	L_2CFA
+L_2CF1:
+	MOV		R4,#8
+	MOV		R5,0
+	MOV		R1,0
+	LCALL	osal_memset
+L_2CFA
+	LJMP	SP_296
+	
+// ------------------------------------
+// uint8 AddrMgrExtAddrValid( uint8* extAddr );
+// R3:R2 --> extAddr
+// R1 --> 1 ok, 0 non valid
+// ------------------------------------
+AddrMgrExtAddrValid:
+L_2CFD:
+	MOV		A,#F6
+	LCALL	BANKED_ENTER_XDATA
+	MOV		R1,0
+	MOV		A,R2
+	ORL		A,R3
+	JZ		L_2D1F
+	MOV		R0,0
+L_2D0A:
+	MOV		A,R2
+	ADD		A,R0
+	MOV		DPL,A
+	CLR		A
+	LCALL	SP485
+	JZ		L_2D18
+	MOV		R1,#1
+	MOV		R0,#8
+L_2D18
+	INC		R0
+	MOV		A,R0
+	CLR		C
+	SUBB	A,8
+	JC		L_2D0A
+L_2D1F:
+	LJMP	SP136
+	
+// ------------------------------------
+// uint8 AddrMgrEntryRelease( AddrMgrEntry_t* entry );
+// R3:R2 --> entry
+// R1 --> 1 ok, 0 non valid
+// ------------------------------------	
+AddrMgrEntryRelease:
+	MOV		A,#F7
+	LCALL	BANKED_ENTER_XDATA
+	MOV		A,R2
+	MOV		R6,R2
+	MOV		A,R3
+	MOV		R7,A
+	LCALL	AddrMgrEntryValidate
+	MOV		A,R1
+	MOV		V0,A
+	MOV		A,#1
+	XRL		A,V0
+	JNZ		L_2DD5
+	LCALL	SP88
+	CPL		A
+	MOV		R2,A
+	MOV		DPL,R0
+	MOV		DPH,R1
+	MOVX	A,@DPTR
+	ANL		A,R2
+	ORL		A,#0x80
+	MOVX	@DPTR,A
+	LCALL	AddrMgrWriteNVRequest
+L_2DD5
+	LJMP	SP224
+	
+// ---------------------------------
+// AddrMgrEntryAddRef
+// ---------------------------------
+
+.....
+	// Mette in A il valore user di emtry
+	// mette in R0:R1 l'elemento memorizzato dall'indice di entry
+	LCALL	SP88
+	MOV		A,R2
+	MOV		DPL,R0
+	MOV		DPH,R1
+	MOVX	A,@DPTR
+	ANL		A,R2
+	JNZ		L_2E15
+	MOV		DPL,R6
+	MOV		DPH,R7
+	MOV		A,@DPTR
+	ORL		A,@80
+	MOV		R2,A
+	MOV		DPL,R0
+	MOV 	DPH,R1
+	MOVX	a,@DPTR
+	ORL		A,R2
+	MOVX		@DPTR,A
+	LCALL	AddrMgrWriteNVRequest
+L_2e15
+	LJMP	SP224
+	
+// Mette nello stack V0 e V1
+PUSH_XSTACK_I_TWO:
+	MOV		A,2
+	SJMP	PUSH_XSTACK_I
+	
+PUSH_XSTACK_I:
+	PUSH	A
+	CPL		A
+	INC		A
+	LCALL	ADD_XSTACK_DISP0_8
+	POP		A
+	LCALL	MOVE_LONG_XDATA_IDATA
+	RET
+	
+MOVE_LONG_XDATA_IDATA:
+	
+	
+ADD_XSTACK_DISP0_8:
+	ADD		A,XSP(L)
+	MOV		DPL,A
+	JBC		IEN0.EA, L_958
+	MOV		XSP(L),A
+	JC		L_960
+	DEC		XSP(H)
+	SJMP	L_960
+L_958
+	MOV		XSP(L),A
+	JC		L_95E
+	DEC		XSP(H)
+L95E:
+	SETB	IEN0.EA
+L960:
+	MOV		DPH,XSP(H)
+	RET
+	
+	
+// Test il field user dell'element il cui indirizzo è in r3:r2	
+SP39:
+	MOV		A,R2
+	MOV		B,#0x0B
+	MUL		AB
+	MOV		R2,A
+	MOV		R0,B
+	MOV		B,#0x0B
+	MOV		A,R3
+	MUL		AB
+	ADD		A,R0
+	MOV		R3,A
+	MOV		DPTR,#SP7
+	MOVX	A,#DPTR
+	ADD		A,R2
+	MOV		R0,A
+	INC		DPTR
+	MOVX	A,@DPTR
+	ADDC	A,R3
+	MOV		DPL,R0
+	MOV		DPH,A
+	MOVX	A,@DPTR
+	ANL		A,#0x0F
+	RET
+	
+SP41:
+	MOV		DPL,A
+	CLR		A
+	ADDC	A,R3
+	LCALL	SP443
+	RET
+	
+	
+SP54:
+	LCALL	SP552
+	RET		
+	
+// Mette in V1:V0 l'indirizzo di SP7+(R1:R0)
+SP67:
+	MOV		A,R0
+	MOV		B,#0x0B
+	MUL		AB
+	MOV		R0,A
+	MOV		R2,B
+	MOV		B,#0x0B
+	MOV		A,R1
+	MUL		AB
+	ADD		A,R2
+	MOV		R1,A
+	MOV		DPTR,#SP7
+	MOVX	A,#DPTR
+	ADD		A,R0
+	MOV		V0,A
+	INC		DPTR
+	MOVX	A,@DPTR
+	ADD		A,R1
+	MOV		V1,A
+	RET
+	
+// Mette in R1:R0 l'indirizzo di SP7+(R1:R0)	
+SP71
+	MOV		R1,A
+	MOV		A,R0
+	MOV		B,#0x0B
+	MUL		AB
+	MOV		R0,A
+	MOV		R2,B
+	MOV		B,#0x0B
+	MOV		A,R1
+	MUL		AB
+	ADD		A,R2
+	MOV		R1,A
+	MOV		DPTR,#SP7
+	MOVX	A,#DPTR
+	ADD		A,R0
+	MOV		R0,A
+	INC		DPTR
+	MOVX	A,@DPTR
+	ADD		A,R1
+	MOV		R1,A
+	RET
+	
+SP73:
+	MOV		DPTR,#SP6
+	LCALL	SP316
+	CLR		C
+	MOV		A,R6
+	SUBB	A,R0
+	MOV		A,R7
+	SUBB	A,R1
+	RET
+	
+// Mette A il field user indicato in R7:R6
+// mette in R1:R0 l'indirizzo dell'elemento il cui indice è in r7:r6 + 11
+SP88:
+	LCALL	SP370 // Mette in dptr R7:R6 + 11
+	LCALL	SP236 // Mette in A:R0 il uint16 puntato da dptr
+	LCALL	SP71
+	MOV		DPL,R6
+	MOV		DPH,R7
+	MOVX	A,@DPTR
+	RET
+
+SP132:
+	MOV		A,#F7
+	LJMP	BANKED_LEAVE_XDATA
+
+SP135:
+	LCALL	DEALLOC_XSTACK8
+	MOV		R7,2
+	LJMP	BANKED_LEAVE_XDATA
+
+SP136:
+	MOV		R7,2
+	LJMP	BANKED_LEAVE_XDATA
+SP137:
+	MOVX	A,@DPTR
+	MOV		R0,A
+	INC		DPTR
+	MOVX	A,@DPTR
+	MOV		R1,A
+	RET
+	
+	
+SP178:
+	MOVX	@DPTR,A
+	MOV		R0,XSP(L)
+	MOV		R1,XPL(H)
+	MOV		V0,R0
+	MOV		V1,R1
+	MOV		R0,#0x08
+	RET
+	
+SP182:
+	LCALL	SP658
+	MOV		A,R4
+	RET
+	
+SP224:
+	MOV		R1,V0
+	LJMP	SP322
+	
+SP236:
+	MOVX	A,@DPTR
+	MOV		R0,A
+	INC		DPTR
+	MOVX	A,@DPTR
+	RET
+	
+SP296:
+	POP		DPH
+	POP		DPL
+	LJMP	BRET_FF
+	
+SP316	
+	LCALL	
+	RET
+
+// Mette in dptr R7:R6 + 11
+SP370:
+	MOV		A,R6
+	LCALL	SP553
+	ADCC	A,r7
+	MOV		DPH,A
+	RET
+	
+SP443:
+	MOV		DPH,A
+	MOVX	A,@DPTR
+	MOV		R2,A
+	INC		DPTR
+	MOVX	A,@DPTR
+	MOV		R3,A
+	RET
+	
+SP485:
+	ADDC	A,R3
+	MOV		DPH,A
+	MOVX	A,@DPTR
+	RET
+	
+SP552:
+	LCALL	SP553
+	RET
+	
+	
+SP553:
+	ADD		A,#0x0B
+	MOV		DPL,A
+	CLR		A
+	RET
+// mette in R5:R4 il valore puntatao di DPTR
+SP657:
+	LCALL	SP658
+	RET
+	
+// mette in R5:R4 il valore puntatao di DPTR	
+SP658:
+	MOVX	A,@DPTR
+	MOV		A,R4
+	INC		DPTR
+	MOV		R5,A
+	RET
+	
+	

@@ -1,0 +1,24 @@
+// Param
+// uint16 --> nwkId
+
+AssocGetNextChildNode
+		PUSH	DPL
+		PUSH	DPH
+		MOV		R1,#0x01
+		SJMP	SP160
+			
+SP160
+		LCALL	AssocGetNextNode
+		LJMP	SP296
+			
+AssocGetNextNode
+MOV		A,#
+			
+			
+SP296
+		POP		DPH
+		POP		DPL
+		LJMP	?BRET_FF
+			
+		
+		

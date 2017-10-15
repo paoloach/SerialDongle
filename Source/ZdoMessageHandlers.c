@@ -13,6 +13,7 @@
 #include "endpointRequestList.h"
 #include "SerialFunctions.h"
 #include "SerialCmdCode.h"
+#include "CheckingChildList.h"
 
 /*********************************************************************
  * LOCAL VARIABLES
@@ -34,7 +35,6 @@ static void simpleDecriptorMessage(zdoIncomingMsg_t * msg);
 static void mgmtBindResponseMessage(zdoIncomingMsg_t * msg);
 static void ieeeAddrResponseMessage(zdoIncomingMsg_t * msg);
 
-
 ZDOMessageHandler ZDOMessageHandlerFactory(cId_t clusterId) {
 	ZDOMessageHandler zdoMessageHandler;
 	
@@ -52,6 +52,7 @@ ZDOMessageHandler ZDOMessageHandlerFactory(cId_t clusterId) {
 			zdoMessageHandler = mgmtBindResponseMessage;
 			break;
 		case IEEE_addr_rsp:
+		case NWK_addr_rsp:
 			zdoMessageHandler =ieeeAddrResponseMessage;
 			break;
 		case Power_Desc_rsp:
@@ -86,10 +87,18 @@ static void simpleDecriptorMessage(zdoIncomingMsg_t * msg) {
 	ZDO_ParseSimpleDescRsp( msg, &simpleDesc );
 	if (simpleDesc.status == ZDP_SUCCESS){
 		serialSendSimpleDescriptor(&simpleDesc);
+		if (simpleDesc.simpleDesc.pAppInClusterList!=NULL)
+			osal_mem_free(simpleDesc.simpleDesc.pAppInClusterList);
+		if (simpleDesc.simpleDesc.pAppOutClusterList!=NULL)
+			osal_mem_free(simpleDesc.simpleDesc.pAppOutClusterList);
 	}
 }
 
 static void ieeeAddrResponseMessage(zdoIncomingMsg_t * msg) {
+	serialSendIeeeAddress(msg);
+}
+
+static void nwkAddrResponseMessage(zdoIncomingMsg_t * msg) {
 	serialSendIeeeAddress(msg);
 }
 

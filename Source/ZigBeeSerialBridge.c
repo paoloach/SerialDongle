@@ -26,7 +26,9 @@
 #include "ZdoMessageHandlers.h"
 #include "UsbIrqHookProcessEvents.h"
 #include "SerialFunctions.h"
-
+#include "CheckingChildList.h"
+	 
+	 
 #if !defined( WIN32 )
   #include "OnBoard.h"
 #endif
@@ -109,10 +111,13 @@ void serialDongleAppInit( byte task_id ){
 	ZDO_RegisterForZDOMsg( serialDongleTaskID, Active_EP_rsp);
 	ZDO_RegisterForZDOMsg( serialDongleTaskID, Simple_Desc_rsp);
 	ZDO_RegisterForZDOMsg( serialDongleTaskID, IEEE_addr_rsp);
+	ZDO_RegisterForZDOMsg( serialDongleTaskID, NWK_addr_rsp);
 	ZDO_RegisterForZDOMsg( serialDongleTaskID, Power_Desc_rsp);
 	
 	
 	T1CTL=1;
+	
+	osal_start_timerEx(task_id, ALIVE, 5000);
 }
 
 /*********************************************************************
@@ -154,7 +159,6 @@ UINT16 processEvent( byte task_id, UINT16 events ){
 			}
 			break;
 		}
-	
 		osal_msg_deallocate( (uint8 *)hdrEvent );
 	    result = (events ^ SYS_EVENT_MSG);
 		goto end;
@@ -162,9 +166,19 @@ UINT16 processEvent( byte task_id, UINT16 events ){
 
 	if (events & ENDPOINT_REQUEST_MSG){
 		sendOneEndpointRequest();
-		
 		result = (events ^ ENDPOINT_REQUEST_MSG);
 		goto end;
+	}
+	
+	if (events & CHECHKING_CHILD_TIMER){
+		nextCheckRequest(serialDongleTaskID);
+		result = (events ^ CHECHKING_CHILD_TIMER);
+	}
+	
+	if (events & ALIVE) {
+		sendAliveMsg();
+		result = (events ^ ALIVE);
+		osal_start_timerEx(task_id, ALIVE, 5000);
 	}
 	
 end:
@@ -197,6 +211,8 @@ void messageMSGCB( afIncomingMSGPacket_t *pkt )
       break;
   }
 }
+
+
 
 
 /*********************************************************************

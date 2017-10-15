@@ -1,0 +1,189 @@
+//Parameter
+// R1, relation
+// R5:R4 extAddr
+// R3:R2 nwkId
+AssocAddNew
+030EA	MOV	A,#0xF0
+		LCALL	BANKED_ENTER_XDATA
+		MOV		A,#0xF3
+		LCALL	ALLOC_XSTACK
+		MOV		V4,R2
+		MOV		V5,R3
+		MOV		V0,R4
+		MOV		V1,R5
+		MOV		V2,R1
+		MOV		A,R4
+		ORL		V1
+		JZ		L1
+03103	MOV		R2,V0
+		MOV		R3,V1
+		LCALL	AssocGetWithExt
+		MOV		V6,R2
+		MOV		V7,R3
+		MOV		R6,V6
+		MOV		R7,V7
+		ORL		A,R7
+		JZ		L1
+03116	LJMP	031DD
+L1:
+		MOV		R3,#0x00
+		SJMP	L2
+0311D	INC		R3
+L2:
+		LCALL	SP509 (tablesize-R3) // continua fino a che R3 non è il massimo di elementi
+		JNC		L3
+		LCALL	SP125 // Verifica lo stato dell'elemento indicato da R3
+03126	JNZ		0311D // se lo stato è diverso da 0, continua
+		MOV		A,#0x37
+		ADD		A,R0	
+		MOV		R6,A
+		MOV		A,#0x09	
+		ADDC	A,R1
+		MOV		R7,A
+		SJMP	L4
+L3:
+		MOV		R6,#0x00			
+		MOV		R7,#0x00
+L4:
+		MOV		A,R6			
+		ORL		A,R7
+		JNZ		L5 (0313D)
+		LJMP	03231
+L5:	
+		MOV		DPTR,#287c		
+		LCALL	SP1
+		JZ		L7
+03145	MOV		A,#0x03		
+		XRL		A,V2
+		JZ		L6
+		MOV		A,#0x04
+		XRL		A,V2
+		JNZ		L7
+L6			
+03151	MOV		R2,#0x04
+		MOV		R1.#0x03
+		CALL	AssocCount
+		MOV		DPTR,#0x2895	 (gNWK_MAX_DEVICE_LIST. 1byte)
+		CLR		A
+		MOVC	A,@A+DPTR
+		MOV		R4,A
+		MOV		DPTR,#0x287C	(gNWK_MIN_ENDDEVICE_CHILDREN, 2 byte)
+		LCALL	SP121
+		JNC		L9
+L7:
+03166	MOV		DPTR,#0x287E	(gNWK_MIN_ROUTER_CHILDREN, 2 bytes)
+		LCALL	SP1
+		JZ		L10
+0316E	MOV		A,#0x01			
+		XRL		A,V2
+		JZ		L8
+		MOV		A,#0x02
+		XRL		V2
+		JNZ		L10
+L8:			
+0317A	MOV		R2,#0x02		
+		MOV		R1,#0x01
+		LCALL	AssocCount
+		MOV		DPTR,#0x2895	(gNWK_MAX_DEVICE_LIST, 1 byte)
+		CLR		A
+		MOV		A,@A+DPTR
+		MOV		R4,A
+		MOV		DPTR,#0x2874 (macRadioDefsTxPwrTables0x95, 2 byte)
+		LCALL	SP121
+		JC		L10
+L9:			
+0318F	MOV		R2,#0x00		
+		MOV		R3,#0x00
+		LJMP	03255	
+L10:			
+03196	MOV		DPL,XSP(L)
+		MOV		DPH,XSP(H)
+		MOV		A,#0x01	
+		MOVX	@DPTR,A	
+		LCALL	XSTACK_DISP0_8
+		INC		DPTR	
+		MOV		A,V5
+		MOVX	@DPTR,A
+		MOV		R4,V0
+		MOV		R5,V1
+		MOV		A,#0x03	
+		LCALL	XSTACK_DISP0_8
+		MOV		R2,DPL
+		MOV		R3,DPH
+		LCALL	AddrMgrExtAddrSet
+		MOV		R2,XSP(L)
+		MOV		R3,XSP(H)
+		LCALL	AddrMgrEntryUpdate
+		MOV		A,#0x0B	
+		LCALL	XSTACK_DISP0_8
+031C5	LCALL	SP264
+SP1:
+03258	LCALL	SP122
+		MOV		A,R0
+		ORL		A,R1
+		RET
+			
+SP121:
+0325e	LCALL	SP122
+		MOV		A,R4
+		CLR		C
+		SUB		A,R0
+		MOV		R0,A
+		CLR		A
+		SUBB	A,R1
+		MOV		R1,A
+		CLR		C
+		MOV		A,R2
+		SUBB	A,R0
+		MOV		A,R3
+		SUBB	A,R1
+		RET	
+			
+// Carica dalla ROM in R0:R1 il valore a 16 in DPTR
+SP122:
+0326e	CLR		A
+		MOVC	A,@A+DPTR
+		MOV		R0,A
+		MOV		A,#0x01	
+		MOVC	A,@A+DPTR
+		MOV		R1,A
+		RET	
+// mette in A  l'inverso del valore di status dell'elemento indicato da R3
+SP125:			
+03285	MOV		A,R3
+		MOVB	B,#0x16
+		MUL		AB
+		MOV		R0,A	
+		MOV		R1,B
+		CALL	SP199
+		CPL		A
+		RET
+
+// Carica in A il valore di status	
+SP199
+03D02	MOV		A.#0x3B			
+		MOV		A,R0
+		MOV		DPL,A
+		MOV		A,0x09
+		LCALL	SP670
+		RET
+			
+SP264:
+04446	LCALL	SP516	
+		
+SP509			
+06081	MOV		DPTR,#2895
+		CLR		A
+		MOVC	A,@A+DPTR
+		MOV		R0,A
+		MOV		A,R3
+		CLR		C
+		SUBB	A,R0
+		RET
+
+670			
+07551	ADDC	A,R1
+		MOV		DPH,A
+		MOV		A,@DPTR
+		RET	
+		

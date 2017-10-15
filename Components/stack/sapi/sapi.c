@@ -841,18 +841,10 @@ UINT16 SAPI_ProcessEvent( byte task_id, UINT16 events )
     zb_HandleOsalEvent( ZB_ENTRY_EVENT );
 #endif
 
-    // LED off cancels HOLD_AUTO_START blink set in the stack
-    HalLedSet (HAL_LED_4, HAL_LED_MODE_OFF);
-
     zb_ReadConfiguration( ZCD_NV_STARTUP_OPTION, sizeof(uint8), &startOptions );
     if ( startOptions & ZCD_STARTOPT_AUTO_START )
     {
       zb_StartRequest();
-    }
-    else
-    {
-      // blink leds and wait for external input to config and restart
-      HalLedBlink(HAL_LED_2, 0, 50, 500);
     }
 
     return (events ^ ZB_ENTRY_EVENT );

@@ -1,0 +1,160 @@
+// Param
+// uint16 --> nwkId
+
+AssocGetNextChildNode (0x352D)
+		PUSH	DPL
+		PUSH	DPH
+		MOV		R1,#0x01
+		SJMP	SP160
+			
+SP160
+		LCALL	AssocGetNextNode
+		LJMP	SP296
+			
+AssocGetNextNode
+		MOV		A,#0xF7
+		LCALL	?BANKED_ENTER_DXATA
+		MOV		A,R1
+		MOV		R4,A
+		MOV		A,#0xFE
+		XRL		A,R2
+		JNZ		L9
+		MOV		A,#0xFF
+		XRL		A,R3
+L9:		
+		MOV		R5,#0x00
+		JNZ		L1
+		SJMP	L10
+L2
+		INC		R5
+L1		
+		LCALL	SP156
+		JNC		L10
+		MOV		A,R5   |
+		LCALL	SP126  | (flagZ = AssociatedDevList[R5].nodeRalation
+		JZ		L2		
+		LCALL	SP680	| A = AssociatedDevList[R5].nodeRalation
+		XRL		A,R2	
+		JNZ		L3
+		INC		DPTR
+		XRL		A,R3
+L3		
+		JNZ		L2
+		SJMP	L5
+L4
+		MOV		A,R5
+		MOV		B,#0x16
+		MUL		AB
+		MOV		R0,A
+		MOV		R1,A
+		LCALL	SP678
+		JZ		L6
+		MOVX	A,@DPTR
+		XRL		A,@0x03
+		JZ		L6
+L5:		
+		INC		R5
+L10:		
+		LCALL	SP156
+		JNZ		L7
+		MOV		A,R4
+		JZ		L4
+		LCALL	SP196
+		JZ		L5
+		CLR		C
+		SUBB	A,#0x05
+		JNC		L5
+L6:	
+		LCALL	SP600
+		LCALL	SP478
+		SJMP	L8
+L7:		
+		MOV		R2,#0xFE
+		MOV		R3,#0xFF
+L8:		
+		LJMP	SP322
+SP156			
+		MOV		DPTR,#0x2895 (gNWK_MAX_DEVICE_LIST)
+		CLR		A
+		MOVC	A,@A+DPTR
+		MOV		R0,A
+		MOV		A,R5
+		CLR		C
+		SUB		A,R0
+		RET
+		
+SP126:  A= !AssociatedDevList[A].nodeRelation
+		MOV		B,#0x16
+		MUL		AB
+		MOV		R0,A
+		MOV		R1,B
+		LCALL	SP199
+		CPL		A
+		RET
+		
+SP196:
+		MOV		A,R5
+		MOV		B,#0x16
+		MUL		A,B
+		MOV		R0,A,
+		MOV		R1,B
+		LCALL	SP199
+		RET
+	
+		
+		
+SP199:  | Load in A AssociatedDevList[0].nodeRelation + r1:r0
+		MOV		A,#0x3B
+		ADD		A,R0
+		MOV		DPL,A
+		MOV		A,#0x09 (093b --> AssociatedDevList + 4, nodeRelation)
+		LCALL	SP670
+		RET
+		
+SP296
+		POP		DPH
+		POP		DPL
+		LJMP	?BRET_FF
+		
+SP444:
+		MOVX	A,@DPTR
+		MOV		R2,A
+		INC		DPTR
+		MOVX	A,@DPTR
+		MOV		R3,A
+		RET
+		
+SP478:
+		ADD		A,R1
+		MOV		DPH,A
+		LCALL	SP444	
+		RET
+
+SP600
+		MOV		A,#0x37
+		MOV		A,R0
+		MOV		DPL,A
+		MOV		A,#0x09
+		RET
+		
+			
+SP670
+		ADC		A,R1
+		MOV		DPH,A
+		MOVX	A,@DPTR
+		RET
+		
+SP678
+		LCALL	SP199	
+		XRL		A,#0x01
+		RET
+		
+SP680	LCALL	SP681
+		RET
+SP681	MOV		A,#0x37
+		ADD		A,R0
+		MOV		DPL,A
+		MOV		A,#0x09
+		CALL	SP670
+		RET
+		

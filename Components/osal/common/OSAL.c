@@ -425,6 +425,28 @@ uint16 osal_rand( void )
  *
  * @return  pointer to allocated buffer or NULL if allocation failed.
  */
+#ifdef __DEBUG__
+uint8 * osal_msg_allocate_dbg( uint16 len , const char * funName , uint16 lineNum) 
+{
+  osal_msg_hdr_t *hdr;
+
+  if ( len == 0 )
+    return ( NULL );
+
+  hdr = (osal_msg_hdr_t *) osal_mem_alloc_dbg( (short)(len + sizeof( osal_msg_hdr_t )), funName, lineNum );
+  if ( hdr )
+  {
+    hdr->next = NULL;
+    hdr->len = len;
+    hdr->dest_id = TASK_NO_TASK;
+    return ( (uint8 *) (hdr + 1) );
+  }
+  else
+    return ( NULL );
+}
+#undef osal_msg_allocate
+uint8 * osal_msg_allocate( uint16 len );
+#endif
 uint8 * osal_msg_allocate( uint16 len )
 {
   osal_msg_hdr_t *hdr;
@@ -443,6 +465,8 @@ uint8 * osal_msg_allocate( uint16 len )
   else
     return ( NULL );
 }
+
+
 
 /*********************************************************************
  * @fn      osal_msg_deallocate

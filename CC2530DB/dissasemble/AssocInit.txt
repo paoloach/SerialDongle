@@ -1,0 +1,24 @@
+AssocInit
+		PUSH	DPL
+		PUSH	DPH
+		MOV		DPTR,#0x2895 (gNWK_MAX_DEVICE_LIST, 1 byte)
+		CLR		A
+		MOVC	A,@A+DPTR
+		MOV		B,#0x16
+		MUL		AB
+		MOV		R4.A
+		MOV		R5,B
+		MOV		R1,#0xFF
+		MOV		R2,#0x37  
+		MOV		R3,#0x09   (R3:R2 --> AssociatedDevList)
+		CALL	osal_memset
+		LJMP	SP296
+		
+SP296:
+		POP		DPH
+		POP		DPL
+		LJMP	?BRET_FF
+		
+?BRET_FF
+		POP		?CBANK
+		RET

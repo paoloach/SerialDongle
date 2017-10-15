@@ -22,6 +22,7 @@
 static void serialWrite(char * string);
 static char * adduint16(char * buffer, uint16 nwkAddr);
 static char * addMem(char * buffer, char * src, uint8 len);
+static char * addStr(char * buffer, char * src);
 static char * addExtAddr(char * buffer,  uint8 extAddr[Z_EXTADDR_LEN]);
 static char * adduint8(char * buffer, uint8 value);
 static char * addSep(char * buffer);
@@ -37,13 +38,15 @@ static char * dbIter=db;
 static char * nextDbIter=db;
 static char * dbEnd=db+DATA_BUFFER_SIZE;
 
+
 #define RX_BUFFER_SIZE 128
-static char rxData[RX_BUFFER_SIZE];
-static char * rxDataIter=rxData;
+char rxData[RX_BUFFER_SIZE];
+#define   rxDataEnd rxData+RX_BUFFER_SIZE
+char * rxDataRead=rxData;
+static char * rxDataWrite=rxData;
+#define CMD_LIST	6
 static uint8 newCmd=0;
-
-static uint8 DMA1Ready=1;
-
+static char *	startCmd[CMD_LIST];
 
 __sfr __no_init volatile struct  {
 	unsigned char U0CSR_ACTIVE: 1;
@@ -88,9 +91,6 @@ void serialInit(void){
 	
 	P0SEL = 0x0C;
 
-	// U0CSR
-	// MODE (7)=1
-	// RE (6)=1
 	U0CSR = 0x80;
 	U0UCR = 0x80; // flush
 	
@@ -131,7 +131,8 @@ void serialInit(void){
 	HAL_DMA_SET_M8(dmaDesc, HAL_DMA_M8_USE_8_BITS);
 	HAL_DMA_SET_PRIORITY(dmaDesc, HAL_DMA_PRI_HIGH);
 	DMAIE=1;
-	DMA1Ready=1;
+	newCmd=0;
+	startCmd[0]  =rxData;
 }
 
 void serialLoop(void) {
@@ -141,12 +142,18 @@ void serialLoop(void) {
 	if (URX0IE == 0){
 		URX0IE=1;
 	}
-	if (newCmd){
-		serialProcessEvent(rxData);
-		rxDataIter=rxData;
-		URX0IE=1;
-
-		newCmd=0;
+	if (newCmd>0){
+		rxDataRead = startCmd[0];
+		serialProcessEvent();
+		newCmd--;
+		startCmd[0] = startCmd[1];
+		if (newCmd > 0){
+			uint8 cmdIndex = newCmd;
+			while (cmdIndex > 0){
+				startCmd[cmdIndex] = startCmd[cmdIndex+1];
+				cmdIndex--;
+			}
+		}
 	}
 }
 
@@ -155,20 +162,27 @@ void sendMessage(char * string){
 	while(*string != 0){
 		*buffer = *string;
 		buffer++;
+		if (buffer == dbEnd){
+			buffer = db;
+		}
 		string++;
 		if (buffer == dbEnd){
 			buffer = db;
 		}
 	}
+	while(buffer == dbIter);
+	*buffer=0;
 	serialWrite(buffer);
 }
+
+
 
 void serialWrite(char * iter) {
 	halDMADesc_t * dmaDesc = HAL_DMA_GET_DESC1234(1);
 	uint16 len;
-	while(DMA1Ready==0);
+	while(HAL_DMA_CH_ARMED(1));
 	if (dbIter  > iter){
-		// Write all but the data from dbIter to the end of the buffer
+		// Write all the data from dbIter to the end of the buffer
 	
 		len = 1+dbEnd -  dbIter;
 		HAL_DMA_SET_SOURCE(dmaDesc,dbIter );
@@ -178,9 +192,8 @@ void serialWrite(char * iter) {
 		HAL_DMA_ARM_CH(1);
 		nextDbIter=db;
 		WAIT_ARM
-		DMA1Ready=0;
 		HAL_DMA_MAN_TRIGGER(1);
-		while(DMA1Ready==0);
+		while(HAL_DMA_CH_ARMED(1));
 	}
 
 	len = iter- dbIter;
@@ -191,11 +204,87 @@ void serialWrite(char * iter) {
 	HAL_DMA_ARM_CH(1);
 	nextDbIter=iter;
 	WAIT_ARM
-	DMA1Ready=0;
 	HAL_DMA_MAN_TRIGGER(1);
 }
 
 void serialSendDevice(associated_devices_t * device){
+}
+
+
+void sendAliveMsg(void) {
+	
+	while(nextDbIter != dbIter);
+#if __DEBUG__
+	struct HeapData data= osal_heap_info();
+	char * iter;
+	iter = addMem(dbIter,  "Alive. Mem used: ", 17);
+	iter = sendUInt16(iter, data.memUsed);
+	iter = addMem(iter,  " block used: ", 13);
+	iter = sendUInt16(iter, data.blockAllocated);
+	
+	*iter = '\n';
+	iter++;
+	if (iter == dbEnd){
+		iter = db;
+	}	
+	*iter=0;
+	serialWrite(iter);
+	struct BlockName  blockName;
+	while ( true){
+		while(iter != dbIter);
+		blockName = getNextNewBlockName();
+		if (blockName.fileName == NULL)
+			break;
+		iter = addMem(dbIter,  "name: ", 6);
+		iter = addStr(iter, blockName.fileName);
+		iter = addMem(iter,  ":", 1);
+		iter = sendUInt16(iter, blockName.lineNum);
+		iter = addMem(iter,  " id: ", 5);
+		iter = sendUInt16(iter, blockName.id);
+		
+		*iter = '\n';
+		iter++;
+		if (iter == dbEnd){
+			iter = db;
+		}	
+		*iter=0;
+		serialWrite(iter);
+	}
+	uint16 * allocated = getAllocated();
+	while(iter != dbIter);
+	iter = addMem(dbIter,  "allocated: ", 11);
+	for(int i=0; i < 50; i++){
+		if (allocated[i]==0)
+			break;
+		iter = sendUInt16(iter, allocated[i]);
+		iter = addMem(iter,  ", ", 2);
+		if ((i % 10)==0){
+			serialWrite(iter);
+			while(iter != dbIter);
+		}
+	}
+	*iter = '\n';
+	iter++;
+	if (iter == dbEnd){
+		iter = db;
+	}	
+	*iter=0;
+	serialWrite(iter);
+#else
+	char * iter;
+	iter = addMem(dbIter,  "Alive. Mem used: ", 17);
+	iter = sendUInt16(iter, osal_heap_mem_used());
+	iter = addMem(iter,  " block used: ", 13);
+	iter = sendUInt16(iter, osal_heap_block_cnt());
+	
+	*iter = '\n';
+	iter++;
+	if (iter == dbEnd){
+		iter = db;
+	}	
+	*iter=0;
+	serialWrite(iter);
+#endif
 }
 
 // format: DI: network id, node relation, dev status, assoc count,   age   , txCounter, txCost  , rxLqi, 
@@ -280,7 +369,7 @@ void serialSendAttributeResponseMsg(zclReadRspCmd_t * readRsp, uint16 clusterId,
 	char * iter=dbIter;
 	
 	for (;iterAttr != iterEnd; iterAttr++){
-		while(DMA1Ready==0);
+		while(HAL_DMA_CH_ARMED(1));
 		iter = addMem(iter,  "RA: ", 4);
 		iter = addNwkId(iter, addr->addr.shortAddr);
 		iter = addSep(iter);
@@ -316,6 +405,7 @@ void serialSendAttributeResponseMsg(zclReadRspCmd_t * readRsp, uint16 clusterId,
 // format: AN: networkId , extendAddress, capability\n
 //            4digit   16digits		  2digits
 void serialSendAnnunce(ZDO_DeviceAnnce_t * deviceAnnce ){
+	while(nextDbIter != dbIter);
 	char * buffer = dbIter;
 	char * iter;
 	iter = addMem(buffer,  "AN: ", 4);
@@ -334,6 +424,23 @@ void serialSendAnnunce(ZDO_DeviceAnnce_t * deviceAnnce ){
 	serialWrite(iter);
 }
 
+
+void nodePowerResponseMessageError(uint16 nwkAddr, uint8 status) {
+	char * iter;
+	char * buffer = dbIter;
+	iter = addMem(buffer, "NPRE: ", 6);
+	iter = addNwkId(iter, nwkAddr);
+	iter = adduint8(iter, status);
+	*iter = '\n';
+	iter++;
+	if (iter == dbEnd){
+		iter = db;
+	}
+	while(iter == dbIter);
+	*iter=0;
+	
+	serialWrite(iter);
+}
 
 // NPR: networkdId, powerMode, availablePowerSources, currentPowerSource, currentPowerSourceLevel
 //       4digit       1Digit        1Digit               1Digit                1Digit
@@ -355,21 +462,32 @@ void nodePowerResponseMessage(zdoIncomingMsg_t * inMsg) {
 		iter = addNwkId(iter, nwkAddr);
 		iter = addSep(iter);
 		msg += 2;
+		*iter = hexDigit[*msg & 0x0F];
+		iter++;
+		iter = addSep(iter);
+		*iter = hexDigit[*msg >> 4]; 
+		msg++;
+		iter++;
+		iter = addSep(iter);
+		*iter = hexDigit[*msg & 0x0F]; 
+		iter++;
+		iter = addSep(iter);
 		*iter = hexDigit[*msg >> 4];
-		iter = addSep(iter);
-		*iter = hexDigit[*msg++ & 0x0F];
-		iter = addSep(iter);
-		*iter = hexDigit[*msg >> 4];
-		iter = addSep(iter);
-		*iter = hexDigit[*msg++ & 0x0F];
-		*iter = 0;
+		iter++;
+		*iter = '\n';
+		iter++;
 	} else {
 		iter = addMem(buffer, "NPRE: ", 6);
 		iter = addNwkId(iter, nwkAddr);
 		iter = adduint8(iter, status);
-		*iter=0;
+		*iter = '\n';
 		iter++;
 	}
+	if (iter == dbEnd){
+		iter = db;
+	}
+	while(iter == dbIter);
+	*iter=0;
 	serialWrite(iter);
 }
 
@@ -491,6 +609,18 @@ void serialSendBindTable(struct BindTableResponseEntry * bindTable) {
 	serialWrite(iter);				
 }
 
+static char * addStr(char * buffer, char * src) {
+	for (; *src != 0; src++){
+		*buffer = *src;
+		buffer++;
+		if (buffer == dbEnd){
+			buffer = db;
+		}
+		while(buffer == dbIter);
+	}
+	return buffer;
+}
+
 static char * addMem(char * buffer, char * src, uint8 len) {
 	uint8 i;
 	for (i=0; i < len; i++){
@@ -596,20 +726,75 @@ char * adduint8(char * buffer, uint8 value) {
 	return buffer;
 }
 
+char * sendUInt16(char * buffer, uint16 value) {
+	uint8 p=0;
+	
+	uint8 v = value / 10000;
+	if (v != 0){
+		p=1;
+		*buffer = v + '0';
+		buffer++;
+		if (buffer == dbEnd){
+			buffer = db;
+		}
+		value  = value % 10000;
+	}
+	v = value / 1000;
+	if (v != 0 || p !=0){
+		*buffer = v + '0';
+		buffer++;
+		if (buffer == dbEnd){
+			buffer = db;
+		}
+		value  = value % 1000;
+		p=1;
+	}
+	v = value / 100;
+	if (v != 0 || p!=0){
+		*buffer = v + '0';
+		buffer++;
+		if (buffer == dbEnd){
+			buffer = db;
+		}
+		value  = value % 100;
+		p=1;
+	}
+	v = value / 10;
+	if (v != 0 || p!=0){
+		*buffer = v + '0';
+		buffer++;
+		if (buffer == dbEnd){
+			buffer = db;
+		}
+		value  = value % 10;
+	}
+	*buffer = value + '0';
+	buffer++;
+	if (buffer == dbEnd){
+		buffer = db;
+	}
+	return buffer;
+}
+
 // USART  0 RX IRQ
 HAL_ISR_FUNCTION( usart0RXIsr, URX0_VECTOR ){
 	HAL_ENTER_ISR();
 
 	URX0IF = 0;
-	*rxDataIter = U0DBUF;
-	if (*rxDataIter == '\n'){
-		*rxDataIter = 0;
-		newCmd=1;
-		// Disable the interrupt until the command is elaborated
-		URX0IE=0;
+	char c = U0DBUF;
+	if (c=='\n')
+		*rxDataWrite=0;
+	else			
+		*rxDataWrite = c;
+	rxDataWrite++;
+	if (rxDataWrite == (char*)rxDataEnd)
+		rxDataWrite = rxData;
+	if (c == '\n'){
+		startCmd[newCmd+1] = rxDataWrite;
+		if (newCmd < CMD_LIST-1)
+			newCmd++;
 	}
-	rxDataIter++;
-
+	
 	CLEAR_SLEEP_MODE();
 	HAL_EXIT_ISR();
 }
@@ -621,7 +806,6 @@ HAL_ISR_FUNCTION( halDmaIsr, DMA_VECTOR )
   DMAIF = 0;
   if (DMAIF1){
 	  DMAIF1=0;
-	  DMA1Ready=1;
 	  dbIter=nextDbIter;
   }
   CLEAR_SLEEP_MODE();

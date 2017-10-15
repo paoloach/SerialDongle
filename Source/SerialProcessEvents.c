@@ -12,202 +12,60 @@
 #include "ZComDef.h"
 #include "ZDProfile.h"
 #include "SerialProcessEvents.h"
+#include "SerialProcessEventsInternal.h"
 #include "TimerEvents.h"
 #include "DataStructures.h"
 #include "SerialFunctions.h"
 #include "ZigbeeSerialBridge.h"
 #include "ZigbeeSerialBridge_data.h"
+#include "CheckingChildList.h"
 
-extern byte serialDongleTaskID;
-static uint8 decodeLowDigit(char );
-static uint8 decodeHiDigit(char );
-static void eventReset(osal_event_hdr_t *);
-static void decodeIEEEEvents(char * strEvent);
-static void decodeActiveEndpointEvent(char * strEvent);
-static void decodeRequestAttribute(char * strEvent);
-static void decodeRequestAttributes(char * strEvent);
-static void decodeSendComand(char * strEvent);
-static void decodeSendWriteAttribute(char * strEvent);
-static void decodeDeviceInfoEvent(char * strEvent);
-static void decodeRequestBindUnBinf(char * strEvent, uint8 bind);
-static void decodeRequestBindTable(char * strEvent);
-static void eventReqIeeeAddr(osal_event_hdr_t *);
-static void eventActiveEP(osal_event_hdr_t * hdrEvent);
-static void eventSendCmd(osal_event_hdr_t *);
-static void attributeValue(osal_event_hdr_t * hdrEvent);
-static void eventDeviceInfo(osal_event_hdr_t * hdrEvent);
-static void eventBindRequest(osal_event_hdr_t *);
-static void eventUnbindRequest(osal_event_hdr_t *);
-static void eventBindReq(osal_event_hdr_t *);
-static void eventWriteValue(osal_event_hdr_t * hdrEvent);
-
-
-static uint16 decodeUInt16(char * iter);
-static uint8 decodeUInt8(char * iter);
-static void decodeExtendedAddress(char * iter, uint8 * extAddress);
-
-struct ReqIeeeAddrMsg {
-	struct UsbISR	isr;
-	union  nwkAddr {
-		uint16      nwkAddr;
-		uint8		data[2];
-	};
-	uint8		requestType;
-	uint8 		startIndex;
-};
-
-// events:
-//  "IEEE: networkid, requestType, index     -->  ZDP_IEEEAddrReq
-//         4digits,    '0' or '1',  2 digitis
-void serialProcessEvent(char * strEvent) {
-	if (*strEvent == 'I'){
-		strEvent++;
-		if (*strEvent == 'E'){
-			strEvent++;
-			if (*strEvent == 'E'){
-				strEvent++;
-				if (*strEvent == 'E'){
-					strEvent++;
-					if (*strEvent == ':'){
-						decodeIEEEEvents(strEvent);
-					}
-				}
-			}
-		}
-	} else if (*strEvent == 'A'){
-		strEvent++;
-		if (*strEvent == 'E'){
-			strEvent++;
-			if (*strEvent == ':'){
-				decodeActiveEndpointEvent(strEvent);
-			}
-		}
-	} else if (*strEvent == 'B'){
-		strEvent++;
-		if (*strEvent == 'E'){
-			strEvent++;
-			if (*strEvent == ':'){
-				decodeRequestBindUnBinf(strEvent, 1);
-			}
-		} else if (*strEvent == 'T'){
-			strEvent++;
-			if (*strEvent == ':'){
-				decodeRequestBindTable(strEvent);
-			}
-		}
-	} else if (*strEvent == 'D'){
-		strEvent++;
-		if (*strEvent == 'I'){
-			strEvent++;
-			if (*strEvent == ':'){
-				decodeDeviceInfoEvent(strEvent);
-			}
-		}
-	} else if (*strEvent == 'R'){
-		strEvent++;
-		if (*strEvent == 'A'){
-			strEvent++;
-			if (*strEvent == ':'){
-				decodeRequestAttribute(strEvent);
-			} else if (*strEvent == 'S'){
-				strEvent++;
-				if (*strEvent == ':'){
-					decodeRequestAttributes(strEvent);
-				}
-			}
-		} else if (*strEvent == 'E'){
-			strEvent++;
-			if (*strEvent == 'S'){
-				strEvent++;
-				if (*strEvent == 'E'){
-					strEvent++;
-					if (*strEvent == 'T'){
-						strEvent++;
-						if (*strEvent == ':'){
-							struct UsbISR * msg = (struct UsbISR *)osal_msg_allocate(sizeof(struct UsbISR) );
-							msg->msg.event = EVENT_SERIAL_CMD;
-							msg->isr = eventReset;
-						}
-					}
-				}
-			}
-		}
-	} else if (*strEvent == 'S'){
-		strEvent++;
-		if (*strEvent == 'C'){
-			strEvent++;
-			if (*strEvent == ':'){
-				decodeSendComand(strEvent);
-			}
-		}
-	} else if (*strEvent == 'U'){
-		strEvent++;
-		if (*strEvent == 'B'){
-			strEvent++;
-			if (*strEvent == 'I'){
-				strEvent++;
-				if (*strEvent == ':'){
-					decodeRequestBindUnBinf(strEvent, 0);
-				}
-			}
-		}
-	} else if (*strEvent == 'W'){
-		strEvent++;
-		if (*strEvent == 'A'){
-			strEvent++;
-			if (*strEvent == 'I'){
-				strEvent++;
-				if (*strEvent == ':'){
-					decodeSendWriteAttribute(strEvent);
-				}
-			}
-		}
-	}
-}
-
-static uint8 decodeLowDigit(char c ) {
-	if (c >= '0' && c <= '9')
-		return c -'0';
-	else
-		return 10+c - 'A';
-}
-
-static uint8 decodeHiDigit(char c ) {
+ uint8 decodeHiDigit() {
+	uint8 c = *rxDataRead;
+	incDataRead;
 	if (c >= '0' && c <= '9')
 		return (c -'0') << 4;
 	else
 		return (10 +(c - 'A')) << 4;
 }
 
-static uint16 decodeUInt16(char * iter){
+ uint16 decodeUInt16(){
 	uint8 data[2];
-	data[1] = decodeHiDigit(*iter++);
-	data[1] += decodeLowDigit(*iter++);
-	data[0] = decodeHiDigit(*iter++);
-	data[0] += decodeLowDigit(*iter++);
+	data[1] = decodeHiDigit();
+	data[1] += decodeLowDigit();
+	data[0] = decodeHiDigit();
+	data[0] += decodeLowDigit();
 	return *((uint16 *)data);
 }
 
-static uint8 decodeUInt8(char * iter){
+ uint8 decodeUInt8(){
 	uint8 data;
-	data = decodeHiDigit(*iter++);
-	data += decodeLowDigit(*iter);
+	data = decodeHiDigit();
+	data += decodeLowDigit();
 	return data;
 }
 
-static void decodeExtendedAddress(char * iter, uint8 * extAddress){
+  void decodeExtendedAddress( uint8 * extAddress){
 	uint8 i;
 	for (i=0; i < Z_EXTADDR_LEN; i++){
-		extAddress[i] = decodeHiDigit(*iter++);
-		extAddress[i] += decodeLowDigit(*iter++);
+		extAddress[i] = decodeHiDigit();
+		extAddress[i] += decodeLowDigit();
 	}
 }
 
+static void decodeRequestBindUnBinf(uint8 bind);
+ void decodeRequestBind(void){
+	 decodeRequestBindUnBinf(1);
+ }
+ 
+  void decodeRequestUnbind(void){
+	 decodeRequestBindUnBinf(0);
+ }
+
 // Send message: BI: network id, extend address,  endpointId, clusterId, extend address, endpoint Id
 //                    4 digits ,  16 digits    ,    2 digits,  4 digits,  16 digits    ,   2 digits
-static void decodeRequestBindUnBinf(char * strEvent, uint8 bind){
-	strEvent++;
-	strEvent++;
+  void decodeRequestBindUnBinf(uint8 bind){
+	incDataRead;
 
 	struct BindRequestMsg * msgBind = (struct BindRequestMsg *)osal_msg_allocate(sizeof(struct BindRequestMsg) );
 
@@ -217,60 +75,68 @@ static void decodeRequestBindUnBinf(char * strEvent, uint8 bind){
 	else
 		msgBind->isr.isr = eventUnbindRequest;
 	msgBind->destAddr.addrMode = Addr16Bit;
-	msgBind->destAddr.addr.shortAddr = decodeUInt16(strEvent);
-	strEvent += 6;
-	decodeExtendedAddress(strEvent, msgBind->outClusterAddr);
-	strEvent+= 18;
-	msgBind->outClusterEP =  decodeUInt8(strEvent);
-	strEvent+=4;
-	msgBind->clusterID =  decodeUInt16(strEvent);
-	strEvent+=6;
+	msgBind->destAddr.addr.shortAddr = decodeUInt16();
+	incDataRead;
+	incDataRead;
+	decodeExtendedAddress( msgBind->outClusterAddr);
+	incDataRead;
+	incDataRead;
+	msgBind->outClusterEP =  decodeUInt8();
+	incDataRead;
+	incDataRead;
+	msgBind->clusterID =  decodeUInt16();
+	incDataRead;
+	incDataRead;
 	msgBind->inCluster.addrMode = Addr64Bit;
-	decodeExtendedAddress(strEvent, msgBind->inCluster.addr.extAddr);
-	strEvent+= 18;
-	msgBind->inClusterEP =  decodeUInt8(strEvent);
+	decodeExtendedAddress(msgBind->inCluster.addr.extAddr);
+	incDataRead;
+	incDataRead;
+	msgBind->inClusterEP =  decodeUInt8();
 	osal_msg_send(serialDongleTaskID, (uint8 *)msgBind);
 }
 
 
-static void decodeActiveEndpointEvent(char * strEvent){
-	strEvent++;
-	strEvent++;
+  void decodeActiveEndpointEvent(){
+	incDataRead;
 	struct ReqActiveEndpointsEvent * msgEP = (struct ReqActiveEndpointsEvent *)osal_msg_allocate(sizeof(struct ReqActiveEndpointsEvent) );
 	msgEP->isr.isr = eventActiveEP;
 	msgEP->isr.msg.event = EVENT_SERIAL_CMD;
-	msgEP->nwkAddr = decodeUInt16(strEvent);
+	msgEP->nwkAddr = decodeUInt16();
 	osal_msg_send(serialDongleTaskID, (uint8 *)msgEP);
 }
 
-static void decodeDeviceInfoEvent(char * strEvent) {
-	strEvent++;
-	strEvent++;
+  void decodeDeviceInfoEvent() {
+	incDataRead;
 	struct ReqDeviceInformationEvent * msgDI = (struct ReqDeviceInformationEvent *)osal_msg_allocate(sizeof(struct ReqDeviceInformationEvent) );
 	msgDI->isr.isr = eventDeviceInfo;
 	msgDI->isr.msg.event = EVENT_SERIAL_CMD;
-	msgDI->nwkAddr = decodeUInt16(strEvent);
+	msgDI->nwkAddr = decodeUInt16();
 	osal_msg_send(serialDongleTaskID, (uint8 *)msgDI);
 }
 
-static void decodeIEEEEvents(char * strEvent) {
-	strEvent++;
-	strEvent++;
-	struct ReqIeeeAddrMsg * msgReq = (struct ReqIeeeAddrMsg *)osal_msg_allocate(sizeof(struct ReqIeeeAddrMsg) );
-	msgReq->isr.isr = eventReqIeeeAddr;
+  void decodeNodePowerEvents () {
+	incDataRead;
+	struct ReqDeviceNodePower * msgReq = (struct ReqDeviceNodePower *)osal_msg_allocate(sizeof(struct ReqDeviceNodePower) );
+	msgReq->isr.isr = eventReqNodePower;
 	msgReq->isr.msg.event = EVENT_SERIAL_CMD;
-	msgReq->nwkAddr = decodeUInt16(strEvent);
-	strEvent += 6;
-	msgReq->requestType =(*strEvent++) == '0' ? 0 : 1;
-	strEvent++; // --> ','	
-	strEvent++; // --> ' '	
-	msgReq->startIndex = decodeUInt8(strEvent++);
+	msgReq->nwkAddr = decodeUInt16();
 	osal_msg_send(serialDongleTaskID, (uint8 *)msgReq);
+}
+
+
+
+
+  void decodeINIT(void) {
+	struct UsbISR * isr  = (struct UsbISR *)osal_msg_allocate(sizeof(struct UsbISR) );
+	isr->isr = eventInit;
+	isr->msg.event = EVENT_SERIAL_CMD;
+	osal_msg_send(serialDongleTaskID, (uint8 *)isr);
+
 }
 
 // Send message: WA: networkid, endpointId, clusterId, attributeId, dataType, , dataLen  ,         data
 //                   4 digits ,  2 digits ,  4 digits,  4 digits  ,  2 digits ,  2 digits,  n*2 digits, where n=dataLen
-static void decodeSendWriteAttribute(char * strEvent){
+  void decodeSendWriteAttribute(){
 	uint8 dataLen;
 	uint8 * data;
 	struct WriteAttributeValueMsg * msgCmd = (struct WriteAttributeValueMsg *)osal_msg_allocate(sizeof(struct WriteAttributeValueMsg) +sizeof(zclWriteRec_t)  );
@@ -279,27 +145,34 @@ static void decodeSendWriteAttribute(char * strEvent){
 	msgCmd->afAddrType.addrMode = afAddr16Bit;
 	msgCmd->writeCmd.numAttr=1;
 	
-	strEvent++;
-	strEvent++;
-	msgCmd->afAddrType.addr.shortAddr = decodeUInt16(strEvent);
-	strEvent+=6;
-	msgCmd->afAddrType.endPoint  =  decodeUInt8(strEvent);
-	strEvent+=4;
-	msgCmd->cluster  = decodeUInt16(strEvent);
-	strEvent+=6;
-	msgCmd->writeCmd.attrList->attrID  = decodeUInt16(strEvent);
-	strEvent+=6;
-	msgCmd->writeCmd.attrList->dataType =  decodeUInt8(strEvent);
-	strEvent+=4;
-	dataLen =  decodeUInt8(strEvent);
-	strEvent+=4;
+	incDataRead;
+	msgCmd->afAddrType.addr.shortAddr = decodeUInt16();
+	incDataRead;
+	incDataRead;
+	msgCmd->afAddrType.endPoint  =  decodeUInt8();
+	incDataRead;
+	incDataRead;
+	msgCmd->cluster  = decodeUInt16();
+	incDataRead;
+	incDataRead;
+	msgCmd->writeCmd.attrList->attrID  = decodeUInt16();
+	incDataRead;
+	incDataRead;
+	msgCmd->writeCmd.attrList->dataType =  decodeUInt8();
+	incDataRead;
+	incDataRead;
+	dataLen =  decodeUInt8();
+
 
 	if (dataLen > 0){
+		incDataRead;
+		incDataRead;
 		data = msgCmd->writeCmd.attrList->attrData = osal_mem_alloc(dataLen);
 		for (;dataLen > 0; dataLen--){
-			*data = decodeUInt8(strEvent);
-			data++;
-			strEvent+=2;
+			*data = decodeUInt8();
+			if (dataLen > 1){
+				data++;
+			}
 		}
 	}
 	osal_msg_send(serialDongleTaskID, (uint8 *)msgCmd);
@@ -307,23 +180,25 @@ static void decodeSendWriteAttribute(char * strEvent){
 
 // Send message: SC: networkid, endpointId, clusterId, commandId, dataLen  , data
 //                   4 digits ,  2 digits ,  4 digits,  4 digits,  2 digits,  n*2 digits, where n=dataLen
-static void decodeSendComand(char * strEvent){
+  void decodeSendComand(){
 	uint16 networkid, clusterId, commandId;
 	uint8  endpointId, dataLen;
 	uint8 * data;
 	
-	strEvent++;
-	strEvent++;
-	networkid = decodeUInt16(strEvent);
-	strEvent+=6;
-	endpointId =  decodeUInt8(strEvent);
-	strEvent+=4;
-	clusterId = decodeUInt16(strEvent);
-	strEvent+=6;
-	commandId = decodeUInt16(strEvent);
-	strEvent+=6;
-	dataLen =  decodeUInt8(strEvent);
-	strEvent+=4;
+	incDataRead;
+	networkid = decodeUInt16();
+	incDataRead;
+	incDataRead;
+	endpointId =  decodeUInt8();
+	incDataRead;
+	incDataRead;
+	clusterId = decodeUInt16();
+	incDataRead;
+	incDataRead;
+	commandId = decodeUInt16();
+	incDataRead;
+	incDataRead;
+	dataLen =  decodeUInt8();
 	
 	struct SendCmdMsg * msgCmd = (struct SendCmdMsg *)osal_msg_allocate(sizeof(struct SendCmdMsg) +dataLen  );
 	msgCmd->isr.isr = eventSendCmd;
@@ -334,51 +209,61 @@ static void decodeSendComand(char * strEvent){
 	msgCmd->cluster = clusterId;
 	msgCmd->cmdClusterId = commandId;
 	msgCmd->dataLen = dataLen;
-	data = (uint8 *)(msgCmd->data);
-	for (;dataLen > 0; dataLen--){
-		*data = decodeUInt8(strEvent);
-		data++;
-		strEvent+=2;
+	if (dataLen > 0){
+		incDataRead;
+		incDataRead;
+		data = (uint8 *)(msgCmd->data);
+		for (;dataLen > 0; dataLen--){
+			*data = decodeUInt8();
+			if (dataLen > 1){
+				data++;	
+			}
+		}
 	}
 	osal_msg_send(serialDongleTaskID, (uint8 *)msgCmd);
 }
 
 // decode RA: networkAddress, endpointId, clusterId, attributeId
 //              4 digitis   ,  2 digits ,  4digits ,  4 digits
-static void decodeRequestAttribute(char * strEvent){
-	strEvent++;
-	strEvent++;
+  void decodeRequestAttribute(){
+	incDataRead;
 	struct ReqAttributeMsg * msgAttr = (struct ReqAttributeMsg *)osal_msg_allocate(sizeof(struct ReqAttributeMsg) + sizeof(uint16)  );
 	msgAttr->isr.isr = attributeValue;
 	msgAttr->isr.msg.event = EVENT_SERIAL_CMD;
-	msgAttr->afAddrType.addr.shortAddr = decodeUInt16(strEvent);
-	strEvent+=6;
+	msgAttr->afAddrType.addr.shortAddr = decodeUInt16();
+	incDataRead;
+	incDataRead;
 	msgAttr->afAddrType.addrMode = afAddr16Bit;
-	msgAttr->afAddrType.endPoint =  decodeUInt8(strEvent);
-	strEvent+=4;
-	msgAttr->cluster = decodeUInt16(strEvent);
-	strEvent+=6;
+	msgAttr->afAddrType.endPoint =  decodeUInt8();
+	incDataRead;
+	incDataRead;
+	msgAttr->cluster = decodeUInt16();
+	incDataRead;
+	incDataRead;
 	msgAttr->numAttr=1;
-	msgAttr->attrID[0] = decodeUInt16(strEvent);
+	msgAttr->attrID[0] = decodeUInt16();
 	osal_msg_send(serialDongleTaskID, (uint8 *)msgAttr);
 }
 
 // decode:  RAS: networkid, endpointId, clusterId, attributesNum, first attributed id, ..., last attribute id
 //                4 digits, 2 digits  ,  4 digits, 2 digits     ,  4 digits          , ...,    4  digits
-static void decodeRequestAttributes(char * strEvent){
+  void decodeRequestAttributes(){
 	uint16 networkid, clusterId;
 	uint8  i, endpointId, attributeNum;
 	
-	strEvent++;
-	strEvent++;
-	networkid = decodeUInt16(strEvent);
-	strEvent+=6;
-	endpointId =  decodeUInt8(strEvent);
-	strEvent+=4;
-	clusterId = decodeUInt16(strEvent);
-	strEvent+=6;
-	attributeNum =  decodeUInt8(strEvent);
-	strEvent+=4;
+	incDataRead;
+	networkid = decodeUInt16();
+	incDataRead;
+	incDataRead;
+	endpointId =  decodeUInt8();
+	incDataRead;
+	incDataRead;
+	clusterId = decodeUInt16();
+	incDataRead;
+	incDataRead;
+	attributeNum =  decodeUInt8();
+	incDataRead;
+	incDataRead;
 	
 	struct ReqAttributeMsg * msgAttr = (struct ReqAttributeMsg *)osal_msg_allocate(sizeof(struct ReqAttributeMsg) + attributeNum*sizeof(uint16)  );
 	msgAttr->isr.isr = attributeValue;
@@ -389,26 +274,42 @@ static void decodeRequestAttributes(char * strEvent){
 	msgAttr->cluster = clusterId;
 	msgAttr->numAttr=attributeNum;
 	for (i=0; i < attributeNum; i++){
-		msgAttr->attrID[i] = decodeUInt16(strEvent);
-		strEvent+=6;
+		msgAttr->attrID[i] = decodeUInt16();
+		if (i < (attributeNum-1) ){
+			incDataRead;
+			incDataRead;
+		}
 	}
 	osal_msg_send(serialDongleTaskID, (uint8 *)msgAttr);
 }
 
-void decodeRequestBindTable(char * strEvent){
+void decodeRequestBindTable(){
 	struct BindTableRequestMsg * msgReq = (struct BindTableRequestMsg *)osal_msg_allocate(sizeof(struct BindTableRequestMsg) );
-	strEvent++;
-	strEvent++;
+	incDataRead;
 	msgReq->isr.isr = eventBindReq;
 	msgReq->isr.msg.event = EVENT_SERIAL_CMD;
 	msgReq->afAddrType.addrMode = Addr16Bit;
-	msgReq->afAddrType.addr.shortAddr= decodeUInt16(strEvent);
+	msgReq->afAddrType.addr.shortAddr= decodeUInt16();
 	osal_msg_send(serialDongleTaskID, (uint8 *)msgReq);
 }
 
-void eventReqIeeeAddr(osal_event_hdr_t * hdrEvent) {
-	struct ReqIeeeAddrMsg * msg = (struct ReqIeeeAddrMsg *)hdrEvent;
-	ZDP_IEEEAddrReq( msg->nwkAddr, msg->requestType, msg->startIndex, 0); 
+void eventInit(osal_event_hdr_t * hdrEvent) {
+	initCheckingChildList(serialDongleTaskID);
+}
+
+
+
+void eventReqNodePower(osal_event_hdr_t * hdrEvent) {
+	zAddrType_t destAddr;
+	
+	struct ReqDeviceNodePower * msg = (struct ReqDeviceNodePower *)hdrEvent;
+	destAddr.addrMode = Addr16Bit;
+	destAddr.addr.shortAddr = msg->nwkAddr;
+	
+	afStatus_t ret = ZDP_NWKAddrOfInterestReq(&destAddr,msg->nwkAddr, Power_Desc_req, 0);
+	if (ret != ZSuccess){
+		nodePowerResponseMessageError(msg->nwkAddr, ret);
+	}
 }
 
 void eventActiveEP(osal_event_hdr_t * hdrEvent) {
@@ -433,9 +334,7 @@ void attributeValue(osal_event_hdr_t * hdrEvent){
 	}
 }
 
-void eventReset(osal_event_hdr_t * hdrEvent) {
-	SystemReset();
-}
+
 
 void eventSendCmd(osal_event_hdr_t * hdrEvent) {
 	struct SendCmdMsg * msgCmd = (struct SendCmdMsg * )hdrEvent;

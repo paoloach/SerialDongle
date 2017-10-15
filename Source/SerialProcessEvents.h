@@ -10,6 +10,6 @@
 ***************************************************************************************************/
 #include "OSAL.h"
 
-void serialProcessEvent(char * strEvent);
+void serialProcessEvent(void);
 
 
