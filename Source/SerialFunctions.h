@@ -19,6 +19,7 @@
 #include "DataStructures.h"
 
 
+
 void serialInit(void);
 void serialLoop(void);
 void sendMessage(char * string);

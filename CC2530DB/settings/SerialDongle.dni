@@ -9,7 +9,7 @@ TriggerName=main
 LimitSize=0
 ByteLimit=50
 [DebugChecksum]
-Checksum=-869811261
+Checksum=-1272236994
 [CallStack]
 ShowArgs=0
 [Disassembly]
@@ -74,16 +74,6 @@ Fmt9={W}0:simpleDesc->simpleDesc.pAppInClusterList[3]	4	0
 Fmt10={W}0:usbcif	1	0
 Fmt11={W}0:v	3	0
 Fmt12={W}0:value	3	0
-[Breakpoints]
-Bp0=_ "STD_CODE" "{$PROJ_DIR$\..\Source\ZigBeeSerialBridge.c}.215.1" 0 0 0 0 "" 0 ""
-Bp1=_ "STD_CODE" "{$PROJ_DIR$\..\Components\stack\zdo\ZDObject.c}.1943.3" 0 0 0 0 "" 0 ""
-Bp2=_ "STD_CODE" "{$PROJ_DIR$\..\Source\OSAL_Memory2.c}.87.4" 0 0 0 0 "" 0 ""
-Bp3=_ "STD_CODE" "{$PROJ_DIR$\..\Source\OSAL_Memory2.c}.63.2" 0 0 0 0 "" 0 ""
-Bp4=_ "STD_CODE" "{$PROJ_DIR$\..\Components\stack\af\AF.c}.366.3" 0 0 0 0 "" 0 ""
-Count=5
-[ChipconEmu]
-Stop timers on halt=0
-Leave target running=1
 [Log file]
 LoggingEnabled=_ 0
 LogFile=_ ""
@@ -91,6 +81,16 @@ Category=_ 0
 [TermIOLog]
 LoggingEnabled=_ 0
 LogFile=_ ""
+[Breakpoints]
+Bp0=_ "STD_CODE" "{$PROJ_DIR$\..\Source\ZigBeeSerialBridge.c}.225.1" 0 0 0 0 "" 0 ""
+Bp1=_ "STD_CODE" "{$PROJ_DIR$\..\Components\stack\zdo\ZDObject.c}.1943.3" 0 0 0 0 "" 0 ""
+Bp2=_ "STD_CODE" "{$PROJ_DIR$\..\Source\OSAL_Memory2.c}.87.4" 0 0 0 0 "" 0 ""
+Bp3=_ "STD_CODE" "{$PROJ_DIR$\..\Source\OSAL_Memory2.c}.63.2" 0 0 0 0 "" 0 ""
+Bp4=_ "STD_CODE" "{$PROJ_DIR$\..\Components\stack\af\AF.c}.730.4" 0 0 0 0 "" 0 ""
+Count=5
+[ChipconEmu]
+Stop timers on halt=0
+Leave target running=1
 [Aliases]
 Count=0
 SuppressDialog=0

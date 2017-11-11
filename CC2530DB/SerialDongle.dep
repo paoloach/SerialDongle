@@ -6,15 +6,68 @@
   <configuration>
     <name>CoordinatorEB</name>
     <outputs>
-      <file>$PROJ_DIR$\..\Source\DecodeLowDigit.c</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\decode.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_led.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_sleep.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_startup.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_timer.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_usbdongle_cfg.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_cfg.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_pib.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_autopend.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\Reset.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\DecodeLowDigit.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\DecodeLowDigit.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\hal_timer.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\hal_timer.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\DecodeLowDigit.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\decode.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\decode.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\decode.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\SerialProcessEvents.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\OSAL_Coordinator.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\CheckingChildList.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_mem.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_radio_defs.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\OSAL_Coordinator.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\OSAL.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\hal_assert.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\hal_assert.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\hal_dma.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\hal_dma.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\hal_drivers.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\hal_drivers.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\hal_flash.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\hal_flash.lst</file>
+      <file>$PROJ_DIR$\..\Source\UsbIrqHookProcessEvents.h</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\ZigBeeSerialBridge.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\hal_led.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\hal_led.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\hal_sleep.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\hal_sleep.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\hal_startup.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\hal_startup.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\zcl_ha.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZDApp.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZDConfig.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZDSecMgr.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\zmac_cb.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\zmac.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZMain.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZDObject.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZDProfile.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\zcl_general.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\zcl_general.lst</file>
+      <file>$PROJ_DIR$\..\Components\stack\zcl\zcl_closures.h</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\zigbee_functions.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\OSAL.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\OSAL_Nv.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\OSAL_Memory.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZGlobals.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\OSAL_PwrMgr.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\OSAL_Clock.r51</file>
       <file>$PROJ_DIR$\..\Source\decode.asm</file>
-      <file>$PROJ_DIR$\..\Source\decode.c</file>
-      <file>$PROJ_DIR$\..\Source\DecodeIEEE.c</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\DecodeLowDigit_2.asm</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\DecodeLowDigit.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\SerialProcessEvents.s51</file>
       <file>$PROJ_DIR$\..\Source\Reset.c</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\SerialProcessEvents.s51</file>
       <file>$PROJ_DIR$\..\Source\SerialProcessEvents.c</file>
       <file>$PROJ_DIR$\CoordinatorEB\List\SerialProcessEvents.h</file>
       <file>$PROJ_DIR$\..\Source\CheckingChildList.c</file>
@@ -22,63 +75,17 @@
       <file>$PROJ_DIR$\..\Source\CheckingChildList.h</file>
       <file>$PROJ_DIR$\..\Source\endpointRequestList.c</file>
       <file>$PROJ_DIR$\..\Source\endpointRequestList.h</file>
-      <file>$PROJ_DIR$\..\Source\SerialCmdCode.h</file>
+      <file>$PROJ_DIR$\..\Source\ZigbeeSerialBridge.h</file>
       <file>$PROJ_DIR$\..\Tools\f8wCoord.cfg</file>
-      <file>$PROJ_DIR$\..\Source\OSAL_Coordinator.c</file>
-      <file>$PROJ_DIR$\..\Source\SerialFunctions.c</file>
-      <file>$PROJ_DIR$\..\Source\SerialFunctions.h</file>
-      <file>$PROJ_DIR$\..\Source\TimerEvents.h</file>
-      <file>$PROJ_DIR$\..\Source\zcl_functions.c</file>
-      <file>$PROJ_DIR$\..\Source\zcl_functions.h</file>
-      <file>$PROJ_DIR$\..\Source\ZdoMessageHandlers.c</file>
-      <file>$PROJ_DIR$\..\Source\ZdoMessageHandlers.h</file>
-      <file>$PROJ_DIR$\..\Source\zigbee_functions.h</file>
-      <file>$PROJ_DIR$\..\Source\zigbee_functions.c</file>
-      <file>$PROJ_DIR$\..\Source\ZigBeeSerialBridge.c</file>
-      <file>$PROJ_DIR$\..\Source\ZigBeeSerialBridge.h</file>
-      <file>$PROJ_DIR$\..\Source\ZigbeeSerialBridge_data.h</file>
-      <file>$PROJ_DIR$\..\Source\AddDevList\AddDevList.c</file>
-      <file>$PROJ_DIR$\..\source__\zcl_samplesw.h</file>
-      <file>$PROJ_DIR$\dissasemble\Assoc.txt</file>
-      <file>$PROJ_DIR$\dissasemble\AssocAddNew</file>
-      <file>$PROJ_DIR$\dissasemble\AssocCount.dis</file>
-      <file>$PROJ_DIR$\dissasemble\AssocInit.txt</file>
-      <file>$PROJ_DIR$\dissasemble\AssocMakeList.txt</file>
-      <file>$PROJ_DIR$\..\Source\AddrManager.h</file>
-      <file>$PROJ_DIR$\..\Source\AddrManager.c</file>
-      <file>$PROJ_DIR$\dissasemble\AddrManager.txt</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\AddrManager.s51</file>
-      <file>$PROJ_DIR$\dissasemble\AddrMgr\AddrMgrEntryAdd.txt</file>
-      <file>$PROJ_DIR$\dissasemble\AddrMgr\AddrMgrInitNV.txt</file>
-      <file>$PROJ_DIR$\dissasemble\NLME\nlme_CheckNewAddreSet.txt</file>
-      <file>$PROJ_DIR$\..\libraries\list4.lst</file>
-      <file>$PROJ_DIR$\..\Components\hal\common\hal_assert.c</file>
-      <file>$PROJ_DIR$\..\Components\hal\common\hal_drivers.c</file>
-      <file>$PROJ_DIR$\..\Components\hal\include\hal_adc.h</file>
-      <file>$PROJ_DIR$\..\Components\hal\include\hal_assert.h</file>
-      <file>$PROJ_DIR$\..\Components\hal\include\hal_board.h</file>
-      <file>$PROJ_DIR$\..\Components\hal\target\CC2531_USBDONGLE\hal_board_cfg.h</file>
-      <file>$PROJ_DIR$\..\Components\hal\include\hal_defs.h</file>
-      <file>$PROJ_DIR$\..\Components\hal\include\hal_drivers.h</file>
-      <file>$PROJ_DIR$\..\Components\hal\include\hal_flash.h</file>
-      <file>$PROJ_DIR$\..\Components\hal\include\hal_key.h</file>
-      <file>$PROJ_DIR$\..\Components\hal\include\hal_lcd.h</file>
-      <file>$PROJ_DIR$\..\Components\hal\include\hal_led.h</file>
-      <file>$PROJ_DIR$\..\Components\hal\include\hal_rpc.h</file>
-      <file>$PROJ_DIR$\..\Components\hal\include\hal_sleep.h</file>
-      <file>$PROJ_DIR$\..\Components\hal\include\hal_timer.h</file>
-      <file>$PROJ_DIR$\..\Components\hal\include\hal_uart.h</file>
-      <file>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_adc.c</file>
-      <file>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_dma.c</file>
-      <file>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_flash.c</file>
-      <file>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_key.c</file>
-      <file>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_lcd.c</file>
-      <file>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_led.c</file>
-      <file>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_sleep.c</file>
-      <file>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_startup.c</file>
-      <file>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_timer.c</file>
-      <file>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_aes.h</file>
-      <file>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_ccm.h</file>
+      <file>$PROJ_DIR$\..\Components\stack\zcl\zcl_LinkQuality.h</file>
+      <file>$PROJ_DIR$\..\Components\stack\sec\ssp.h</file>
+      <file>$PROJ_DIR$\..\Components\services\saddr\saddr.c</file>
+      <file>$PROJ_DIR$\..\Components\services\saddr\saddr.h</file>
+      <file>$PROJ_DIR$\..\Components\stack\zdo\ZDSecMgr.c</file>
+      <file>$PROJ_DIR$\..\Tools\f8w2530.xcl</file>
+      <file>$PROJ_DIR$\..\Tools\f8wConfig.cfg</file>
+      <file>$PROJ_DIR$\..\Tools\f8wEndev.cfg</file>
+      <file>$PROJ_DIR$\..\Tools\f8wRouter.cfg</file>
       <file>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_dma.h</file>
       <file>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_mcu.h</file>
       <file>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_types.h</file>
@@ -93,6 +100,92 @@
       <file>$PROJ_DIR$\..\Components\mac\low_level\srf04\mac_assert.h</file>
       <file>$PROJ_DIR$\..\Components\mac\low_level\srf04\mac_autopend.c</file>
       <file>$PROJ_DIR$\..\Components\mac\low_level\srf04\mac_autopend.h</file>
+      <file>$PROJ_DIR$\..\Components\stack\zcl\zcl_lighting.h</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\zcl_ha.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\zigbee_functions.s51</file>
+      <file>$PROJ_DIR$\..\Components\stack\zcl\zcl_ms.h</file>
+      <file>$PROJ_DIR$\..\Components\stack\zcl\zcl_hvac.h</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\zcl_ha.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\zmac.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\SerialDongle.map</file>
+      <file>$PROJ_DIR$\..\Libraries\Router-Pro.lib</file>
+      <file>$TOOLKIT_DIR$\src\lib\iar_common.h</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\ZMain.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\zmac_cb.s51</file>
+      <file>$PROJ_DIR$\..\Components\mt\MT_MAC.h</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\ZdoMessageHandlers.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\ZMain.lst</file>
+      <file>$TOOLKIT_DIR$\inc\clib\stdarg.h</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\ZDSecMgr.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\ZDSecMgr.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\ZDiags.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\zcl.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\zcl_diagnostic.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\zcl_ezmode.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\mac_radio.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\mac_radio.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\mac_radio_defs.lst</file>
+      <file>$PROJ_DIR$\..\Components\mac\high_level\mac_security.h</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\mac_radio_defs.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\mac_rffrontend.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\mac_rffrontend.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_radio.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_rx.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_rx_onoff.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_sleep.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\zcl_functions.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\zcl_functions.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\zcl_ezmode.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_sleep.pbi</file>
+      <file>$TOOLKIT_DIR$\inc\clib\limits.h</file>
+      <file>$TOOLKIT_DIR$\inc\clib\sysmac.h</file>
+      <file>$PROJ_DIR$\..\Components\services\sdata\sdata.h</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\AF.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\BindingTable.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\BindingTable.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\CheckingChildList.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\CheckingChildList.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\OSAL.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\OSAL_Clock.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\zcl_functions.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\OSAL_Timers.s51</file>
+      <file>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_board_cfg.h</file>
+      <file>$PROJ_DIR$\..\Components\mt\DebugTrace.h</file>
+      <file>$PROJ_DIR$\..\Components\mt\MT_SYS.h</file>
+      <file>$PROJ_DIR$\..\Components\mt\MT_RPC.h</file>
+      <file>$TOOLKIT_DIR$\inc\ioCC2530.h</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\AF.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\OnBoard.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\OnBoard.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\CheckingChildList.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\OSAL_Coordinator.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\SerialProcessEvents.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\SerialFunctions.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\endpointRequestList.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\Reset.s51</file>
+      <file>$PROJ_DIR$\..\Source\decode.s51.asm</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\decode.s51.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\decode2.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\decode2.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\ZGlobals.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\ZGlobals.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\mac_rx_onoff.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\mac_rx.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\mac_rx.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\mac_rx_onoff.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\mac_sleep.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_csp_tx.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_mcu.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_mem.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_radio_defs.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_rffrontend.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_tx.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_csp_tx.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_mcu.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\OnBoard.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZDNwkMgr.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\ZDiags.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\saddr.r51</file>
       <file>$PROJ_DIR$\..\Components\mac\low_level\srf04\mac_backoff_timer.c</file>
       <file>$PROJ_DIR$\..\Components\mac\low_level\srf04\mac_backoff_timer.h</file>
       <file>$PROJ_DIR$\..\Components\mac\low_level\srf04\mac_low_level.c</file>
@@ -135,6 +228,103 @@
       <file>$PROJ_DIR$\..\Components\stack\nwk\nwk_util.h</file>
       <file>$PROJ_DIR$\..\Components\stack\nwk\reflecttrack.h</file>
       <file>$PROJ_DIR$\..\Components\stack\nwk\rtg.h</file>
+      <file>$PROJ_DIR$\..\Components\stack\zdo\ZDSecMgr.h</file>
+      <file>$PROJ_DIR$\..\Components\zmac\f8w\zmac.c</file>
+      <file>$PROJ_DIR$\..\Components\zmac\ZMAC.h</file>
+      <file>$PROJ_DIR$\..\Components\zmac\f8w\zmac_cb.c</file>
+      <file>$PROJ_DIR$\..\Components\zmac\f8w\zmac_internal.h</file>
+      <file>$PROJ_DIR$\..\Source\zmain\chipcon_cstartup.s51</file>
+      <file>$PROJ_DIR$\..\Source\zmain\OnBoard.c</file>
+      <file>$PROJ_DIR$\..\Source\zmain\OnBoard.h</file>
+      <file>$PROJ_DIR$\..\Source\zmain\ZMain.c</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_backoff_timer.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\zcl_general.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\zcl_ha.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\zcl_functions.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZdoMessageHandlers.r51</file>
+      <file>$PROJ_DIR$\..\Components\hal\include\hal_sleep.h</file>
+      <file>$PROJ_DIR$\..\Components\hal\include\hal_timer.h</file>
+      <file>$PROJ_DIR$\..\Components\hal\include\hal_uart.h</file>
+      <file>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_adc.c</file>
+      <file>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_dma.c</file>
+      <file>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_flash.c</file>
+      <file>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_key.c</file>
+      <file>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_lcd.c</file>
+      <file>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_led.c</file>
+      <file>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_sleep.c</file>
+      <file>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_startup.c</file>
+      <file>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_timer.c</file>
+      <file>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_aes.h</file>
+      <file>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_ccm.h</file>
+      <file>$PROJ_DIR$\..\Libraries\TIMAC-CC2530.lib</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\zcl_LinkQuality.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\saddr.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZDApp.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZDConfig.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZDNwkMgr.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZDObject.pbi</file>
+      <file>$PROJ_DIR$\..\Source\ZigBeeUsbBridge_data.h</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\DecodeLowDigit_2.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZDProfile.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZDSecMgr.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\zmac.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\zmac_cb.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\OnBoard.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZMain.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Exe\SerialDongle.d51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\SerialDongle.pbd</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\mac_mcu.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\mac_mcu.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\mac_low_level.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\mac_mem.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\mac_mem.lst</file>
+      <file>$TOOLKIT_DIR$\inc\clib\stddef.h</file>
+      <file>$PROJ_DIR$\..\Components\mac\high_level\R2R_FlashJT.h</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\mac_pib.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\mac_pib.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\Reset.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\chipcon_cstartup.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\OSAL_Math.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\OSAL_Memory.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\OSAL_Nv.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\OSAL_Nv.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\OSAL_PwrMgr.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\OSAL_PwrMgr.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\OSAL_Timers.lst</file>
+      <file>$PROJ_DIR$\..\Source\DataStructures.h</file>
+      <file>$TOOLKIT_DIR$\inc\clib\string.h</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\OSAL_Memory2.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\OSAL_Memory2.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZdoMessageHandlers.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\zigbee_functions.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_adc.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_flash.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_dma.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_drivers.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_led.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_assert.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZigBeeSerialBridge.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\DecodeIEEE.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\DecodeIEEE.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\OSAL_Nv.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\OSAL_Memory.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\OSAL_PwrMgr.pbi</file>
+      <file>$PROJ_DIR$\..\Components\stack\zcl\zcl_ss.h</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_adc.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_drivers.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_dma.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_flash.r51</file>
+      <file>$PROJ_DIR$\..\Tools\f8wZCL.cfg</file>
+      <file>$PROJ_DIR$\..\Components\stack\zdo\ZDApp.c</file>
+      <file>$PROJ_DIR$\..\Components\stack\zdo\ZDApp.h</file>
+      <file>$PROJ_DIR$\..\Components\stack\zdo\ZDConfig.c</file>
+      <file>$PROJ_DIR$\..\Components\stack\zdo\ZDConfig.h</file>
+      <file>$PROJ_DIR$\..\Components\stack\zdo\ZDNwkMgr.c</file>
+      <file>$PROJ_DIR$\..\Components\stack\zdo\ZDNwkMgr.h</file>
+      <file>$PROJ_DIR$\..\Components\stack\zdo\ZDObject.c</file>
+      <file>$PROJ_DIR$\..\Components\stack\zdo\ZDObject.h</file>
+      <file>$PROJ_DIR$\..\Components\stack\zdo\ZDProfile.c</file>
+      <file>$PROJ_DIR$\..\Components\stack\zdo\ZDProfile.h</file>
       <file>$PROJ_DIR$\..\Components\stack\sapi\sapi.c</file>
       <file>$PROJ_DIR$\..\Components\stack\sapi\sapi.h</file>
       <file>$PROJ_DIR$\..\Components\stack\nwk\stub_aps.c</file>
@@ -149,20 +339,35 @@
       <file>$PROJ_DIR$\..\Components\osal\common\OSAL_Clock.c</file>
       <file>$PROJ_DIR$\..\Components\osal\include\OSAL_Clock.h</file>
       <file>$PROJ_DIR$\..\Components\osal\mcu\cc2530\OSAL_Math.s51</file>
-      <file>$PROJ_DIR$\..\Components\osal\common\OSAL_Memory.c</file>
-      <file>$PROJ_DIR$\..\Components\osal\include\OSAL_Memory.h</file>
-      <file>$PROJ_DIR$\..\Source\OSAL_Memory2.c</file>
-      <file>$PROJ_DIR$\..\Components\osal\mcu\cc2530\OSAL_Nv.c</file>
-      <file>$PROJ_DIR$\..\Components\osal\include\OSAL_Nv.h</file>
-      <file>$PROJ_DIR$\..\Components\osal\common\OSAL_PwrMgr.c</file>
-      <file>$PROJ_DIR$\..\Components\osal\include\OSAL_PwrMgr.h</file>
-      <file>$PROJ_DIR$\..\Components\osal\include\osal_task.h</file>
-      <file>$PROJ_DIR$\..\Components\osal\include\OSAL_Tasks.h</file>
-      <file>$PROJ_DIR$\..\Components\osal\common\OSAL_Timers.c</file>
-      <file>$PROJ_DIR$\..\Components\osal\include\OSAL_Timers.h</file>
-      <file>$PROJ_DIR$\..\Components\osal\include\ZComDef.h</file>
-      <file>$PROJ_DIR$\..\Components\stack\af\AF.c</file>
-      <file>$PROJ_DIR$\..\Components\stack\af\AF.h</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\stub_aps.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\saddr.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\zcl.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\nwk_globals.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\nwk_globals.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\zcl.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\zcl_LinkQuality.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\zcl_LinkQuality.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\zcl_diagnostic.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\zcl_diagnostic.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\zcl_ezmode.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\AF.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\zcl.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\zcl_diagnostic.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\zcl_ezmode.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_pib.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_autopend.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_backoff_timer.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_low_level.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_radio.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_rx.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_rx_onoff.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_sleep.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\OSAL_Timers.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\OSAL_Timers.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\AF.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\ZigBeeSerialBridge.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\endpointRequestList.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\decode2.r51</file>
       <file>$PROJ_DIR$\..\Components\stack\zcl\zcl.c</file>
       <file>$PROJ_DIR$\..\Components\stack\zcl\zcl.h</file>
       <file>$PROJ_DIR$\..\Components\stack\zcl\zcl_diagnostic.c</file>
@@ -174,179 +379,102 @@
       <file>$PROJ_DIR$\..\Components\stack\zcl\zcl_LinkQuality.c</file>
       <file>$PROJ_DIR$\..\Source\ha\zcl_ha.c</file>
       <file>$PROJ_DIR$\..\Source\ha\zcl_ha.h</file>
-      <file>$PROJ_DIR$\..\Components\stack\zcl\zcl_LinkQuality.h</file>
-      <file>$PROJ_DIR$\..\Components\stack\sec\ssp.h</file>
-      <file>$PROJ_DIR$\..\Components\stack\sec\ssp_hash.h</file>
-      <file>$PROJ_DIR$\..\Components\services\saddr\saddr.c</file>
-      <file>$PROJ_DIR$\..\Components\services\saddr\saddr.h</file>
-      <file>$PROJ_DIR$\..\Tools\f8wZCL.cfg</file>
-      <file>$PROJ_DIR$\..\Tools\f8w2530.xcl</file>
-      <file>$PROJ_DIR$\..\Tools\f8wConfig.cfg</file>
-      <file>$PROJ_DIR$\..\Tools\f8wEndev.cfg</file>
-      <file>$PROJ_DIR$\..\Tools\f8wRouter.cfg</file>
-      <file>$PROJ_DIR$\..\Components\stack\zdo\ZDApp.c</file>
-      <file>$PROJ_DIR$\..\Components\stack\zdo\ZDApp.h</file>
-      <file>$PROJ_DIR$\..\Components\stack\zdo\ZDConfig.c</file>
-      <file>$PROJ_DIR$\..\Components\stack\zdo\ZDConfig.h</file>
-      <file>$PROJ_DIR$\..\Components\stack\zdo\ZDNwkMgr.c</file>
-      <file>$PROJ_DIR$\..\Components\stack\zdo\ZDNwkMgr.h</file>
-      <file>$PROJ_DIR$\..\Components\stack\zdo\ZDObject.c</file>
-      <file>$PROJ_DIR$\..\Components\stack\zdo\ZDObject.h</file>
-      <file>$PROJ_DIR$\..\Components\stack\zdo\ZDProfile.c</file>
-      <file>$PROJ_DIR$\..\Components\stack\zdo\ZDProfile.h</file>
-      <file>$PROJ_DIR$\..\Components\stack\zdo\ZDSecMgr.c</file>
-      <file>$PROJ_DIR$\..\Components\stack\zdo\ZDSecMgr.h</file>
-      <file>$PROJ_DIR$\..\Components\zmac\f8w\zmac.c</file>
-      <file>$PROJ_DIR$\..\Components\zmac\ZMAC.h</file>
-      <file>$PROJ_DIR$\..\Components\zmac\f8w\zmac_cb.c</file>
-      <file>$PROJ_DIR$\..\Components\zmac\f8w\zmac_internal.h</file>
-      <file>$PROJ_DIR$\..\Source\zmain\chipcon_cstartup.s51</file>
-      <file>$PROJ_DIR$\..\Source\zmain\OnBoard.c</file>
-      <file>$PROJ_DIR$\..\Source\zmain\OnBoard.h</file>
-      <file>$PROJ_DIR$\..\Source\zmain\ZMain.c</file>
-      <file>$PROJ_DIR$\..\Components\mt\MT.h</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\ZdoMessageHandlers.lst</file>
-      <file>$PROJ_DIR$\..\Components\stack\zcl\zcl_ms.h</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\zcl_ha.s51</file>
-      <file>$PROJ_DIR$\..\Components\stack\zcl\zcl_hvac.h</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\zmac.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\zigbee_functions.s51</file>
-      <file>$PROJ_DIR$\..\Components\stack\zcl\zcl_lighting.h</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\zcl_ha.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\zmac.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\zmac_cb.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_rffrontend.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\BindingTable.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\nwk_globals.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\stub_aps.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZDiags.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\decode2.pbi</file>
-      <file>$PROJ_DIR$\..\Components\mt\MT_SYS.h</file>
-      <file>$PROJ_DIR$\..\Components\mt\MT_RPC.h</file>
-      <file>$PROJ_DIR$\..\Components\mt\DebugTrace.h</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\OnBoard.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\OnBoard.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\SerialProcessEvents.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\SerialFunctions.lst</file>
-      <file>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_mac_cfg.h</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\ZDApp.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\ZDConfig.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\ZDConfig.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\ZDApp.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\ZDNwkMgr.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\ZDObject.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\ZDObject.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\SerialFunctions.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\ZDProfile.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\ZDProfile.lst</file>
-      <file>$PROJ_DIR$\..\Source\SerialProcessEvents.h</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\ZDNwkMgr.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\nwk_globals.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\stub_aps.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\BindingTable.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZGlobals.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZDiags.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\mac_cfg.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\mac_low_level.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\mac_csp_tx.lst</file>
-      <file>$PROJ_DIR$\..\Components\mac\high_level\mac_main.h</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\mac_mcu.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\mac_low_level.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\mac_mcu.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\mac_mem.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\mac_mem.lst</file>
-      <file>$TOOLKIT_DIR$\inc\clib\stddef.h</file>
-      <file>$PROJ_DIR$\..\Components\mac\high_level\R2R_FlashJT.h</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\mac_pib.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\mac_pib.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\Reset.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\chipcon_cstartup.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\OSAL_Math.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\CheckingChildList.pbi</file>
-      <file>$PROJ_DIR$\..\Source\decode.s51.asm</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\decode.s51.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\OSAL_Coordinator.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\SerialProcessEvents.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\SerialFunctions.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\endpointRequestList.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\Reset.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\decode2.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\decode2.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\ZGlobals.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\ZGlobals.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\mac_rx_onoff.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\mac_rx.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\mac_rx.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\mac_rx_onoff.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\mac_sleep.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\mac_sleep.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\mac_tx.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\mac_tx.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\nwk_globals.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\nwk_globals.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\saddr.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\saddr.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\stub_aps.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\stub_aps.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\zcl.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\zcl.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\zcl_LinkQuality.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\zcl_LinkQuality.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\zcl_diagnostic.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\zcl_diagnostic.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\zcl_ezmode.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\AF.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\zcl.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\zcl_diagnostic.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\zcl_ezmode.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\zcl_general.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\zcl_ha.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_backoff_timer.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_low_level.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\SerialFunctions.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\endpointRequestList.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\zcl_functions.r51</file>
       <file>$PROJ_DIR$\CoordinatorEB\Obj\ZigBeeSerialBridge.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZdoMessageHandlers.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\zigbee_functions.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\endpointRequestList.r51</file>
       <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_assert.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\SerialFunctions.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_low_level.r51</file>
       <file>$PROJ_DIR$\CoordinatorEB\List\OSAL_Memory2.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\zigbee_functions.r51</file>
       <file>$PROJ_DIR$\CoordinatorEB\List\OSAL_Memory2.s51</file>
       <file>$PROJ_DIR$\CoordinatorEB\List\DecodeIEEE.s51</file>
       <file>$PROJ_DIR$\CoordinatorEB\List\DecodeIEEE.lst</file>
       <file>$PROJ_DIR$\..\Source\decode2.c</file>
       <file>$PROJ_DIR$\CoordinatorEB\Obj\Reset.r51</file>
       <file>$PROJ_DIR$\..\Libraries\Security.lib</file>
-      <file>$PROJ_DIR$\..\Components\mac\high_level\mac_security_pib.h</file>
       <file>$TOOLKIT_DIR$\lib\clib\cl-pli-blxd-1e16x01.r51</file>
-      <file>$TOOLKIT_DIR$\inc\iar_cfi.h</file>
-      <file>$TOOLKIT_DIR$\src\lib\iar_check_symbols.h</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Exe\SerialDongle.a51</file>
       <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_usbdongle_cfg.pbi</file>
       <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_timer.pbi</file>
       <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_startup.pbi</file>
+      <file>$PROJ_DIR$\..\Components\mac\high_level\mac_security_pib.h</file>
       <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_cfg.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_pib.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_autopend.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_backoff_timer.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_low_level.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_radio.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_rx.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_rx_onoff.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_sleep.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_tx.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_csp_tx.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_mcu.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_mem.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_radio_defs.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_rffrontend.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_tx.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_csp_tx.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_mcu.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZDNwkMgr.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\OnBoard.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\ZDiags.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\saddr.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\mac_tx.lst</file>
+      <file>$TOOLKIT_DIR$\inc\iar_cfi.h</file>
+      <file>$TOOLKIT_DIR$\src\lib\iar_check_symbols.h</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Exe\SerialDongle.a51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\mac_tx.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\mac_sleep.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\saddr.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\stub_aps.lst</file>
+      <file>$PROJ_DIR$\..\Source\DecodeIEEE.c</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\decode.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\DecodeLowDigit.s51</file>
+      <file>$PROJ_DIR$\..\Source\DecodeLowDigit.c</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\DecodeLowDigit_2.asm</file>
+      <file>$PROJ_DIR$\..\Source\decode.c</file>
+      <file>$PROJ_DIR$\..\source__\zcl_samplesw.h</file>
+      <file>$PROJ_DIR$\..\Source\AddrManager.h</file>
+      <file>$PROJ_DIR$\..\Source\AddrManager.c</file>
+      <file>$PROJ_DIR$\dissasemble\AddrManager.txt</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\AddrManager.s51</file>
+      <file>$PROJ_DIR$\dissasemble\AddrMgr\AddrMgrEntryAdd.txt</file>
+      <file>$PROJ_DIR$\dissasemble\AddrMgr\AddrMgrInitNV.txt</file>
+      <file>$PROJ_DIR$\..\Source\OSAL_Coordinator.c</file>
+      <file>$PROJ_DIR$\..\Source\SerialFunctions.c</file>
+      <file>$PROJ_DIR$\..\Source\SerialCmdCode.h</file>
+      <file>$PROJ_DIR$\..\Source\SerialFunctions.h</file>
+      <file>$PROJ_DIR$\..\Source\TimerEvents.h</file>
+      <file>$PROJ_DIR$\..\Source\zcl_functions.c</file>
+      <file>$PROJ_DIR$\..\Source\zcl_functions.h</file>
+      <file>$PROJ_DIR$\..\Source\ZdoMessageHandlers.c</file>
+      <file>$PROJ_DIR$\..\Source\ZdoMessageHandlers.h</file>
+      <file>$PROJ_DIR$\..\Source\zigbee_functions.c</file>
+      <file>$PROJ_DIR$\..\Source\zigbee_functions.h</file>
+      <file>$PROJ_DIR$\..\Source\ZigBeeSerialBridge.c</file>
+      <file>$PROJ_DIR$\..\Source\ZigbeeSerialBridge_data.h</file>
+      <file>$PROJ_DIR$\..\libraries\list4.lst</file>
+      <file>$PROJ_DIR$\..\Components\hal\common\hal_assert.c</file>
+      <file>$PROJ_DIR$\..\Components\hal\common\hal_drivers.c</file>
+      <file>$PROJ_DIR$\..\Components\hal\include\hal_adc.h</file>
+      <file>$PROJ_DIR$\..\Components\hal\include\hal_assert.h</file>
+      <file>$PROJ_DIR$\..\Components\hal\include\hal_board.h</file>
+      <file>$PROJ_DIR$\..\Components\hal\target\CC2531_USBDONGLE\hal_board_cfg.h</file>
+      <file>$PROJ_DIR$\..\Components\hal\include\hal_defs.h</file>
+      <file>$PROJ_DIR$\..\Components\hal\include\hal_drivers.h</file>
+      <file>$PROJ_DIR$\..\Components\hal\include\hal_flash.h</file>
+      <file>$PROJ_DIR$\..\Components\hal\include\hal_key.h</file>
+      <file>$PROJ_DIR$\..\Components\hal\include\hal_lcd.h</file>
+      <file>$PROJ_DIR$\..\Components\hal\include\hal_led.h</file>
+      <file>$PROJ_DIR$\..\Components\hal\include\hal_rpc.h</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\SerialProcessEvents.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\SerialFunctions.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\ZDApp.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\ZDConfig.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\ZDConfig.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\ZDApp.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\ZDNwkMgr.lst</file>
+      <file>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_mac_cfg.h</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\ZDObject.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\ZDObject.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\SerialFunctions.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\ZDProfile.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\ZDProfile.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\nwk_globals.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\stub_aps.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\BindingTable.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZGlobals.pbi</file>
+      <file>$PROJ_DIR$\..\Source\SerialProcessEvents.h</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\ZDNwkMgr.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZDiags.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\mac_cfg.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\mac_low_level.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\mac_csp_tx.lst</file>
+      <file>$PROJ_DIR$\..\Components\mac\high_level\mac_main.h</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\OSAL.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\OSAL_Clock.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\OSAL_Coordinator.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\OSAL_Clock.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\OSAL_Memory.lst</file>
       <file>$PROJ_DIR$\CoordinatorEB\Obj\zcl_general.r51</file>
       <file>$PROJ_DIR$\CoordinatorEB\Obj\zcl_LinkQuality.r51</file>
       <file>$PROJ_DIR$\CoordinatorEB\List\hal_usbdongle_cfg.lst</file>
@@ -364,288 +492,38 @@
       <file>$PROJ_DIR$\CoordinatorEB\List\hal_adc.s51</file>
       <file>$TOOLKIT_DIR$\inc\clib\stdio.h</file>
       <file>$PROJ_DIR$\CoordinatorEB\List\hal_adc.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\hal_assert.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\hal_assert.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\hal_dma.s51</file>
-      <file>$PROJ_DIR$\..\Source\UsbIrqHookProcessEvents.h</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\ZigBeeSerialBridge.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\hal_dma.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\hal_drivers.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\hal_drivers.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\hal_flash.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\hal_flash.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\hal_led.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\hal_led.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\hal_sleep.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\hal_sleep.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\hal_startup.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\hal_startup.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\zcl_ha.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZDApp.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZDConfig.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZDSecMgr.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\zmac_cb.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\zmac.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZMain.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZDObject.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZDProfile.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\zcl_general.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\zcl_general.lst</file>
-      <file>$PROJ_DIR$\..\Components\stack\zcl\zcl_closures.h</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\zigbee_functions.lst</file>
-      <file>$PROJ_DIR$\..\Components\stack\zcl\zcl_ss.h</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_adc.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_drivers.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_dma.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_flash.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_led.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_sleep.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_startup.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_timer.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_usbdongle_cfg.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_cfg.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_pib.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_autopend.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\Reset.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\DecodeLowDigit.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\DecodeLowDigit.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\hal_timer.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\hal_timer.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\DecodeLowDigit.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\decode.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\decode.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\decode.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\SerialProcessEvents.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\OSAL_Coordinator.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\CheckingChildList.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_mem.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_radio_defs.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\OSAL_Coordinator.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\OSAL.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\OSAL.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\OSAL_Clock.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\OSAL_Coordinator.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\OSAL_Clock.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\OSAL_Memory.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\OSAL_Memory.s51</file>
-      <file>$PROJ_DIR$\..\Source\DataStructures.h</file>
-      <file>$TOOLKIT_DIR$\inc\clib\string.h</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\OSAL_Nv.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\OSAL_Nv.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\OSAL_PwrMgr.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\OSAL_PwrMgr.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\OSAL_Timers.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\OSAL_Memory2.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\OSAL_Memory2.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZdoMessageHandlers.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\zigbee_functions.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_adc.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_flash.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_dma.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_drivers.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_led.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_assert.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZigBeeSerialBridge.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\DecodeIEEE.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\DecodeIEEE.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\OSAL_Nv.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\OSAL_Memory.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\OSAL_PwrMgr.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\OSAL.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\OSAL_Nv.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\OSAL_Memory.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZGlobals.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\OSAL_PwrMgr.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\OSAL_Clock.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\OSAL_Timers.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\OSAL_Timers.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\AF.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\ZigBeeSerialBridge.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\endpointRequestList.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\decode2.r51</file>
-      <file>$PROJ_DIR$\..\Libraries\TIMAC-CC2530.lib</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\zcl_LinkQuality.pbi</file>
-      <file>$PROJ_DIR$\..\Source\ZigBeeUsbBridge_data.h</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\DecodeLowDigit_2.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\saddr.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZDApp.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZDConfig.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZDNwkMgr.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZDObject.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZDProfile.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZDSecMgr.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\zmac.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\zmac_cb.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\OnBoard.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZMain.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Exe\SerialDongle.d51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\SerialDongle.pbd</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\SerialDongle.map</file>
-      <file>$PROJ_DIR$\..\Libraries\Router-Pro.lib</file>
-      <file>$TOOLKIT_DIR$\src\lib\iar_common.h</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\zmac_cb.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\ZMain.s51</file>
-      <file>$PROJ_DIR$\..\Components\mt\MT_MAC.h</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\ZdoMessageHandlers.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\ZMain.lst</file>
-      <file>$TOOLKIT_DIR$\inc\clib\stdarg.h</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\ZDSecMgr.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\ZDSecMgr.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\ZDiags.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\zcl.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\zcl_diagnostic.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\zcl_ezmode.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\mac_radio.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\mac_radio.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\mac_radio_defs.lst</file>
-      <file>$PROJ_DIR$\..\Components\mac\high_level\mac_security.h</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\mac_radio_defs.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\mac_rffrontend.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\mac_rffrontend.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_radio.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_rx.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_rx_onoff.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_sleep.r51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\zcl_functions.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\zcl_functions.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\zcl_ezmode.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\hal_sleep.pbi</file>
-      <file>$TOOLKIT_DIR$\inc\clib\limits.h</file>
-      <file>$TOOLKIT_DIR$\inc\clib\sysmac.h</file>
-      <file>$PROJ_DIR$\..\Components\services\sdata\sdata.h</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\AF.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\BindingTable.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\BindingTable.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\CheckingChildList.s51</file>
-      <file>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_board_cfg.h</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\CheckingChildList.lst</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\OSAL.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\OSAL_Clock.pbi</file>
-      <file>$TOOLKIT_DIR$\inc\ioCC2530.h</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\AF.s51</file>
-      <file>$PROJ_DIR$\CoordinatorEB\Obj\zcl_functions.pbi</file>
-      <file>$PROJ_DIR$\CoordinatorEB\List\OSAL_Timers.s51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\zmac_cb.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_rffrontend.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\BindingTable.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\nwk_globals.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\stub_aps.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\ZDiags.r51</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\decode2.pbi</file>
+      <file>$PROJ_DIR$\CoordinatorEB\Obj\mac_tx.pbi</file>
+      <file>$PROJ_DIR$\..\Components\mt\MT.h</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\ZdoMessageHandlers.lst</file>
+      <file>$PROJ_DIR$\CoordinatorEB\List\zmac.s51</file>
+      <file>$PROJ_DIR$\..\Components\osal\common\OSAL_Memory.c</file>
+      <file>$PROJ_DIR$\..\Components\osal\include\OSAL_Memory.h</file>
+      <file>$PROJ_DIR$\..\Components\osal\include\OSAL_Nv.h</file>
+      <file>$PROJ_DIR$\..\Source\OSAL_Memory2.c</file>
+      <file>$PROJ_DIR$\..\Components\osal\mcu\cc2530\OSAL_Nv.c</file>
+      <file>$PROJ_DIR$\..\Components\osal\common\OSAL_PwrMgr.c</file>
+      <file>$PROJ_DIR$\..\Components\osal\include\OSAL_PwrMgr.h</file>
+      <file>$PROJ_DIR$\..\Components\osal\include\osal_task.h</file>
+      <file>$PROJ_DIR$\..\Components\osal\include\OSAL_Tasks.h</file>
+      <file>$PROJ_DIR$\..\Components\osal\common\OSAL_Timers.c</file>
+      <file>$PROJ_DIR$\..\Components\osal\include\OSAL_Timers.h</file>
+      <file>$PROJ_DIR$\..\Components\osal\include\ZComDef.h</file>
+      <file>$PROJ_DIR$\..\Components\stack\af\AF.c</file>
+      <file>$PROJ_DIR$\..\Components\stack\af\AF.h</file>
     </outputs>
-    <file>
-      <name>[ROOT_NODE]</name>
-      <outputs>
-        <tool>
-          <name>XLINK</name>
-          <file> 472 474 315</file>
-        </tool>
-      </outputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Source\DecodeLowDigit.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 6 405 401</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 402</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 12 139 504 505 137 75 52 144 153 164 158 147 151 156 154 172 122 191 193 83 506 123 121 116 169 115 125 118 136 113</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 12 139 504 505 137 75 52 144 153 164 158 147 151 156 154 172 122 191 193 83 506 123 121 116 169 115 125 118 136 113</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\CoordinatorEB\List\decode.s51</name>
-      <outputs>
-        <tool>
-          <name>A8051</name>
-          <file> 408</file>
-        </tool>
-      </outputs>
-    </file>
     <file>
       <name>$PROJ_DIR$\..\Source\decode.asm</name>
       <outputs>
         <tool>
           <name>A8051</name>
-          <file> 408</file>
-        </tool>
-      </outputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Source\decode.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 1 407 408</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 406</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 233 139 504 505 137 75 52 144 153 422 158 147 151 156 154 172 122 191 193 83 506 123 121 116 169 115 125 118 136 113 21 12 164</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 233 139 504 505 137 75 52 144 153 422 158 147 151 156 154 172 122 191 193 83 506 123 121 116 169 115 125 118 136 113 21 12 164</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Source\DecodeIEEE.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 306 307 441</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 440</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 12 139 504 505 137 75 52 144 153 164 158 147 151 156 154 172 122 191 193 83 506 123 121 116 169 115 125 118 136 113 422 21 187 181</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 12 139 504 505 137 75 52 144 153 164 158 147 151 156 154 172 122 191 193 83 506 123 121 116 169 115 125 118 136 113 422 21 187 181</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\CoordinatorEB\List\DecodeLowDigit_2.asm</name>
-      <outputs>
-        <tool>
-          <name>A8051</name>
-          <file> 460</file>
-        </tool>
-      </outputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\CoordinatorEB\List\DecodeLowDigit.s51</name>
-      <outputs>
-        <tool>
-          <name>A8051</name>
-          <file> 401</file>
-        </tool>
-      </outputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\CoordinatorEB\List\SerialProcessEvents.s51</name>
-      <outputs>
-        <tool>
-          <name>A8051</name>
-          <file> 409</file>
+          <file> 16</file>
         </tool>
       </outputs>
     </file>
@@ -654,30 +532,131 @@
       <outputs>
         <tool>
           <name>ICC8051</name>
-          <file> 263 400 309</file>
+          <file> 156 8 384</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 253</file>
+          <file> 276</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 17 175 173 233 139 504 505 137 75 52 144 153 422 158 147 151 156 154 172 122 191 193 83 506 123 121 116 169 115 125 118 136 113 21 12 164 196 74 515 61 50 511 59</file>
+          <file> 70 77 308 457 329 131 132 327 82 433 498 507 285 363 499 505 510 508 74 215 224 226 90 133 216 214 209 72 208 218 211 326 206 417 65 369 229 81 147 238 431 143 236</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 233 139 504 505 137 75 52 144 153 422 158 147 151 156 154 172 122 191 193 83 506 123 121 116 169 115 125 118 136 113 21 12 164 196 74 515 61 50 511 59</file>
+          <file> 457 329 131 132 327 82 433 498 507 285 363 499 505 510 508 74 215 224 226 90 133 216 214 209 72 208 218 211 326 206 417 65 369 229 81 147 238 431 143 236</file>
         </tool>
       </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\CoordinatorEB\List\SerialProcessEvents.s51</name>
+      <outputs>
+        <tool>
+          <name>A8051</name>
+          <file> 17</file>
+        </tool>
+      </outputs>
     </file>
     <file>
       <name>$PROJ_DIR$\..\Source\SerialProcessEvents.c</name>
       <outputs>
         <tool>
           <name>ICC8051</name>
-          <file> 7 220 409</file>
+          <file> 61 440 17</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 153</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 229 81 433 82 147 238 431 143 236 329 131 132 327 498 507 508 74 318 214 224 226 90 133 209 216 510 215 72 208 218 211 326 312 457 65 369 363 499 505 206 417 285 416 316 310 204 220 69 425 66</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 229 81 433 82 147 238 431 143 236 329 131 132 327 498 507 508 74 318 214 224 226 90 133 209 216 510 215 72 208 218 211 326 312 457 65 369 363 499 505 206 417 285 416 316 310 204 220 69 425 66</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Source\CheckingChildList.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 137 138 19</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 151</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 66 82 329 131 132 327 433 498 507 318 508 74 214 224 226 90 133 209 216 510 215 72 208 218 211 326 312 417 310 204 220 203 416 363 499 505 206 316 285 286</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 66 82 329 131 132 327 433 498 507 318 508 74 214 224 226 90 133 209 216 510 215 72 208 218 211 326 312 417 310 204 220 203 416 363 499 505 206 316 285 286</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Source\endpointRequestList.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 482 360 374</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 155</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 68 82 508 327 433 74 417 498 318 214 224 226 90 133 209 329 131 132 507 216 510 215 72 208 218 211 326 312</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 68 82 508 327 433 74 417 498 318 214 224 226 90 133 209 329 131 132 507 216 510 215 72 208 218 211 326 312</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Components\services\saddr\saddr.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 398 334 179</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 252</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 82 329 131 132 327 433 498 507 74</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 82 329 131 132 327 433 498 507 74</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Components\stack\zdo\ZDSecMgr.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 110 111 43</file>
         </tool>
         <tool>
           <name>BICOMP</name>
@@ -687,204 +666,190 @@
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 17 175 173 196 74 52 75 515 61 50 511 59 139 504 505 137 144 153 154 172 187 121 191 193 83 506 116 123 156 122 169 115 125 118 136 181 233 12 164 158 147 151 113 21 422 20 185 179 111 127 29 30 13</file>
+          <file> 70 77 308 508 327 82 433 74 329 131 132 498 507 499 326 72 218 216 224 226 90 133 209 211 215 214 203 208 312 510 222 310 204 220 318</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 196 74 52 75 515 61 50 511 59 139 504 505 137 144 153 154 172 187 121 191 193 83 506 116 123 156 122 169 115 125 118 136 181 233 12 164 158 147 151 113 21 422 20 185 179 111 127 29 30 13</file>
+          <file> 508 327 82 433 74 329 131 132 498 507 499 326 72 218 216 224 226 90 133 209 211 215 214 203 208 312 510 222 310 204 220 318</file>
         </tool>
       </inputs>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\Source\CheckingChildList.c</name>
+      <name>$PROJ_DIR$\..\Components\hal\target\CC2531_USBDONGLE\hal_usbdongle_cfg.c</name>
       <outputs>
         <tool>
           <name>ICC8051</name>
-          <file> 510 512 411</file>
+          <file> 472 471 4</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 256</file>
+          <file> 387</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 17 175 173 13 75 139 504 505 137 52 144 153 187 154 172 121 191 193 83 506 116 123 156 122 169 115 125 118 136 181 21 179 111 127 110</file>
+          <file> 70 77 308 84 81 433 82 147</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 13 75 139 504 505 137 52 144 153 187 154 172 121 191 193 83 506 116 123 156 122 169 115 125 118 136 181 21 179 111 127 110</file>
+          <file> 84 81 433 82 147</file>
         </tool>
       </inputs>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\Source\endpointRequestList.c</name>
+      <name>$PROJ_DIR$\..\Components\mac\high_level\mac_cfg.c</name>
       <outputs>
         <tool>
           <name>ICC8051</name>
-          <file> 354 455 298</file>
+          <file> 477 460 5</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 262</file>
+          <file> 391</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 17 175 173 15 75 154 137 52 172 21 144 187 121 191 193 83 506 116 139 504 505 153 123 156 122 169 115 125 118 136 181</file>
+          <file> 70 77 308 90 82 74 133 390 86</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 15 75 154 137 52 172 21 144 187 121 191 193 83 506 116 139 504 505 153 123 156 122 169 115 125 118 136 181</file>
+          <file> 90 82 74 133 390 86</file>
         </tool>
       </inputs>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\Source\OSAL_Coordinator.c</name>
+      <name>$PROJ_DIR$\..\Components\mac\high_level\mac_pib.c</name>
       <outputs>
         <tool>
           <name>ICC8051</name>
-          <file> 418 414 410</file>
+          <file> 275 274 6</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 259</file>
+          <file> 348</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 17 175 173 154 137 75 52 172 53 139 504 505 144 153 151 122 191 193 83 506 123 121 116 169 111 115 125 118 136 127 179 156 187 181 183 126 112 158 147 113 29</file>
+          <file> 70 77 308 81 433 82 147 431 143 90 74 133 89 183 86 201 447 197 199 195 91 430 236 185 463 88 329 131 132 327 498 507 272 273</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 154 137 75 52 172 53 139 504 505 144 153 151 122 191 193 83 506 123 121 116 169 111 115 125 118 136 127 179 156 187 181 183 126 112 158 147 113 29</file>
+          <file> 81 433 82 147 431 143 90 74 133 89 183 86 201 447 197 199 195 91 430 236 185 463 88 329 131 132 327 498 507 272 273</file>
         </tool>
       </inputs>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\Source\SerialFunctions.c</name>
+      <name>$PROJ_DIR$\..\Components\mac\low_level\srf04\mac_autopend.c</name>
       <outputs>
         <tool>
           <name>ICC8051</name>
-          <file> 230 221 297</file>
+          <file> 473 474 7</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 261</file>
+          <file> 349</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 17 175 173 515 20 116 154 137 75 52 172 139 504 505 144 153 156 122 191 193 83 506 123 121 169 115 125 118 136 158 147 151 113 185 179 111 127 187 181 422 73 50 511 74 423 233</file>
+          <file> 70 77 308 90 82 74 133 201 433 143 81 147 447 89 197 431 86 199 195 91 430 236 185 329 131 132 327 498 507 508 93</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 515 20 116 154 137 75 52 172 139 504 505 144 153 156 122 191 193 83 506 123 121 169 115 125 118 136 158 147 151 113 185 179 111 127 187 181 422 73 50 511 74 423 233</file>
+          <file> 90 82 74 133 201 433 143 81 147 447 89 197 431 86 199 195 91 430 236 185 329 131 132 327 498 507 508 93</file>
         </tool>
       </inputs>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\Source\zcl_functions.c</name>
+      <name>$PROJ_DIR$\..\Source\decode.s51.asm</name>
+      <outputs>
+        <tool>
+          <name>A8051</name>
+          <file> 158 16</file>
+        </tool>
+      </outputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Components\mac\low_level\srf04\mac_backoff_timer.c</name>
       <outputs>
         <tool>
           <name>ICC8051</name>
-          <file> 501 500 299</file>
+          <file> 475 476 231</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 517</file>
+          <file> 350</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 17 175 173 23 158 139 504 505 137 75 52 144 153 147 151 156 154 172 122 191 193 83 506 123 121 116 169 115 125 118 136 113 20 185 179 111 127 187 181 422</file>
+          <file> 70 77 308 82 81 433 147 89 183 86 90 74 133 181 193 201 143 447 197 431 199 195 91 430 236 185</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 23 158 139 504 505 137 75 52 144 153 147 151 156 154 172 122 191 193 83 506 123 121 116 169 115 125 118 136 113 20 185 179 111 127 187 181 422</file>
+          <file> 82 81 433 147 89 183 86 90 74 133 181 193 201 143 447 197 431 199 195 91 430 236 185</file>
         </tool>
       </inputs>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\Source\ZdoMessageHandlers.c</name>
+      <name>$PROJ_DIR$\..\Components\mac\low_level\srf04\mac_low_level.c</name>
       <outputs>
         <tool>
           <name>ICC8051</name>
-          <file> 480 199 301</file>
+          <file> 461 269 377</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 431</file>
+          <file> 351</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 17 175 173 185 121 191 154 137 75 52 172 193 83 506 116 139 504 505 144 153 123 179 111 115 125 118 122 169 136 127 156 187 181 25 50 511 74 515 15 20 158 147 151 113 422 16 13 21</file>
+          <file> 70 77 308 82 81 433 147 463 86 90 74 133 183 185 187 193 189 181 191 201 143 447 89 197 431 199 195 91 430 236</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 185 121 191 154 137 75 52 172 193 83 506 116 139 504 505 144 153 123 179 111 115 125 118 122 169 136 127 156 187 181 25 50 511 74 515 15 20 158 147 151 113 422 16 13 21</file>
+          <file> 82 81 433 147 463 86 90 74 133 183 185 187 193 189 181 191 201 143 447 89 197 431 199 195 91 430 236</file>
         </tool>
       </inputs>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\Source\zigbee_functions.c</name>
+      <name>$PROJ_DIR$\..\Components\mac\low_level\srf04\mac_radio.c</name>
       <outputs>
         <tool>
           <name>ICC8051</name>
-          <file> 204 386 302</file>
+          <file> 117 116 123</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 432</file>
+          <file> 352</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 17 175 173 156 154 137 75 52 172 122 191 193 83 506 123 121 116 139 504 505 144 153 169 115 125 118 136 187 181 26 29</file>
+          <file> 70 77 308 82 88 90 74 133 86 183 185 193 187 189 433 191 181 201 143 81 147 447 89 197 431 199 195 91 430 236</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 156 154 137 75 52 172 122 191 193 83 506 123 121 116 139 504 505 144 153 169 115 125 118 136 187 181 26 29</file>
+          <file> 82 88 90 74 133 86 183 185 193 187 189 433 191 181 201 143 81 147 447 89 197 431 199 195 91 430 236</file>
         </tool>
       </inputs>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\Source\ZigBeeSerialBridge.c</name>
+      <name>$PROJ_DIR$\..\Components\mac\low_level\srf04\mac_rx.c</name>
       <outputs>
         <tool>
           <name>ICC8051</name>
-          <file> 362 454 300</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 439</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 139 504 505 137 75 52 144 153 156 154 172 122 191 193 83 506 123 121 116 169 115 125 118 136 179 111 127 187 181 185 167 158 147 151 113 459 23 21 110 29 25 361 16 20 422 13 196 74 515 61 50 511 59 57 356 482 15</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 139 504 505 137 75 52 144 153 156 154 172 122 191 193 83 506 123 121 116 169 115 125 118 136 179 111 127 187 181 185 167 158 147 151 113 459 23 21 110 29 25 361 16 20 422 13 196 74 515 61 50 511 59 57 356 482 15</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Source\AddrManager.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 41 351 352</file>
+          <file> 165 164 124</file>
         </tool>
         <tool>
           <name>BICOMP</name>
@@ -894,407 +859,11 @@
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 17 175 173 75 144 137 52 139 504 505 153 154 172 110 147 125 123 191 193 83 506 116 118 122 121 169 136 38</file>
+          <file> 70 77 308 433 82 329 131 132 327 498 507 86 90 74 133 89 88 119 183 187 193 189 185 201 143 81 147 447 197 431 199 195 91 430 236 93</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 75 144 137 52 139 504 505 153 154 172 110 147 125 123 191 193 83 506 116 118 122 121 169 136 38</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\CoordinatorEB\List\AddrManager.s51</name>
-      <outputs>
-        <tool>
-          <name>A8051</name>
-          <file> 352</file>
-        </tool>
-      </outputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Components\hal\common\hal_assert.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 358 359 303</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 438</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 49 75 50 511 74 52 515 94 79 83 172 506 100</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 49 75 50 511 74 52 515 94 79 83 172 506 100</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Components\hal\common\hal_drivers.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 364 365 389</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 436</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 48 75 50 511 74 52 515 71 154 137 172 73 53 57 59 60 61 139 504 505 144 153</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 48 75 50 511 74 52 515 71 154 137 172 73 53 57 59 60 61 139 504 505 144 153</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_adc.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 355 357 388</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 433</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 48 75 50 511 74 52 515</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 48 75 50 511 74 52 515</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_dma.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 360 363 390</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 435</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 75 52 73 50 511 74 515 61</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 75 52 73 50 511 74 515 61</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_flash.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 366 367 391</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 434</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 511 74 52 75 515 73 50 54</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 511 74 52 75 515 73 50 54</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_led.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 368 369 392</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 437</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 74 52 75 515 53 57 50 511 139 504 505 137 144 153</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 74 52 75 515 53 57 50 511 139 504 505 137 144 153</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_sleep.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 371 370 393</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 503</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 75 74 52 515 50 511 59 57 55 83 172 506 139 504 505 137 144 153 151 149 196 61 53 49 104 79</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 75 74 52 515 50 511 59 57 55 83 172 506 139 504 505 137 144 153 151 149 196 61 53 49 104 79</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_startup.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 372 373 394</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 318</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 50 511 74 52 75 515</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 50 511 74 52 75 515</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_timer.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 403 404 395</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 317</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Components\hal\target\CC2531_USBDONGLE\hal_usbdongle_cfg.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 344 343 396</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 316</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 77 74 52 75 515</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 77 74 52 75 515</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Components\mac\high_level\mac_cfg.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 349 240 397</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 319</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 83 75 172 506 311 79</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 83 75 172 506 311 79</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Components\mac\high_level\mac_pib.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 252 251 398</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 320</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 74 52 75 515 50 511 83 172 506 82 90 79 108 222 104 106 102 84 49 59 92 243 81 139 504 505 137 144 153 249 250</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 74 52 75 515 50 511 83 172 506 82 90 79 108 222 104 106 102 84 49 59 92 243 81 139 504 505 137 144 153 249 250</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Components\mac\low_level\srf04\mac_autopend.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 345 346 399</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 321</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 83 75 172 506 108 52 511 74 515 222 82 104 50 79 106 102 84 49 59 92 139 504 505 137 144 153 154 86</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 83 75 172 506 108 52 511 74 515 222 82 104 50 79 106 102 84 49 59 92 139 504 505 137 144 153 154 86</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Components\mac\low_level\srf04\mac_backoff_timer.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 347 348 295</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 322</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 75 74 52 515 82 90 79 83 172 506 88 100 108 511 222 104 50 106 102 84 49 59 92</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 75 74 52 515 82 90 79 83 172 506 88 100 108 511 222 104 50 106 102 84 49 59 92</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Components\mac\low_level\srf04\mac_low_level.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 241 245 296</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 323</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 75 74 52 515 243 79 83 172 506 90 92 94 100 96 88 98 108 511 222 82 104 50 106 102 84 49 59</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 75 74 52 515 243 79 83 172 506 90 92 94 100 96 88 98 108 511 222 82 104 50 106 102 84 49 59</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Components\mac\low_level\srf04\mac_radio.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 490 489 496</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 324</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 75 81 83 172 506 79 90 92 100 94 96 52 98 88 108 511 74 515 222 82 104 50 106 102 84 49 59</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 75 81 83 172 506 79 90 92 100 94 96 52 98 88 108 511 74 515 222 82 104 50 106 102 84 49 59</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Components\mac\low_level\srf04\mac_rx.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 270 269 497</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 325</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 52 75 139 504 505 137 144 153 79 83 172 506 82 81 492 90 94 100 96 92 108 511 74 515 222 104 50 106 102 84 49 59 86</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 52 75 139 504 505 137 144 153 79 83 172 506 82 81 492 90 94 100 96 92 108 511 74 515 222 104 50 106 102 84 49 59 86</file>
+          <file> 433 82 329 131 132 327 498 507 86 90 74 133 89 88 119 183 187 193 189 185 201 143 81 147 447 197 431 199 195 91 430 236 93</file>
         </tool>
       </inputs>
     </file>
@@ -1303,21 +872,21 @@
       <outputs>
         <tool>
           <name>ICC8051</name>
-          <file> 271 268 498</file>
+          <file> 166 163 125</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 326</file>
+          <file> 354</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 17 175 173 52 75 90 79 83 172 506 96 94 100 108 511 74 515 222 82 104 50 106 102 84 49 59 92</file>
+          <file> 70 77 308 433 82 183 86 90 74 133 189 187 193 201 143 81 147 447 89 197 431 199 195 91 430 236 185</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 52 75 90 79 83 172 506 96 94 100 108 511 74 515 222 82 104 50 106 102 84 49 59 92</file>
+          <file> 433 82 183 86 90 74 133 189 187 193 201 143 81 147 447 89 197 431 199 195 91 430 236 185</file>
         </tool>
       </inputs>
     </file>
@@ -1326,21 +895,21 @@
       <outputs>
         <tool>
           <name>ICC8051</name>
-          <file> 272 273 499</file>
+          <file> 167 397 126</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 327</file>
+          <file> 355</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 17 175 173 75 81 83 172 506 79 90 98 92 100 94 96 52 108 511 74 515 222 82 104 50 106 102 84 49 59</file>
+          <file> 70 77 308 82 88 90 74 133 86 183 191 185 193 187 189 433 201 143 81 147 447 89 197 431 199 195 91 430 236</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 75 81 83 172 506 79 90 98 92 100 94 96 52 108 511 74 515 222 82 104 50 106 102 84 49 59</file>
+          <file> 82 88 90 74 133 86 183 191 185 193 187 189 433 201 143 81 147 447 89 197 431 199 195 91 430 236</file>
         </tool>
       </inputs>
     </file>
@@ -1349,21 +918,21 @@
       <outputs>
         <tool>
           <name>ICC8051</name>
-          <file> 274 275 334</file>
+          <file> 396 392 173</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 328</file>
+          <file> 493</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 17 175 173 75 52 74 515 222 82 81 83 172 506 79 90 100 88 94 96 92 98 108 511 104 50 106 102 84 49 59</file>
+          <file> 70 77 308 82 433 81 147 447 89 88 90 74 133 86 183 193 181 187 189 185 191 201 143 197 431 199 195 91 430 236</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 75 52 74 515 222 82 81 83 172 506 79 90 100 88 94 96 92 98 108 511 104 50 106 102 84 49 59</file>
+          <file> 82 433 81 147 447 89 88 90 74 133 86 183 193 181 187 189 185 191 201 143 197 431 199 195 91 430 236</file>
         </tool>
       </inputs>
     </file>
@@ -1372,21 +941,21 @@
       <outputs>
         <tool>
           <name>ICC8051</name>
-          <file> 350 242 335</file>
+          <file> 478 462 174</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 329</file>
+          <file> 168</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 17 175 173 75 74 52 515 82 81 83 172 506 79 90 102 104 50 511 100 94 96 108 222 106 84 49 59 92</file>
+          <file> 70 77 308 82 81 433 147 89 88 90 74 133 86 183 195 197 431 143 193 187 189 201 447 199 91 430 236 185</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 75 74 52 515 82 81 83 172 506 79 90 102 104 50 511 100 94 96 108 222 106 84 49 59 92</file>
+          <file> 82 81 433 147 89 88 90 74 133 86 183 195 197 431 143 193 187 189 201 447 199 91 430 236 185</file>
         </tool>
       </inputs>
     </file>
@@ -1395,21 +964,21 @@
       <outputs>
         <tool>
           <name>ICC8051</name>
-          <file> 246 244 336</file>
+          <file> 268 267 175</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 330</file>
+          <file> 169</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 17 175 173 52 74 75 515 94 79 83 172 506 100 88 102 104 50 511 96 90 108 222 82 106 84 49 59 92 81</file>
+          <file> 70 77 308 433 81 82 147 187 86 90 74 133 193 181 195 197 431 143 189 183 201 447 89 199 91 430 236 185 88</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 52 74 75 515 94 79 83 172 506 100 88 102 104 50 511 96 90 108 222 82 106 84 49 59 92 81</file>
+          <file> 433 81 82 147 187 86 90 74 133 193 181 195 197 431 143 189 183 201 447 89 199 91 430 236 185 88</file>
         </tool>
       </inputs>
     </file>
@@ -1418,21 +987,21 @@
       <outputs>
         <tool>
           <name>ICC8051</name>
-          <file> 247 248 412</file>
+          <file> 270 271 20</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 331</file>
+          <file> 170</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 17 175 173 75 106 79 83 172 506 74 52 515 84 49</file>
+          <file> 70 77 308 82 199 86 90 74 133 81 433 147 91 430</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 75 106 79 83 172 506 74 52 515 84 49</file>
+          <file> 82 199 86 90 74 133 81 433 147 91 430</file>
         </tool>
       </inputs>
     </file>
@@ -1441,21 +1010,21 @@
       <outputs>
         <tool>
           <name>ICC8051</name>
-          <file> 493 491 413</file>
+          <file> 120 118 21</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 332</file>
+          <file> 171</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 17 175 173 108 52 511 74 75 515 222 82 104 50 79 83 172 506 106 102 84 49 59 92 81</file>
+          <file> 70 77 308 201 433 143 81 82 147 447 89 197 431 86 90 74 133 199 195 91 430 236 185 88</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 108 52 511 74 75 515 222 82 104 50 79 83 172 506 106 102 84 49 59 92 81</file>
+          <file> 201 433 143 81 82 147 447 89 197 431 86 90 74 133 199 195 91 430 236 185 88</file>
         </tool>
       </inputs>
     </file>
@@ -1464,21 +1033,21 @@
       <outputs>
         <tool>
           <name>ICC8051</name>
-          <file> 494 495 209</file>
+          <file> 121 122 487</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 333</file>
+          <file> 172</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 17 175 173 75 511 74 52 515 49 83 172 506 108 222 82 104 50 79 106 102 84 59 92</file>
+          <file> 70 77 308 82 143 81 433 147 430 90 74 133 201 447 89 197 431 86 199 195 91 236 185</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 75 511 74 52 515 49 83 172 506 108 222 82 104 50 79 106 102 84 59 92</file>
+          <file> 82 143 81 433 147 430 90 74 133 201 447 89 197 431 86 199 195 91 236 185</file>
         </tool>
       </inputs>
     </file>
@@ -1487,21 +1056,21 @@
       <outputs>
         <tool>
           <name>ICC8051</name>
-          <file> 509 508 210</file>
+          <file> 136 135 488</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 237</file>
+          <file> 455</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 17 175 173 154 137 75 52 172 139 504 505 144 153 147 125 123 191 193 83 506 116 118 122 121 169 136 110 126</file>
+          <file> 70 77 308 508 327 82 433 74 329 131 132 498 507 499 218 216 224 226 90 133 209 211 215 214 72 326 203 219</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 154 137 75 52 172 139 504 505 144 153 147 125 123 191 193 83 506 116 118 122 121 169 136 110 126</file>
+          <file> 508 327 82 433 74 329 131 132 498 507 499 218 216 224 226 90 133 209 211 215 214 72 326 203 219</file>
         </tool>
       </inputs>
     </file>
@@ -1510,315 +1079,137 @@
       <outputs>
         <tool>
           <name>ICC8051</name>
-          <file> 276 277 211</file>
+          <file> 337 336 489</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 235</file>
+          <file> 453</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 17 175 173 154 137 75 52 172 139 504 505 144 153 147 110 116 118 122 191 193 83 506 123 121 169 126 125 136 111 115 127 128 181 156 179 187</file>
+          <file> 70 77 308 508 327 82 433 74 329 131 132 498 507 499 203 209 211 215 224 226 90 133 216 214 72 219 218 326 204 208 220 221 312 510 310 318</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 154 137 75 52 172 139 504 505 144 153 147 110 116 118 122 191 193 83 506 123 121 169 126 125 136 111 115 127 128 181 156 179 187</file>
+          <file> 508 327 82 433 74 329 131 132 498 507 499 203 209 211 215 224 226 90 133 216 214 72 219 218 326 204 208 220 221 312 510 310 318</file>
         </tool>
       </inputs>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\Components\stack\nwk\stub_aps.c</name>
+      <name>$PROJ_DIR$\..\Components\zmac\f8w\zmac.c</name>
       <outputs>
         <tool>
           <name>ICC8051</name>
-          <file> 280 281 212</file>
+          <file> 496 100 45</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 236</file>
+          <file> 261</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 17 175 173 139 504 505 137 75 52 144 153 82 126 121 191 154 172 193 83 506 116 123 122 169 156 115 125 118 136 132</file>
+          <file> 70 77 308 508 327 82 433 74 329 131 132 498 507 224 226 90 133 463 86 326</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 139 504 505 137 75 52 144 153 82 126 121 191 154 172 193 83 506 116 123 122 169 156 115 125 118 136 132</file>
+          <file> 508 327 82 433 74 329 131 132 498 507 224 226 90 133 463 86 326</file>
         </tool>
       </inputs>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\Components\stack\sys\ZDiags.c</name>
+      <name>$PROJ_DIR$\..\Components\zmac\f8w\zmac_cb.c</name>
       <outputs>
         <tool>
           <name>ICC8051</name>
-          <file> 485 339 213</file>
+          <file> 105 486 44</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 239</file>
+          <file> 262</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 17 175 173 139 504 505 137 75 52 144 153 147 134 154 172 191 193 83 506</file>
+          <file> 70 77 308 508 327 82 433 74 329 131 132 498 507 224 226 90 133 106 81 147 215 216 214 209 72 326 119 86 463</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 139 504 505 137 75 52 144 153 147 134 154 172 191 193 83 506</file>
+          <file> 508 327 82 433 74 329 131 132 498 507 224 226 90 133 106 81 147 215 216 214 209 72 326 119 86 463</file>
         </tool>
       </inputs>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\Components\stack\sys\ZGlobals.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 266 267 448</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 238</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 154 137 75 52 172 147 185 121 191 193 83 506 116 139 504 505 144 153 123 179 111 115 125 118 122 169 136 127 156 187 181 183 126 196 74 515 61 50 511 59 189</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 154 137 75 52 172 147 185 121 191 193 83 506 116 139 504 505 144 153 123 179 111 115 125 118 122 169 136 127 156 187 181 183 126 196 74 515 61 50 511 59 189</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Components\osal\common\OSAL.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 415 416 445</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 513</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 423 505 137 75 52 50 511 74 515 139 504 144 153 151 149 141 20 116 154 172 156 122 191 193 83 506 123 121 169 115 125 118 136 158 147 113 185 179 111 127 187 181 422 196 61 59 53</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 423 505 137 75 52 50 511 74 515 139 504 144 153 151 149 141 20 116 154 172 156 122 191 193 83 506 123 121 169 115 125 118 136 158 147 113 185 179 111 127 187 181 422 196 61 59 53</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Components\osal\common\OSAL_Clock.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 419 417 450</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 514</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 137 75 52 50 511 74 515 196 61 59 139 504 505 144 153 141</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 137 75 52 50 511 74 515 196 61 59 139 504 505 144 153 141</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Components\osal\mcu\cc2530\OSAL_Math.s51</name>
+      <name>$PROJ_DIR$\..\Source\zmain\chipcon_cstartup.s51</name>
       <outputs>
         <tool>
           <name>A8051</name>
-          <file> 255</file>
+          <file> 277</file>
         </tool>
       </outputs>
+      <inputs>
+        <tool>
+          <name>A8051</name>
+          <file> 103 394 393</file>
+        </tool>
+      </inputs>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\Components\osal\common\OSAL_Memory.c</name>
+      <name>$PROJ_DIR$\..\Source\zmain\OnBoard.c</name>
       <outputs>
         <tool>
           <name>ICC8051</name>
-          <file> 421 420 447</file>
+          <file> 149 150 176</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 443</file>
+          <file> 263</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 17 175 173 137 75 52 139 504 505 144 153 196 74 515 61 50 511 59 49</file>
+          <file> 70 77 308 508 327 82 433 74 326 229 81 147 238 431 143 236 329 131 132 498 507 494 146 145 144 237 436 438 201 447 89 197 86 90 133 199 195 91 430 185</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 137 75 52 139 504 505 144 153 196 74 515 61 50 511 59 49</file>
+          <file> 508 327 82 433 74 326 229 81 147 238 431 143 236 329 131 132 498 507 494 146 145 144 237 436 438 201 447 89 197 86 90 133 199 195 91 430 185</file>
         </tool>
       </inputs>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\Source\OSAL_Memory2.c</name>
+      <name>$PROJ_DIR$\..\Source\zmain\ZMain.c</name>
       <outputs>
         <tool>
           <name>ICC8051</name>
-          <file> 305 304 429</file>
+          <file> 104 108 46</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 430</file>
+          <file> 264</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 17 175 173 144 137 75 52 423 505 196 74 515 61 50 511 59 139 504 153</file>
+          <file> 70 77 308 510 508 327 82 433 74 215 224 226 90 133 216 214 209 329 131 132 498 507 72 208 218 211 326 429 431 143 81 147 435 437 438 434 229 238 236 499 203 66 318 312 417</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 144 137 75 52 423 505 196 74 515 61 50 511 59 139 504 153</file>
+          <file> 510 508 327 82 433 74 215 224 226 90 133 216 214 209 329 131 132 498 507 72 208 218 211 326 429 431 143 81 147 435 437 438 434 229 238 236 499 203 66 318 312 417</file>
         </tool>
       </inputs>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\Components\osal\mcu\cc2530\OSAL_Nv.c</name>
+      <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_adc.c</name>
       <outputs>
         <tool>
           <name>ICC8051</name>
-          <file> 424 425 446</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 442</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 48 75 50 511 74 52 515 54 147 154 137 172</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 48 75 50 511 74 52 515 54 147 154 137 172</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Components\osal\common\OSAL_PwrMgr.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 427 426 449</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 444</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 137 75 52 196 74 515 61 50 511 59 139 504 505 144 153 151 149</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 137 75 52 196 74 515 61 50 511 59 139 504 505 144 153 151 149</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Components\osal\common\OSAL_Timers.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 518 428 452</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 451</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 137 75 52 196 74 515 61 50 511 59 139 504 505 144 153 60</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 137 75 52 196 74 515 61 50 511 59 139 504 505 144 153 60</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Components\stack\af\AF.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 516 507 453</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 289</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 511 74 52 75 515 139 504 505 137 144 153 156 154 172 122 191 193 83 506 123 121 116 169 115 125 118 136 126 113 187 181 112 128</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 511 74 52 75 515 139 504 505 137 144 153 156 154 172 122 191 193 83 506 123 121 116 169 115 125 118 136 126 113 187 181 112 128</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Components\stack\zcl\zcl.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 282 283 486</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 290</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 154 137 75 52 172 156 122 191 193 83 506 123 121 116 139 504 505 144 153 169 115 125 118 136 158 147 151 113 164</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 154 137 75 52 172 156 122 191 193 83 506 123 121 116 139 504 505 144 153 169 115 125 118 136 158 147 151 113 164</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Components\stack\zcl\zcl_diagnostic.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 286 287 487</file>
+          <file> 483 485 304</file>
         </tool>
         <tool>
           <name>BICOMP</name>
@@ -1828,43 +1219,20 @@
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 17 175 173 160 158 139 504 505 137 75 52 144 153 147 151 156 154 172 122 191 193 83 506 123 121 116 169 115 125 118 136 113 134</file>
+          <file> 70 77 308 429 82 431 143 81 433 147</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 160 158 139 504 505 137 75 52 144 153 147 151 156 154 172 122 191 193 83 506 123 121 116 169 115 125 118 136 113 134</file>
+          <file> 429 82 431 143 81 433 147</file>
         </tool>
       </inputs>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\Components\stack\zcl\zcl_ezmode.c</name>
+      <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_dma.c</name>
       <outputs>
         <tool>
           <name>ICC8051</name>
-          <file> 288 502 488</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 292</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 154 137 75 52 172 139 504 505 144 153 158 147 151 156 122 191 193 83 506 123 121 116 169 115 125 118 136 113 164 167 162 185 179 111 127 187 181</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 154 137 75 52 172 139 504 505 144 153 158 147 151 156 122 191 193 83 506 123 121 116 169 115 125 118 136 113 164 167 162 185 179 111 127 187 181</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Components\stack\zcl\zcl_general.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 383 384 341</file>
+          <file> 26 27 306</file>
         </tool>
         <tool>
           <name>BICOMP</name>
@@ -1874,11 +1242,468 @@
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 17 175 173 154 137 75 52 172 158 139 504 505 144 153 147 151 156 122 191 193 83 506 123 121 116 169 115 125 118 136 113 164 162 185 179 111 127 187 181</file>
+          <file> 70 77 308 82 433 80 431 143 81 147 238</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 154 137 75 52 172 158 139 504 505 144 153 147 151 156 122 191 193 83 506 123 121 116 169 115 125 118 136 113 164 162 185 179 111 127 187 181</file>
+          <file> 82 433 80 431 143 81 147 238</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_flash.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 30 31 307</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 292</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 143 81 433 82 147 80 431 435</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 143 81 433 82 147 80 431 435</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_led.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 34 35 0</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 295</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 81 433 82 147 434 438 431 143 329 131 132 327 498 507</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 81 433 82 147 434 438 431 143 329 131 132 327 498 507</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_sleep.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 37 36 1</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 130</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 82 81 433 147 431 143 236 438 436 90 74 133 329 131 132 327 498 507 505 503 229 238 434 430 197 86</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 82 81 433 147 431 143 236 438 436 90 74 133 329 131 132 327 498 507 505 503 229 238 434 430 197 86</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_startup.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 38 39 2</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 389</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 431 143 81 433 82 147</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 431 143 81 433 82 147</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_timer.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 11 12 3</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 388</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\CoordinatorEB\Exe\SerialDongle.d51</name>
+      <outputs>
+        <tool>
+          <name>XLINK</name>
+          <file> 101 395</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>XLINK</name>
+          <file> 76 102 385 250 358 488 19 299 9 53 58 18 278 55 54 57 357 176 384 376 17 41 42 177 47 48 43 491 56 46 235 373 277 16 374 304 375 306 305 307 0 1 2 3 4 7 231 5 174 377 175 20 6 123 21 487 124 125 126 173 489 179 490 113 470 114 115 234 469 40 379 45 44 386</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Components\stack\zdo\ZDApp.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 445 442 41</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 253</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 508 327 82 433 74 224 226 90 133 329 131 132 498 507 505 503 499 510 215 216 214 209 72 208 218 211 326 203 318 312 316 310 204 220 222 144 219 229 81 147 238 431 143 236 314 221 438</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 508 327 82 433 74 224 226 90 133 329 131 132 498 507 505 503 499 510 215 216 214 209 72 208 218 211 326 203 318 312 316 310 204 220 222 144 219 229 81 147 238 431 143 236 314 221 438</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Components\stack\zdo\ZDConfig.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 444 443 42</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 254</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 508 327 82 433 74 510 215 224 226 90 133 216 214 209 329 131 132 498 507 72 208 218 211 326 316 310 204 220 318 312</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 508 327 82 433 74 510 215 224 226 90 133 216 214 209 329 131 132 498 507 72 208 218 211 326 316 310 204 220 318 312</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Components\stack\zdo\ZDNwkMgr.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 458 446 177</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 255</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 508 327 82 433 74 219 214 224 226 90 133 209 329 131 132 498 507 216 215 72 310 204 208 218 211 326 220 510 318 312 316 314</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 508 327 82 433 74 219 214 224 226 90 133 209 329 131 132 498 507 216 215 72 310 204 208 218 211 326 220 510 318 312 316 314</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Components\stack\zdo\ZDObject.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 449 448 47</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 256</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 508 327 82 433 74 329 131 132 498 507 499 221 219 214 224 226 90 133 209 216 215 72 326 218 211 204 208 220 203 510 316 310 318 312 222</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 508 327 82 433 74 329 131 132 498 507 499 221 219 214 224 226 90 133 209 216 215 72 326 218 211 204 208 220 203 510 316 310 318 312 222</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Components\stack\zdo\ZDProfile.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 451 452 48</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 259</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 508 327 82 433 74 329 131 132 498 507 510 215 224 226 90 133 216 214 209 72 208 218 211 326 219 204 220 203 312 318 316 310 314</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 508 327 82 433 74 329 131 132 498 507 510 215 224 226 90 133 216 214 209 72 208 218 211 326 219 204 220 203 312 318 316 310 314</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Components\stack\nwk\stub_aps.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 333 399 490</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 454</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 329 131 132 327 82 433 498 507 89 219 214 224 508 74 226 90 133 209 216 215 72 510 208 218 211 326 322</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 329 131 132 327 82 433 498 507 89 219 214 224 508 74 226 90 133 209 216 215 72 510 208 218 211 326 322</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Components\stack\sys\ZDiags.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 112 178 491</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 459</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 329 131 132 327 82 433 498 507 499 324 508 74 224 226 90 133</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 329 131 132 327 82 433 498 507 499 324 508 74 224 226 90 133</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Components\stack\sys\ZGlobals.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 161 162 56</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 456</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 508 327 82 433 74 499 316 214 224 226 90 133 209 329 131 132 498 507 216 310 204 208 218 211 215 72 326 220 510 318 312 314 219 229 81 147 238 431 143 236 222</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 508 327 82 433 74 499 316 214 224 226 90 133 209 329 131 132 498 507 216 310 204 208 218 211 215 72 326 220 510 318 312 314 219 229 81 147 238 431 143 236 222</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Components\osal\common\OSAL.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 23 464 53</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 139</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 286 132 327 82 433 431 143 81 147 329 131 498 507 505 503 331 416 209 508 74 510 215 224 226 90 133 216 214 72 208 218 211 326 363 499 206 316 310 204 220 318 312 285 229 238 236 434</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 286 132 327 82 433 431 143 81 147 329 131 498 507 505 503 331 416 209 508 74 510 215 224 226 90 133 216 214 72 208 218 211 326 363 499 206 316 310 204 220 318 312 285 229 238 236 434</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Components\osal\common\OSAL_Clock.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 467 465 58</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 140</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 327 82 433 431 143 81 147 229 238 236 329 131 132 498 507 331</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 327 82 433 431 143 81 147 229 238 236 329 131 132 498 507 331</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Components\osal\mcu\cc2530\OSAL_Math.s51</name>
+      <outputs>
+        <tool>
+          <name>A8051</name>
+          <file> 278</file>
+        </tool>
+      </outputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Components\stack\zcl\zcl.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 335 338 113</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 345</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 508 327 82 433 74 510 215 224 226 90 133 216 214 209 329 131 132 498 507 72 208 218 211 326 363 499 505 206 369</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 508 327 82 433 74 510 215 224 226 90 133 216 214 209 329 131 132 498 507 72 208 218 211 326 363 499 505 206 369</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Components\stack\zcl\zcl_diagnostic.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 341 342 114</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 346</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 365 363 329 131 132 327 82 433 498 507 499 505 510 508 74 215 224 226 90 133 216 214 209 72 208 218 211 326 206 324</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 365 363 329 131 132 327 82 433 498 507 499 505 510 508 74 215 224 226 90 133 216 214 209 72 208 218 211 326 206 324</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Components\stack\zcl\zcl_ezmode.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 343 129 115</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 347</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 508 327 82 433 74 329 131 132 498 507 363 499 505 510 215 224 226 90 133 216 214 209 72 208 218 211 326 206 369 372 367 316 310 204 220 318 312</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 508 327 82 433 74 329 131 132 498 507 363 499 505 510 215 224 226 90 133 216 214 209 72 208 218 211 326 206 369 372 367 316 310 204 220 318 312</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Components\stack\zcl\zcl_general.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 49 50 469</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 232</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 508 327 82 433 74 363 329 131 132 498 507 499 505 510 215 224 226 90 133 216 214 209 72 208 218 211 326 206 369 367 316 310 204 220 318 312</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 508 327 82 433 74 363 329 131 132 498 507 499 505 510 215 224 226 90 133 216 214 209 72 208 218 211 326 206 369 367 316 310 204 220 318 312</file>
         </tool>
       </inputs>
     </file>
@@ -1887,21 +1712,21 @@
       <outputs>
         <tool>
           <name>ICC8051</name>
-          <file> 284 285 342</file>
+          <file> 339 340 470</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 458</file>
+          <file> 251</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 17 175 173 168 156 154 137 75 52 172 122 191 193 83 506 123 121 116 139 504 505 144 153 169 115 125 118 136 110</file>
+          <file> 70 77 308 71 510 508 327 82 433 74 215 224 226 90 133 216 214 209 329 131 132 498 507 72 208 218 211 326 203</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 168 156 154 137 75 52 172 122 191 193 83 506 123 121 116 139 504 505 144 153 169 115 125 118 136 110</file>
+          <file> 71 510 508 327 82 433 74 215 224 226 90 133 216 214 209 329 131 132 498 507 72 208 218 211 326 203</file>
         </tool>
       </inputs>
     </file>
@@ -1910,7 +1735,351 @@
       <outputs>
         <tool>
           <name>ICC8051</name>
-          <file> 201 206 374</file>
+          <file> 95 99 40</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 233</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 508 327 82 433 74 329 131 132 498 507 363 499 505 510 215 224 226 90 133 216 214 209 72 208 218 211 326 206 369 51 98 303 97 94 372</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 508 327 82 433 74 329 131 132 498 507 363 499 505 510 215 224 226 90 133 216 214 209 72 208 218 211 326 206 369 51 98 303 97 94 372</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Source\decode2.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 159 160 361</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 492</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 457 329 131 132 327 82 433 498 507 285 363 499 505 510 508 74 215 224 226 90 133 216 214 209 72 208 218 211 326 206 417 65 369</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 457 329 131 132 327 82 433 498 507 285 363 499 505 510 508 74 215 224 226 90 133 216 214 209 72 208 218 211 326 206 417 65 369</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>[ROOT_NODE]</name>
+      <outputs>
+        <tool>
+          <name>XLINK</name>
+          <file> 265 101 395</file>
+        </tool>
+      </outputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Source\DecodeIEEE.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 381 382 299</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 298</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 65 329 131 132 327 82 433 498 507 369 363 499 505 510 508 74 215 224 226 90 133 216 214 209 72 208 218 211 326 206 285 417 318 312</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 65 329 131 132 327 82 433 498 507 369 363 499 505 510 508 74 215 224 226 90 133 216 214 209 72 208 218 211 326 206 285 417 318 312</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\CoordinatorEB\List\decode.s51</name>
+      <outputs>
+        <tool>
+          <name>A8051</name>
+          <file> 16</file>
+        </tool>
+      </outputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\CoordinatorEB\List\DecodeLowDigit.s51</name>
+      <outputs>
+        <tool>
+          <name>A8051</name>
+          <file> 9</file>
+        </tool>
+      </outputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Source\DecodeLowDigit.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 402 13 9</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 10</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 65 329 131 132 327 82 433 498 507 369 363 499 505 510 508 74 215 224 226 90 133 216 214 209 72 208 218 211 326 206</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 65 329 131 132 327 82 433 498 507 369 363 499 505 510 508 74 215 224 226 90 133 216 214 209 72 208 218 211 326 206</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\CoordinatorEB\List\DecodeLowDigit_2.asm</name>
+      <outputs>
+        <tool>
+          <name>A8051</name>
+          <file> 258</file>
+        </tool>
+      </outputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Source\decode.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 401 15 16</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 14</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 457 329 131 132 327 82 433 498 507 285 363 499 505 510 508 74 215 224 226 90 133 216 214 209 72 208 218 211 326 206 417 65 369</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 457 329 131 132 327 82 433 498 507 285 363 499 505 510 508 74 215 224 226 90 133 216 214 209 72 208 218 211 326 206 417 65 369</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Source\AddrManager.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 410 479 480</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 481</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 82 498 327 433 329 131 132 507 508 74 203 499 218 216 224 226 90 133 209 211 215 214 72 326 407</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 82 498 327 433 329 131 132 507 508 74 203 499 218 216 224 226 90 133 209 211 215 214 72 326 407</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\CoordinatorEB\List\AddrManager.s51</name>
+      <outputs>
+        <tool>
+          <name>A8051</name>
+          <file> 480</file>
+        </tool>
+      </outputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Source\OSAL_Coordinator.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 466 22 18</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 152</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 508 327 82 433 74 434 329 131 132 498 507 505 215 224 226 90 133 216 214 209 72 204 208 218 211 326 220 310 510 318 312 314 219 205 363 499 206 69</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 508 327 82 433 74 434 329 131 132 498 507 505 215 224 226 90 133 216 214 209 72 204 208 218 211 326 220 310 510 318 312 314 219 205 363 499 206 69</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Source\SerialFunctions.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 450 441 376</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 154</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 147 416 209 508 327 82 433 74 329 131 132 498 507 510 215 224 226 90 133 216 214 72 208 218 211 326 363 499 505 206 316 310 204 220 318 312 285 80 431 143 81 286 457</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 147 416 209 508 327 82 433 74 329 131 132 498 507 510 215 224 226 90 133 216 214 72 208 218 211 326 363 499 505 206 316 310 204 220 318 312 285 80 431 143 81 286 457</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Source\zcl_functions.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 128 127 234</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 141</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 419 363 329 131 132 327 82 433 498 507 499 505 510 508 74 215 224 226 90 133 216 214 209 72 208 218 211 326 206 416 316 310 204 220 318 312 285</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 419 363 329 131 132 327 82 433 498 507 499 505 510 508 74 215 224 226 90 133 216 214 209 72 208 218 211 326 206 416 316 310 204 220 318 312 285</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Source\ZdoMessageHandlers.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 107 495 235</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 289</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 316 214 224 508 327 82 433 74 226 90 133 209 329 131 132 498 507 216 310 204 208 218 211 215 72 326 220 510 318 312 421 431 143 81 147 68 416 363 499 505 206 285 415 66 417</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 316 214 224 508 327 82 433 74 226 90 133 209 329 131 132 498 507 216 310 204 208 218 211 215 72 326 220 510 318 312 421 431 143 81 147 68 416 363 499 505 206 285 415 66 417</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Source\zigbee_functions.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 96 52 379</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 290</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 510 508 327 82 433 74 215 224 226 90 133 216 214 209 329 131 132 498 507 72 208 218 211 326 318 312 423 69</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 510 508 327 82 433 74 215 224 226 90 133 216 214 209 329 131 132 498 507 72 208 218 211 326 318 312 423 69</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Source\ZigBeeSerialBridge.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 33 359 373</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 297</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 329 131 132 327 82 433 498 507 510 508 74 215 224 226 90 133 216 214 209 72 208 218 211 326 310 204 220 318 312 316 372 363 499 505 206 257 419 417 203 229 81 147 238 431 143 236 69 421 32 415 416 285 66 438 484 109 68</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 329 131 132 327 82 433 498 507 510 508 74 215 224 226 90 133 216 214 209 72 208 218 211 326 310 204 220 318 312 316 372 363 499 505 206 257 419 417 203 229 81 147 238 431 143 236 69 421 32 415 416 285 66 438 484 109 68</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Components\hal\common\hal_assert.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 24 25 375</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 296</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 70 77 308 430 82 431 143 81 433 147 187 86 90 74 133 193</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 430 82 431 143 81 433 147 187 86 90 74 133 193</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Components\hal\common\hal_drivers.c</name>
+      <outputs>
+        <tool>
+          <name>ICC8051</name>
+          <file> 28 29 305</file>
         </tool>
         <tool>
           <name>BICOMP</name>
@@ -1920,335 +2089,154 @@
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 17 175 173 154 137 75 52 172 139 504 505 144 153 158 147 151 156 122 191 193 83 506 123 121 116 169 115 125 118 136 113 164 385 202 387 200 205 167</file>
+          <file> 70 77 308 429 82 431 143 81 433 147 248 508 327 74 80 434 438 236 237 238 329 131 132 498 507</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 154 137 75 52 172 139 504 505 144 153 158 147 151 156 122 191 193 83 506 123 121 116 169 115 125 118 136 113 164 385 202 387 200 205 167</file>
+          <file> 429 82 431 143 81 433 147 248 508 327 74 80 434 438 236 237 238 329 131 132 498 507</file>
         </tool>
       </inputs>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\Components\services\saddr\saddr.c</name>
+      <name>$PROJ_DIR$\..\Components\osal\common\OSAL_Memory.c</name>
       <outputs>
         <tool>
           <name>ICC8051</name>
-          <file> 279 278 340</file>
+          <file> 279 468 55</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 461</file>
+          <file> 301</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 17 175 173 75 139 504 505 137 52 144 153 172</file>
+          <file> 70 77 308 327 82 433 329 131 132 498 507 229 81 147 238 431 143 236 430</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 75 139 504 505 137 52 144 153 172</file>
+          <file> 327 82 433 329 131 132 498 507 229 81 147 238 431 143 236 430</file>
         </tool>
       </inputs>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\Components\stack\zdo\ZDApp.c</name>
+      <name>$PROJ_DIR$\..\Source\OSAL_Memory2.c</name>
       <outputs>
         <tool>
           <name>ICC8051</name>
-          <file> 226 223 375</file>
+          <file> 380 378 287</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 462</file>
+          <file> 288</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 17 175 173 154 137 75 52 172 191 193 83 506 139 504 505 144 153 151 149 147 156 122 123 121 116 169 115 125 118 136 110 187 181 185 179 111 127 189 217 126 196 74 515 61 50 511 59 183 128 57</file>
+          <file> 70 77 308 498 327 82 433 286 132 229 81 147 238 431 143 236 329 131 507</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 154 137 75 52 172 191 193 83 506 139 504 505 144 153 151 149 147 156 122 123 121 116 169 115 125 118 136 110 187 181 185 179 111 127 189 217 126 196 74 515 61 50 511 59 183 128 57</file>
+          <file> 498 327 82 433 286 132 229 81 147 238 431 143 236 329 131 507</file>
         </tool>
       </inputs>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\Components\stack\zdo\ZDConfig.c</name>
+      <name>$PROJ_DIR$\..\Components\osal\mcu\cc2530\OSAL_Nv.c</name>
       <outputs>
         <tool>
           <name>ICC8051</name>
-          <file> 225 224 376</file>
+          <file> 280 281 54</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 463</file>
+          <file> 300</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 17 175 173 154 137 75 52 172 156 122 191 193 83 506 123 121 116 139 504 505 144 153 169 115 125 118 136 185 179 111 127 187 181</file>
+          <file> 70 77 308 429 82 431 143 81 433 147 435 499 508 327 74</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 154 137 75 52 172 156 122 191 193 83 506 123 121 116 139 504 505 144 153 169 115 125 118 136 185 179 111 127 187 181</file>
+          <file> 429 82 431 143 81 433 147 435 499 508 327 74</file>
         </tool>
       </inputs>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\Components\stack\zdo\ZDNwkMgr.c</name>
+      <name>$PROJ_DIR$\..\Components\osal\common\OSAL_PwrMgr.c</name>
       <outputs>
         <tool>
           <name>ICC8051</name>
-          <file> 234 227 337</file>
+          <file> 283 282 57</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 464</file>
+          <file> 302</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 17 175 173 154 137 75 52 172 126 121 191 193 83 506 116 139 504 505 144 153 123 122 169 179 111 115 125 118 136 127 156 187 181 185 183</file>
+          <file> 70 77 308 327 82 433 229 81 147 238 431 143 236 329 131 132 498 507 505 503</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 154 137 75 52 172 126 121 191 193 83 506 116 139 504 505 144 153 123 122 169 179 111 115 125 118 136 127 156 187 181 185 183</file>
+          <file> 327 82 433 229 81 147 238 431 143 236 329 131 132 498 507 505 503</file>
         </tool>
       </inputs>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\Components\stack\zdo\ZDObject.c</name>
+      <name>$PROJ_DIR$\..\Components\osal\common\OSAL_Timers.c</name>
       <outputs>
         <tool>
           <name>ICC8051</name>
-          <file> 229 228 381</file>
+          <file> 142 284 357</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 465</file>
+          <file> 356</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 17 175 173 154 137 75 52 172 139 504 505 144 153 147 128 126 121 191 193 83 506 116 123 122 169 136 125 118 111 115 127 110 156 185 179 187 181 189</file>
+          <file> 70 77 308 327 82 433 229 81 147 238 431 143 236 329 131 132 498 507 237</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 154 137 75 52 172 139 504 505 144 153 147 128 126 121 191 193 83 506 116 123 122 169 136 125 118 111 115 127 110 156 185 179 187 181 189</file>
+          <file> 327 82 433 229 81 147 238 431 143 236 329 131 132 498 507 237</file>
         </tool>
       </inputs>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\Components\stack\zdo\ZDProfile.c</name>
+      <name>$PROJ_DIR$\..\Components\stack\af\AF.c</name>
       <outputs>
         <tool>
           <name>ICC8051</name>
-          <file> 231 232 382</file>
+          <file> 148 134 358</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 466</file>
+          <file> 344</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 17 175 173 154 137 75 52 172 139 504 505 144 153 156 122 191 193 83 506 123 121 116 169 115 125 118 136 126 111 127 110 181 187 185 179 183</file>
+          <file> 70 77 308 143 81 433 82 147 329 131 132 327 498 507 510 508 74 215 224 226 90 133 216 214 209 72 208 218 211 326 219 206 318 312 205 221 416 363 499 505 316 310 204 220 285</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 154 137 75 52 172 139 504 505 144 153 156 122 191 193 83 506 123 121 116 169 115 125 118 136 126 111 127 110 181 187 185 179 183</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Components\stack\zdo\ZDSecMgr.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 483 484 377</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 467</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 154 137 75 52 172 139 504 505 144 153 147 136 169 125 123 191 193 83 506 116 118 122 121 110 115 181 156 189 179 111 127 187</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 154 137 75 52 172 139 504 505 144 153 147 136 169 125 123 191 193 83 506 116 118 122 121 110 115 181 156 189 179 111 127 187</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Components\zmac\f8w\zmac.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 203 207 379</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 468</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 154 137 75 52 172 139 504 505 144 153 191 193 83 506 243 79 136</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 154 137 75 52 172 139 504 505 144 153 191 193 83 506 243 79 136</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Components\zmac\f8w\zmac_cb.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 477 208 378</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 469</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 154 137 75 52 172 139 504 505 144 153 191 193 83 506 479 74 515 122 123 121 116 169 136 492 79 243</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 154 137 75 52 172 139 504 505 144 153 191 193 83 506 479 74 515 122 123 121 116 169 136 492 79 243</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Source\zmain\chipcon_cstartup.s51</name>
-      <outputs>
-        <tool>
-          <name>A8051</name>
-          <file> 254</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>A8051</name>
-          <file> 476 314 313</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Source\zmain\OnBoard.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 218 219 338</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 470</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 154 137 75 52 172 136 196 74 515 61 50 511 59 139 504 505 144 153 198 216 215 217 60 55 57 108 222 82 104 79 83 506 106 102 84 49 92</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 154 137 75 52 172 136 196 74 515 61 50 511 59 139 504 505 144 153 198 216 215 217 60 55 57 108 222 82 104 79 83 506 106 102 84 49 92</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Source\zmain\ZMain.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 478 481 380</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 471</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 156 154 137 75 52 172 122 191 193 83 506 123 121 116 139 504 505 144 153 169 115 125 118 136 48 50 511 74 515 54 56 57 53 196 61 59 147 110 13 187 181 21</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 156 154 137 75 52 172 122 191 193 83 506 123 121 116 139 504 505 144 153 169 115 125 118 136 48 50 511 74 515 54 56 57 53 196 61 59 147 110 13 187 181 21</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Source\decode.s51.asm</name>
-      <outputs>
-        <tool>
-          <name>A8051</name>
-          <file> 258 408</file>
-        </tool>
-      </outputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\Source\decode2.c</name>
-      <outputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 264 265 456</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 214</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC8051</name>
-          <file> 17 175 173 233 139 504 505 137 75 52 144 153 422 158 147 151 156 154 172 122 191 193 83 506 123 121 116 169 115 125 118 136 113 21 12 164</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 233 139 504 505 137 75 52 144 153 422 158 147 151 156 154 172 122 191 193 83 506 123 121 116 169 115 125 118 136 113 21 12 164</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\CoordinatorEB\Exe\SerialDongle.d51</name>
-      <outputs>
-        <tool>
-          <name>XLINK</name>
-          <file> 474 315</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>XLINK</name>
-          <file> 174 475 310 457 453 210 411 441 401 445 450 410 255 447 446 449 452 338 309 297 409 375 376 337 381 382 377 213 448 380 301 300 254 408 298 388 303 390 389 391 392 393 394 395 396 399 295 397 335 296 336 412 398 496 413 209 497 498 499 334 211 340 212 486 342 487 488 299 341 374 302 379 378 312</file>
+          <file> 143 81 433 82 147 329 131 132 327 498 507 510 508 74 215 224 226 90 133 216 214 209 72 208 218 211 326 219 206 318 312 205 221 416 363 499 505 316 310 204 220 285</file>
         </tool>
       </inputs>
     </file>
     <forcedrebuild>
-      <name>$PROJ_DIR$\..\Source\AddDevList\AddDevList.c</name>
-      <tool>ICC8051</tool>
-    </forcedrebuild>
-    <forcedrebuild>
-      <name>$PROJ_DIR$\..\Source\AddrManager.c</name>
+      <name>$PROJ_DIR$\..\Components\stack\nwk\bindTable2.c</name>
       <tool>ICC8051</tool>
     </forcedrebuild>
     <forcedrebuild>
@@ -2260,11 +2248,15 @@
       <tool>ICC8051</tool>
     </forcedrebuild>
     <forcedrebuild>
-      <name>$PROJ_DIR$\..\Components\stack\nwk\bindTable2.c</name>
+      <name>$PROJ_DIR$\..\Components\stack\sapi\sapi.c</name>
       <tool>ICC8051</tool>
     </forcedrebuild>
     <forcedrebuild>
-      <name>$PROJ_DIR$\..\Components\stack\sapi\sapi.c</name>
+      <name>$PROJ_DIR$\..\Source\AddDevList\AddDevList.c</name>
+      <tool>ICC8051</tool>
+    </forcedrebuild>
+    <forcedrebuild>
+      <name>$PROJ_DIR$\..\Source\AddrManager.c</name>
       <tool>ICC8051</tool>
     </forcedrebuild>
     <forcedrebuild>

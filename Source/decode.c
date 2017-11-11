@@ -8,7 +8,7 @@ struct Cmds {
 	void (  * fn)(void);
 };
 
-#define MAX_CMD 12
+#define MAX_CMD 13
 struct Cmds cmds[MAX_CMD] = { 
 	{"IEEE:", decodeIEEEEvents},
 	{"INIT:", decodeINIT},
@@ -17,6 +17,7 @@ struct Cmds cmds[MAX_CMD] = {
 	{"BT:", decodeRequestBindTable},
 	{"DI:", decodeDeviceInfoEvent},
 	{"AE:", decodeActiveEndpointEvent},
+	{"RA:", decodeRequestAttribute},
 	{"RAS:", decodeRequestAttributes},
 	{"RESET:", reset},
 	{"SC:", decodeSendComand},

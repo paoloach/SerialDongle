@@ -176,11 +176,29 @@ void sendMessage(char * string){
 }
 
 
+void serialWrite(char * iter) {
+	if (dbIter > iter){
+		while (dbIter < dbEnd){
+			while(U0CSR_ACTIVE);
+			U0DBUF = *dbIter;
+			dbIter++;
+		}
+		dbIter = db;
+	}
+	while (dbIter < iter){
+		while(U0CSR_ACTIVE);
+		U0DBUF = *dbIter;
+		dbIter++;
+	}
+	nextDbIter = dbIter;
 
+}
+/*
 void serialWrite(char * iter) {
 	halDMADesc_t * dmaDesc = HAL_DMA_GET_DESC1234(1);
 	uint16 len;
 	while(HAL_DMA_CH_ARMED(1));
+	
 	if (dbIter  > iter){
 		// Write all the data from dbIter to the end of the buffer
 	
@@ -206,6 +224,7 @@ void serialWrite(char * iter) {
 	WAIT_ARM
 	HAL_DMA_MAN_TRIGGER(1);
 }
+*/
 
 void serialSendDevice(associated_devices_t * device){
 }
@@ -290,6 +309,7 @@ void sendAliveMsg(void) {
 // format: DI: network id, node relation, dev status, assoc count,   age   , txCounter, txCost  , rxLqi, 
 //             4 digits  ,   2 digits   , 2 digits  , 2 digits   , 2 digits, 2 digits , 2 digits, 2 digits  
 void serialSendDeviceInfo(associated_devices_t * device){
+	while(nextDbIter != dbIter);
 	char * iter;
 	iter = addMem(dbIter,  "DI: ", 4);
 	iter = addNwkId(iter, device->shortAddr);
@@ -312,7 +332,6 @@ void serialSendDeviceInfo(associated_devices_t * device){
 	if (iter == dbEnd){
 		iter = db;
 	}	
-	while(iter == dbIter);
 	*iter=0;
 	serialWrite(iter);
 }
@@ -320,6 +339,7 @@ void serialSendDeviceInfo(associated_devices_t * device){
 //               4digit,   2digit
 void serialSendActiveEPError(uint16 nwkAdd, afStatus_t ret){
 	char * iter;
+	while(nextDbIter != dbIter);
 	iter = addMem(dbIter,  "AEE: ", 5);
 	iter = addNwkId(iter, nwkAdd);
 	iter = addSep(iter);
@@ -329,7 +349,6 @@ void serialSendActiveEPError(uint16 nwkAdd, afStatus_t ret){
 	if (iter == dbEnd){
 		iter = db;
 	}	
-	while(iter == dbIter);
 	*iter=0;
 	serialWrite(iter);
 }
@@ -338,6 +357,7 @@ void serialSendActiveEPError(uint16 nwkAdd, afStatus_t ret){
 //              4digits  ,  2digits  , 4 digits ,   4 digits , 2 digits
 void serialSendAttributeResponseMsgError(struct ReqAttributeMsg * attr, ZStatus_t status){
 	char * iter;
+	while(nextDbIter != dbIter);
 	iter = addMem(dbIter,  "RAE: ", 5);
 	iter = addNwkId(iter, attr->afAddrType.addr.shortAddr);
 	iter = addSep(iter);
@@ -353,7 +373,7 @@ void serialSendAttributeResponseMsgError(struct ReqAttributeMsg * attr, ZStatus_
 	if (iter == dbEnd){
 		iter = db;
 	}	
-	while(iter == dbIter);
+	
 	*iter=0;
 	serialWrite(iter);
 }
@@ -367,6 +387,7 @@ void serialSendAttributeResponseMsg(zclReadRspCmd_t * readRsp, uint16 clusterId,
 	uint8 attrSize;
 	uint8 i;
 	char * iter=dbIter;
+	while(nextDbIter != dbIter);
 	
 	for (;iterAttr != iterEnd; iterAttr++){
 		while(HAL_DMA_CH_ARMED(1));
@@ -396,7 +417,6 @@ void serialSendAttributeResponseMsg(zclReadRspCmd_t * readRsp, uint16 clusterId,
 		if (iter == dbEnd){
 			iter = db;
 		}	
-		while(iter == dbIter);
 		*iter=0;
 		serialWrite(iter);
 	}
@@ -419,7 +439,6 @@ void serialSendAnnunce(ZDO_DeviceAnnce_t * deviceAnnce ){
 	if (iter == dbEnd){
 		iter = db;
 	}
-	while(iter == dbIter);
 	*iter=0;
 	serialWrite(iter);
 }
@@ -428,6 +447,7 @@ void serialSendAnnunce(ZDO_DeviceAnnce_t * deviceAnnce ){
 void nodePowerResponseMessageError(uint16 nwkAddr, uint8 status) {
 	char * iter;
 	char * buffer = dbIter;
+	while(nextDbIter != dbIter);
 	iter = addMem(buffer, "NPRE: ", 6);
 	iter = addNwkId(iter, nwkAddr);
 	iter = adduint8(iter, status);
@@ -436,7 +456,6 @@ void nodePowerResponseMessageError(uint16 nwkAddr, uint8 status) {
 	if (iter == dbEnd){
 		iter = db;
 	}
-	while(iter == dbIter);
 	*iter=0;
 	
 	serialWrite(iter);
@@ -453,7 +472,7 @@ void nodePowerResponseMessage(zdoIncomingMsg_t * inMsg) {
 	uint16 nwkAddr;
 	char * iter;
 	char * buffer = dbIter;
-	
+	while(nextDbIter != dbIter);	
 	msg = inMsg->asdu;
 	status = *msg++;
 	nwkAddr = BUILD_UINT16( msg[0], msg[1] );
@@ -486,7 +505,6 @@ void nodePowerResponseMessage(zdoIncomingMsg_t * inMsg) {
 	if (iter == dbEnd){
 		iter = db;
 	}
-	while(iter == dbIter);
 	*iter=0;
 	serialWrite(iter);
 }
@@ -498,6 +516,7 @@ void serialSendSimpleDescriptor(ZDO_SimpleDescRsp_t * simpleDesc){
 	char * buffer = dbIter;
 	char * iter;
 	uint8 i;
+	while(nextDbIter != dbIter);
 	iter = addMem(buffer, "SD: ", 4);
 	iter = addNwkId(iter, simpleDesc->nwkAddr);
 	iter = addSep(iter);
@@ -528,7 +547,6 @@ void serialSendSimpleDescriptor(ZDO_SimpleDescRsp_t * simpleDesc){
 	if (iter == dbEnd){
 		iter = db;
 	}
-	while(iter == dbIter);
 	*iter=0;
 	serialWrite(iter);
 }
@@ -549,6 +567,9 @@ void serialSendIeeeAddress(zdoIncomingMsg_t * inMsg ){
   	}
 	uint8 * msg = inMsg->asdu;
 	status =  *msg++;
+
+	while(nextDbIter != dbIter);
+	
 	if (status == ZDO_SUCCESS){
 		iter = addMem(iter, "IE: ", 4);
 		iter = addExtAddr(iter, msg);
@@ -580,7 +601,6 @@ void serialSendIeeeAddress(zdoIncomingMsg_t * inMsg ){
 	if (iter == dbEnd){
 		iter = db;
 	}	
-	while(iter == dbIter);
 	*iter=0;
 	serialWrite(iter);
 }
@@ -589,6 +609,7 @@ void serialSendIeeeAddress(zdoIncomingMsg_t * inMsg ){
 //       16 digits      ,      2digits    ,  4 digits,   4 digits   ,   2 digits
 void serialSendBindTable(struct BindTableResponseEntry * bindTable) {
 	char * iter = dbIter;
+	while(nextDbIter != dbIter);
 	iter = addMem(iter, "BT: ", 4);
 	iter = addExtAddr(iter, bindTable->srcAddr);
 	iter = addSep(iter);
@@ -604,7 +625,7 @@ void serialSendBindTable(struct BindTableResponseEntry * bindTable) {
 	if (iter == dbEnd){
 		iter = db;
 	}	
-	while(iter == dbIter);
+	
 	*iter=0;
 	serialWrite(iter);				
 }

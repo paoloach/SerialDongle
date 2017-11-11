@@ -22,6 +22,8 @@
 #include "TimerEvents.h"
 #include "AddrMgr.h"
 
+#include "OnBoard.h"
+
 #include "ZigBeeSerialBridge.h"
 #include "ZdoMessageHandlers.h"
 #include "UsbIrqHookProcessEvents.h"
@@ -118,6 +120,7 @@ void serialDongleAppInit( byte task_id ){
 	T1CTL=1;
 	
 	osal_start_timerEx(task_id, ALIVE, 5000);
+	osal_start_timerEx(task_id, WATCHDOG, 100);
 }
 
 /*********************************************************************
@@ -179,6 +182,13 @@ UINT16 processEvent( byte task_id, UINT16 events ){
 		sendAliveMsg();
 		result = (events ^ ALIVE);
 		osal_start_timerEx(task_id, ALIVE, 5000);
+	}
+	
+	if (events & WATCHDOG) {
+		WDCTL = WDCLP1 | 0x08;
+  		WDCTL = WDCLP2 | 0x08;
+		result = (events ^ WATCHDOG);
+		osal_start_timerEx(task_id, WATCHDOG, 100);
 	}
 	
 end:
