@@ -10,7 +10,8 @@
 ***************************************************************************************************/
 
 #include "iocc2530.h"
-#include "SerialFunctions.h"
+//#include "SerialFunctions.h"
+#include "SerialSend/SendMethods.h"
 #include "hal_dma.h"
 #include <string.h>
 #include "SerialProcessEvents.h"

@@ -7,7 +7,8 @@
 **************************************************************************************************/
 
 #include "zcl_functions.h"
-#include "SerialFunctions.h"
+//#include "SerialFunctions.h"
+#include "SerialSend/SendMethods.h"
 
 /*********************************************************************
  * MACROS

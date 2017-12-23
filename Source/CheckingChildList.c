@@ -12,7 +12,8 @@
 #include "ZDApp.h"
 #include "TimerEvents.h"
 #include "AddrMgr.h"
-#include "SerialFunctions.h"
+//#include "SerialFunctions.h"
+#include "SerialSend/SendMethods.h"
 #include "osal_memory.h"
 #include "string.h"
 

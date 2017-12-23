@@ -1501,6 +1501,51 @@
           <name>$PROJ_DIR$\..\Source\SerialProcessEventsInternal.h</name>
         </file>
       </group>
+      <group>
+        <name>SerialSend</name>
+        <file>
+          <name>$PROJ_DIR$\..\Source\SerialSend\NodePowerResponseMessage.c</name>
+        </file>
+        <file>
+          <name>$PROJ_DIR$\..\Source\SerialSend\NodePowerResponseMessageError.c</name>
+        </file>
+        <file>
+          <name>$PROJ_DIR$\..\Source\SerialSend\SendActiveEP_Error.c</name>
+        </file>
+        <file>
+          <name>$PROJ_DIR$\..\Source\SerialSend\SendMessage.c</name>
+        </file>
+        <file>
+          <name>$PROJ_DIR$\..\Source\SerialSend\SendMethods.c</name>
+        </file>
+        <file>
+          <name>$PROJ_DIR$\..\Source\SerialSend\SendMethods.h</name>
+        </file>
+        <file>
+          <name>$PROJ_DIR$\..\Source\SerialSend\SerialSend.c</name>
+        </file>
+        <file>
+          <name>$PROJ_DIR$\..\Source\SerialSend\SerialSend.h</name>
+        </file>
+        <file>
+          <name>$PROJ_DIR$\..\Source\SerialSend\SerialSendAnnunce.c</name>
+        </file>
+        <file>
+          <name>$PROJ_DIR$\..\Source\SerialSend\serialSendAttributeResponseMsg.c</name>
+        </file>
+        <file>
+          <name>$PROJ_DIR$\..\Source\SerialSend\SerialSendAttributeResponseMsgError.c</name>
+        </file>
+        <file>
+          <name>$PROJ_DIR$\..\Source\SerialSend\SerialSendBindTable.c</name>
+        </file>
+        <file>
+          <name>$PROJ_DIR$\..\Source\SerialSend\SerialSendIeeeAddress.c</name>
+        </file>
+        <file>
+          <name>$PROJ_DIR$\..\Source\SerialSend\SerialSendSimpleDescriptor.c</name>
+        </file>
+      </group>
       <file>
         <name>$PROJ_DIR$\..\Source\CheckingChildList.c</name>
       </file>
@@ -1524,9 +1569,18 @@
       </file>
       <file>
         <name>$PROJ_DIR$\..\Source\SerialFunctions.c</name>
+        <excluded>
+          <configuration>CoordinatorEB</configuration>
+        </excluded>
       </file>
       <file>
         <name>$PROJ_DIR$\..\Source\SerialFunctions.h</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\Source\SerialReceive.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\Source\SerialReceive.h</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\Source\TimerEvents.h</name>
@@ -1553,7 +1607,7 @@
         <name>$PROJ_DIR$\..\Source\ZigBeeSerialBridge.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\Source\ZigBeeSerialBridge.h</name>
+        <name>$PROJ_DIR$\..\Source\ZigbeeSerialBridge.h</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\Source\ZigbeeSerialBridge_data.h</name>

@@ -50,7 +50,6 @@
 #include "ZDProfile.h"
 #include "aps_frag.h"
 #include "rtg.h"
-#include "SerialFunctions.h"
 
 #if defined ( MT_AF_CB_FUNC )
   #include "MT_AF.h"

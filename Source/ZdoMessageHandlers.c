@@ -11,7 +11,8 @@
 #include "hal_board.h"
 #include "hal_types.h"
 #include "endpointRequestList.h"
-#include "SerialFunctions.h"
+//#include "SerialFunctions.h"
+#include "SerialSend/SendMethods.h"
 #include "SerialCmdCode.h"
 #include "CheckingChildList.h"
 

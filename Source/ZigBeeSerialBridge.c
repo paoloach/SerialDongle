@@ -27,7 +27,8 @@
 #include "ZigBeeSerialBridge.h"
 #include "ZdoMessageHandlers.h"
 #include "UsbIrqHookProcessEvents.h"
-#include "SerialFunctions.h"
+//#include "SerialFunctions.h"
+#include "SerialSend/SendMethods.h"	 
 #include "CheckingChildList.h"
 	 
 	 
