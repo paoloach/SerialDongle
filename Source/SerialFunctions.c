@@ -821,15 +821,4 @@ HAL_ISR_FUNCTION( usart0RXIsr, URX0_VECTOR ){
 	HAL_EXIT_ISR();
 }
 
-HAL_ISR_FUNCTION( halDmaIsr, DMA_VECTOR )
-{
-  HAL_ENTER_ISR();
 
-  DMAIF = 0;
-  if (DMAIF1){
-	  DMAIF1=0;
-	  dbIter=nextDbIter;
-  }
-  CLEAR_SLEEP_MODE();
-  HAL_EXIT_ISR();
-}

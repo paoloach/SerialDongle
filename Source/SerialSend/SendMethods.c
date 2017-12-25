@@ -1,7 +1,7 @@
 #include "SendMethods.h"
 
 
-char * addMem(char * iter, const char * data, uint8 size) {
+uint8 * addMem(uint8 * iter, const char * data, uint8 size) {
 	for(uint8 i=0; i < size; i++){
 		*iter = *data;
 		iter++;
@@ -10,7 +10,7 @@ char * addMem(char * iter, const char * data, uint8 size) {
 	return iter;
 }
 
-char * sendUInt16(char * iter, uint16 value) {
+uint8 * sendUInt16(uint8 * iter, uint16 value) {
 	*iter = LO_UINT16(value);
 	iter++;
 	*iter = HI_UINT16(value);
@@ -18,7 +18,7 @@ char * sendUInt16(char * iter, uint16 value) {
 	return iter;
 }
 
-char * sendExtAddr(char * iter,  uint8  extAddr[Z_EXTADDR_LEN]) {
+uint8 * sendExtAddr(uint8 * iter,  uint8  extAddr[Z_EXTADDR_LEN]) {
 	for (uint8 i=0; i < Z_EXTADDR_LEN; i++){
 		*iter = *extAddr;
 		iter++;

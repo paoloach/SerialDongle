@@ -1513,6 +1513,12 @@
           <name>$PROJ_DIR$\..\Source\SerialSend\SendActiveEP_Error.c</name>
         </file>
         <file>
+          <name>$PROJ_DIR$\..\Source\SerialSend\SendAlive.c</name>
+        </file>
+        <file>
+          <name>$PROJ_DIR$\..\Source\SerialSend\sendDeviceInfo.c</name>
+        </file>
+        <file>
           <name>$PROJ_DIR$\..\Source\SerialSend\SendMessage.c</name>
         </file>
         <file>
@@ -1607,7 +1613,7 @@
         <name>$PROJ_DIR$\..\Source\ZigBeeSerialBridge.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\Source\ZigbeeSerialBridge.h</name>
+        <name>$PROJ_DIR$\..\Source\ZigBeeSerialBridge.h</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\Source\ZigbeeSerialBridge_data.h</name>

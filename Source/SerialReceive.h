@@ -3,6 +3,6 @@
 
 
 
-void serialLoop(void);
+void serialReceiveLoop(void);
 
 #endif

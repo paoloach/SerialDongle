@@ -16,7 +16,7 @@
 void serialSendIeeeAddress(zdoIncomingMsg_t * inMsg ){
 	byte cnt = 0;
 	uint8  status;
-	char * iter ;
+	uint8 * iter ;
 	
 	if ( inMsg->asduLen > (1 + Z_EXTADDR_LEN + 2) ) {
  		cnt = inMsg->asdu[1 + Z_EXTADDR_LEN + 2];
@@ -26,8 +26,9 @@ void serialSendIeeeAddress(zdoIncomingMsg_t * inMsg ){
 	uint8 * msg = inMsg->asdu;
 	status =  *msg++;
 
-	while(basePointer==NULL);
-	iter = basePointer;
+	struct DataSend * dataSend;
+	while((dataSend = getSendBuffer())==NULL);
+	iter = dataSend->start;
 	
 	if (status == ZDO_SUCCESS){
 		uint8 size = Z_EXTADDR_LEN + 2 + 2 + cnt;
@@ -36,9 +37,9 @@ void serialSendIeeeAddress(zdoIncomingMsg_t * inMsg ){
 			iter++;
 			msg++;
 		}
-		send(IEEEAddress, size);	
+		send(IEEEAddress, size,dataSend);	
 	} else {
-		send(IEEEAddressError, 0);
+		send(IEEEAddressError, 0,dataSend);
 	}
 
 }

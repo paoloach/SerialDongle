@@ -15,7 +15,7 @@ static char * rxDataWrite=rxData;
 static uint8 newCmd=0;
 static char *	startCmd[CMD_LIST];
 
-void serialLoop(void) {
+void serialReceiveLoop(void) {
 	if (EA==0){
 		EA=1;
 	}

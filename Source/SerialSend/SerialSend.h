@@ -14,11 +14,17 @@
 #include <hal_types.h>
 #include "MessageCode.h"
 
-extern char * basePointer;
-#define MAX_DATA_SIZE	128
+#define MAX_DATA_SIZE	32
+
+struct DataSend {
+	uint8 * start;
+	uint8   used;
+};
 
 void serialInit(void);
-void send(enum MessageCode code, uint8 size);
+void send(enum MessageCode code, uint8 size, struct DataSend * buffer);
+struct DataSend * getSendBuffer(void);
+void serialSendLoop(void);
 
 
 #endif

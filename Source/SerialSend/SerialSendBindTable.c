@@ -8,9 +8,10 @@
 // 2 bytes -> destination networkd id (12)
 // 1 byte  -> destination endpoint (14)
 void serialSendBindTable(struct BindTableResponseEntry * bindTable) {
-	char * iter ;
-	while(basePointer==NULL);
-	iter = basePointer;
+	uint8 * iter ;
+	struct DataSend * dataSend;
+	while((dataSend = getSendBuffer())==NULL);
+	iter = dataSend->start;
 	
 	iter = sendExtAddr(iter, bindTable->srcAddr);
 	*iter = bindTable->srcEP;
@@ -18,5 +19,5 @@ void serialSendBindTable(struct BindTableResponseEntry * bindTable) {
 	iter = sendUInt16(iter, bindTable->clusterID);		
 	iter = sendUInt16(iter, bindTable->dstAddr);
 	*iter = bindTable->dstEP;
-	send(BindTable, 14);				
+	send(BindTable, 14,dataSend);				
 }

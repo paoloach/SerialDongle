@@ -13,11 +13,12 @@
 //  n*2 byter --> Cluter id, where n is Cluster out element size
 
 void serialSendSimpleDescriptor(ZDO_SimpleDescRsp_t * simpleDesc){
-	char * iter ;
 	uint8 i;
 	uint8 size=10+2* simpleDesc->simpleDesc.AppNumInClusters + 2* simpleDesc->simpleDesc.AppNumOutClusters;
-	while(basePointer==NULL);
-	iter = basePointer;	
+	uint8 * iter ;
+	struct DataSend * dataSend;
+	while((dataSend = getSendBuffer())==NULL);
+	iter = dataSend->start;
 
 
 	iter = sendUInt16(iter,  simpleDesc->nwkAddr);
@@ -37,5 +38,5 @@ void serialSendSimpleDescriptor(ZDO_SimpleDescRsp_t * simpleDesc){
 	for (i=0; i <simpleDesc->simpleDesc.AppNumOutClusters; i++){
 		iter = sendUInt16(iter, simpleDesc->simpleDesc.pAppInClusterList[i]);
 	}	
-	send(SimpleDescriptor, size);
+	send(SimpleDescriptor, size,dataSend);
 }

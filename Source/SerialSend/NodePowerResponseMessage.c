@@ -11,9 +11,10 @@
 //   2 bytes -> network 1
 //   1 byte  -> status
 void nodePowerResponseMessage(zdoIncomingMsg_t * inMsg) {
-	char * iter ;
-	while(basePointer==NULL);
-	iter = basePointer;
+	uint8 * iter ;
+	struct DataSend * dataSend;
+	while((dataSend = getSendBuffer())==NULL);
+	iter = dataSend->start;
 	
 	uint8 *msg;
 	uint8 status;
@@ -30,7 +31,7 @@ void nodePowerResponseMessage(zdoIncomingMsg_t * inMsg) {
 		iter++;
 		msg++;
 		*iter = *msg;
-		send(NodePower, 4);
+		send(NodePower, 4,dataSend);
 	} else {
 		*iter = *msg;
 		iter++;
@@ -38,7 +39,7 @@ void nodePowerResponseMessage(zdoIncomingMsg_t * inMsg) {
 		*iter = *msg;
 		iter++;
 		*iter = status;
-		send(NodePowerError, 3);			
+		send(NodePowerError, 3,dataSend);			
 	}
 
 }

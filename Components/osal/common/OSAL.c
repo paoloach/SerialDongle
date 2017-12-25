@@ -54,6 +54,7 @@
 #include "OSAL_Clock.h"
 //#include "SerialFunctions.h"
 #include "SerialReceive.h"
+#include "SerialSend/SendMethods.h"	
 
 
 #include "OnBoard.h"
@@ -1177,7 +1178,8 @@ void osal_run_system( void )
 #endif
   
   Hal_ProcessPoll();
-  serialLoop();
+  serialReceiveLoop();
+  serialSendLoop();
   do {
     if (tasksEvents[idx])  // Task is highest priority that is ready.
     {

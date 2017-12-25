@@ -6,12 +6,13 @@
 // 8 bytes -> extended address
 // 1 byte  -> capability
 void serialSendAnnunce(ZDO_DeviceAnnce_t * deviceAnnce ){
-	char * iter ;
-	while(basePointer==NULL);
-	iter = basePointer;
+	uint8 * iter ;
+	struct DataSend * dataSend;
+	while((dataSend = getSendBuffer())==NULL);
+	iter = dataSend->start;
 	
 	iter = sendUInt16(iter, deviceAnnce->nwkAddr);
 	iter = sendExtAddr(iter, deviceAnnce->extAddr);
 	*iter = deviceAnnce->capabilities;
-	send(Annunce, 3);
+	send(Annunce, 3,dataSend);
 }

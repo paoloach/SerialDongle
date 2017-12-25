@@ -121,7 +121,7 @@ void serialDongleAppInit( byte task_id ){
 	T1CTL=1;
 	
 	osal_start_timerEx(task_id, ALIVE, 5000);
-	osal_start_timerEx(task_id, WATCHDOG, 100);
+//	osal_start_timerEx(task_id, WATCHDOG, 100);
 }
 
 /*********************************************************************
@@ -180,6 +180,7 @@ UINT16 processEvent( byte task_id, UINT16 events ){
 	}
 	
 	if (events & ALIVE) {
+		sendAliveMsg();
 		sendAliveMsg();
 		result = (events ^ ALIVE);
 		osal_start_timerEx(task_id, ALIVE, 5000);

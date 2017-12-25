@@ -30,6 +30,6 @@ void serialSendIeeeAddress(zdoIncomingMsg_t * inMsg );
 void serialSendBindTable(struct BindTableResponseEntry * bindTable);
 
 
-char * addMem(char * iter, const char * data, uint8 size);
-char * sendUInt16(char * iter, uint16 value);
-char * sendExtAddr(char * iter,  uint8  extAddr[Z_EXTADDR_LEN]);
+uint8 * addMem(uint8 * iter, const char * data, uint8 size);
+uint8 * sendUInt16(uint8 * iter, uint16 value);
+uint8 * sendExtAddr(uint8 * iter,  uint8  extAddr[Z_EXTADDR_LEN]);

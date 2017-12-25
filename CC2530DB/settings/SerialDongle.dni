@@ -9,7 +9,7 @@ TriggerName=main
 LimitSize=0
 ByteLimit=50
 [DebugChecksum]
-Checksum=1619438729
+Checksum=-1055642659
 [CallStack]
 ShowArgs=0
 [Disassembly]
@@ -75,15 +75,14 @@ Fmt10={W}0:usbcif	1	0
 Fmt11={W}0:v	3	0
 Fmt12={W}0:value	3	0
 [Breakpoints]
-Bp0=_ "STD_CODE" "{$PROJ_DIR$\..\Source\ZigBeeSerialBridge.c}.225.1" 0 0 0 0 "" 0 ""
+Bp0=_ "STD_CODE" "{$PROJ_DIR$\..\Source\ZigBeeSerialBridge.c}.226.1" 0 0 0 0 "" 0 ""
 Bp1=_ "STD_CODE" "{$PROJ_DIR$\..\Components\stack\zdo\ZDObject.c}.1943.3" 0 0 0 0 "" 0 ""
 Bp2=_ "STD_CODE" "{$PROJ_DIR$\..\Source\OSAL_Memory2.c}.87.4" 0 0 0 0 "" 0 ""
 Bp3=_ "STD_CODE" "{$PROJ_DIR$\..\Source\OSAL_Memory2.c}.63.2" 0 0 0 0 "" 0 ""
 Bp4=_ "STD_CODE" "{$PROJ_DIR$\..\Components\stack\af\AF.c}.742.3" 0 0 0 0 "" 0 ""
-Bp5=_ "STD_CODE" "{$PROJ_DIR$\..\Source\SerialSend\SerialSendSimpleDescriptor.c}.32.2" 1 0 0 0 "" 0 ""
-Count=6
+Count=5
 [ChipconEmu]
-Stop timers on halt=1
+Stop timers on halt=0
 Leave target running=1
 [Log file]
 LoggingEnabled=_ 0

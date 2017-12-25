@@ -8,9 +8,10 @@
 // 2 bytes -> cluster id(4)
 // 2 bytes -> attribute id(6)
 void serialSendAttributeResponseMsgError(struct ReqAttributeMsg * attr, ZStatus_t status){
-	char * iter ;
-	while(basePointer==NULL);
-	iter = basePointer;
+	uint8 * iter ;
+	struct DataSend * dataSend;
+	while((dataSend = getSendBuffer())==NULL);
+	iter = dataSend->start;
 	
 	iter = sendUInt16(iter, attr->afAddrType.addr.shortAddr);
 	*iter = attr->afAddrType.endPoint;
@@ -18,5 +19,5 @@ void serialSendAttributeResponseMsgError(struct ReqAttributeMsg * attr, ZStatus_
 	iter = sendUInt16(iter, attr->cluster);
 	iter = sendUInt16(iter, attr->attrID[0]);
 	*iter = status;
-	send(ActiveEP_Error, 8);
+	send(ActiveEP_Error, 8,dataSend);
 }
