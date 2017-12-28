@@ -14,7 +14,8 @@ enum MessageCode {
 	SimpleDescriptor=10,
 	IEEEAddress=11,
 	IEEEAddressError=12,
-	BindTable
+	BindTable=13,
+	WriteAttributeError=14
 		
 		
 };

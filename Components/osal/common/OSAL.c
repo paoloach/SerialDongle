@@ -52,9 +52,8 @@
 #include "OSAL_Memory.h"
 #include "OSAL_PwrMgr.h"
 #include "OSAL_Clock.h"
-//#include "SerialFunctions.h"
-#include "SerialReceive.h"
-#include "SerialSend/SendMethods.h"	
+#include "SerialReceive\SerialReceive.h"
+#include "SerialSend\SendMethods.h"	
 
 
 #include "OnBoard.h"

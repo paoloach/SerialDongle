@@ -13,6 +13,16 @@
 
 #include "SerialSend.h"
 
+__sfr __no_init volatile struct  {
+	unsigned char DMA_ARM0: 1;
+	unsigned char DMA_ARM1: 1;
+	unsigned char DMA_ARM2: 1;
+	unsigned char DMA_ARM3: 1;
+	unsigned char DMA_ARM4: 1;
+	unsigned char DMA_ARM_NOTUSED1: 1;
+	unsigned char DMA_ARM_NOTUSED2: 1;
+	unsigned char DMA_ABORT: 1;
+} @ 0xD6;
 
 __sfr __no_init volatile struct  {
 	unsigned char U0CSR_ACTIVE: 1;
@@ -25,16 +35,7 @@ __sfr __no_init volatile struct  {
 	unsigned char U0CSR_MODE: 1;
 } @ 0x86;
 
-__sfr __no_init volatile struct  {
-	unsigned char DMAIF0: 1;
-	unsigned char DMAIF1: 1;
-	unsigned char DMAIF2: 1;
-	unsigned char DMAIF3: 1;
-	unsigned char DMAIF4: 1;
-	unsigned char DMAIF5: 1;
-	unsigned char DMAIF6: 1;
-	unsigned char DMAIF7: 1;
-} @ 0xD1;
+
 
 #define HAL_DMA_U0DBUF             0x70C1
 
@@ -42,8 +43,6 @@ uint8 data1[MAX_DATA_SIZE+5];
 uint8 data2[MAX_DATA_SIZE+5];
 uint8 data3[MAX_DATA_SIZE+5];
 uint8 data4[MAX_DATA_SIZE+5];
-
-
 
 struct DataSend dataSends[4];
 
@@ -100,7 +99,7 @@ void serialInit(void){
 	URX0IF = 0;
 	EA=1;
 	
-	// SET DMA for writing
+	// SET DMA 1 for writing
 	halDMADesc_t * dmaDesc = HAL_DMA_GET_DESC1234(1);
 	HAL_DMA_SET_DEST(dmaDesc, HAL_DMA_U0DBUF);
 	HAL_DMA_SET_VLEN(dmaDesc, HAL_DMA_VLEN_USE_LEN);
@@ -111,7 +110,22 @@ void serialInit(void){
 	HAL_DMA_SET_DST_INC(dmaDesc, HAL_DMA_DSTINC_0);
 	HAL_DMA_SET_IRQ(dmaDesc, HAL_DMA_IRQMASK_DISABLE);
 	HAL_DMA_SET_M8(dmaDesc, HAL_DMA_M8_USE_8_BITS);
-	HAL_DMA_SET_PRIORITY(dmaDesc, HAL_DMA_PRI_HIGH);
+	HAL_DMA_SET_PRIORITY(dmaDesc, HAL_DMA_PRI_GUARANTEED);
+	// SET DMA 2 for reading
+	dmaDesc = HAL_DMA_GET_DESC1234(2);
+	HAL_DMA_SET_SOURCE(dmaDesc, HAL_DMA_U0DBUF);
+	HAL_DMA_SET_VLEN(dmaDesc, HAL_DMA_VLEN_USE_LEN);
+	HAL_DMA_SET_WORD_SIZE(dmaDesc, HAL_DMA_WORDSIZE_BYTE);
+	HAL_DMA_SET_TRIG_MODE(dmaDesc, HAL_DMA_TMODE_SINGLE);
+	
+	HAL_DMA_SET_TRIG_SRC(dmaDesc, HAL_DMA_TRIG_URX0);
+	
+	HAL_DMA_SET_SRC_INC(dmaDesc, HAL_DMA_SRCINC_0);
+	HAL_DMA_SET_DST_INC(dmaDesc, HAL_DMA_DSTINC_1);
+	HAL_DMA_SET_IRQ(dmaDesc, HAL_DMA_IRQMASK_DISABLE);
+	HAL_DMA_SET_M8(dmaDesc, HAL_DMA_M8_USE_8_BITS);
+	HAL_DMA_SET_PRIORITY(dmaDesc, HAL_DMA_PRI_HIGH);	
+		
 	DMAIE=1;
 	
 	data1[0]= HEADER1;
@@ -164,6 +178,34 @@ struct DataSend * getSendBuffer() {
 		if (maxBufferUsed < 4)
 			maxBufferUsed=4;
 		return dataSends+3;
+	}
+	if (DMA_ARM1 == 0){
+		halDMADesc_t * dmaDesc = HAL_DMA_GET_DESC1234(1);
+		if (dataSends[0].used==0x80){
+			dataSends[0].used=1;
+			if (maxBufferUsed < 1)
+				maxBufferUsed=1;
+			return dataSends;
+		}
+		if (dataSends[1].used==0x80){
+			dataSends[1].used=1;
+			if (maxBufferUsed < 2)
+				maxBufferUsed=2;
+
+			return dataSends+1;
+		}
+		if (dataSends[2].used==0x80){
+			dataSends[2].used=1;
+			if (maxBufferUsed < 3)
+				maxBufferUsed=3;
+			return dataSends+2;
+		}
+		if (dataSends[3].used==0x80){
+			dataSends[3].used=1;
+			if (maxBufferUsed < 4)
+				maxBufferUsed=4;
+			return dataSends+3;
+		}
 	}
 	return NULL;
 }
@@ -229,26 +271,7 @@ void sendBuffer(uint8 index) {
 }
 
 
-HAL_ISR_FUNCTION( halDmaIsr, DMA_VECTOR )
-{
-  HAL_ENTER_ISR();
 
-  DMAIF = 0;
-  if (DMAIF1){
-	  DMAIF1=0;
-	  if (dataSends[0].used == 0x80){
-		  dataSends[0].used  = 0;
-	  } else if (dataSends[1].used == 0x80){
-		  dataSends[1].used  = 0;
-	  } else if (dataSends[2].used == 0x80){
-		  dataSends[2].used  = 0;	  
-	  } else if (dataSends[3].used == 0x80) {
-		  dataSends[3].used  = 0;	  
-	  }
-  }
-  CLEAR_SLEEP_MODE();
-  HAL_EXIT_ISR();
-}
 #endif
 
 #if 0

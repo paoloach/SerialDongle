@@ -13,7 +13,6 @@
 #include "endpointRequestList.h"
 //#include "SerialFunctions.h"
 #include "SerialSend/SendMethods.h"
-#include "SerialCmdCode.h"
 #include "CheckingChildList.h"
 
 /*********************************************************************
@@ -96,10 +95,6 @@ static void simpleDecriptorMessage(zdoIncomingMsg_t * msg) {
 }
 
 static void ieeeAddrResponseMessage(zdoIncomingMsg_t * msg) {
-	serialSendIeeeAddress(msg);
-}
-
-static void nwkAddrResponseMessage(zdoIncomingMsg_t * msg) {
 	serialSendIeeeAddress(msg);
 }
 

@@ -17,7 +17,6 @@
 #include "ZDProfile.h"
 #include "ZCL_HA.h"
 #include "zcl.h"
-#include "ZigBeeUsbBridge_data.h"
 #include "zcl_functions.h"
 #include "TimerEvents.h"
 #include "AddrMgr.h"
@@ -26,11 +25,11 @@
 
 #include "ZigBeeSerialBridge.h"
 #include "ZdoMessageHandlers.h"
-#include "UsbIrqHookProcessEvents.h"
 //#include "SerialFunctions.h"
 #include "SerialSend/SendMethods.h"	 
 #include "CheckingChildList.h"
-	 
+#include "ZigbeeSerialBridge_data.h"	 
+
 	 
 #if !defined( WIN32 )
   #include "OnBoard.h"
@@ -49,8 +48,7 @@
  * LOCAL VARIABLES
  */
 byte serialDongleTaskID;   // Task ID for internal task/event processing
-                          // This variable will be received when
-                          // zusbInit() is called.
+
 
 /*********************************************************************
  * LOCAL FUNCTIONS
