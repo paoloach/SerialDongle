@@ -6,11 +6,11 @@
 // 2 bytes -> networkId (1)
 // 1 byte  -> nodeRelation (3)
 // 1 byte  -> device status (4)
-// 1 byte  -> association count (5)
-// 1 byte  -> age (6)
-// 1 byte  -> tx counter (7)
-// 1 byte  -> tx cost (8)
-// 1 byte  -> rx LQI (9)
+// 1 byte  -> association count (6)
+// 1 byte  -> age (7)
+// 1 byte  -> tx counter (8)
+// 1 byte  -> tx cost (9)
+// 1 byte  -> rx LQI (10)
 void serialSendDeviceInfo(associated_devices_t * device){
 	uint8 * iter ;
 	struct DataSend * dataSend;

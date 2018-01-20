@@ -9,7 +9,7 @@ TriggerName=main
 LimitSize=0
 ByteLimit=50
 [DebugChecksum]
-Checksum=-475486064
+Checksum=-836261481
 [CallStack]
 ShowArgs=0
 [Disassembly]
@@ -59,8 +59,7 @@ ShowSource=1
 [struct_types]
 Fmt0=AddrMgrEntry_t-nwkAddr	4	0
 Fmt1=ZDO_DeviceAnnce_t-nwkAddr	4	0
-Fmt2=union __Unnamed_2_207-shortAddr	4	0
-Fmt3=zdoIncomingMsg_t-clusterID	4	0
+Fmt2=zdoIncomingMsg_t-clusterID	4	0
 [watch_formats]
 Fmt0={W}0:(c-'0' )<< 4	4	0
 Fmt1={W}0:(c-'A' )<< 4	4	0
@@ -78,8 +77,7 @@ Fmt12={W}0:value	3	0
 [Breakpoints]
 Bp0=_ "STD_CODE" "{$PROJ_DIR$\..\Source\SerialReceive\requestAttributes.c}.26.2" 0 0 0 0 "" 0 ""
 Bp1=_ "STD_CODE" "{$PROJ_DIR$\..\Source\SerialReceive\RequestAttribute.c}.25.2" 0 0 0 0 "" 0 ""
-Bp2=_ "STD_CODE" "{$PROJ_DIR$\..\Source\SerialSend\SerialSend.c}.184.3" 1 0 0 0 "" 0 ""
-Count=3
+Count=2
 [ChipconEmu]
 Stop timers on halt=0
 Leave target running=1

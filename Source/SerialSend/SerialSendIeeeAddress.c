@@ -3,13 +3,12 @@
 #include "MessageCode.h"
 
 // if successs
-//   1 byte  -> code IEEEAddressError
-//   8 bytes -> extended address
-//   2 bytes -> network id
-//   1 byte  -> number of associated devices
-//   1 byte  -> start index
-//	 1 byte  -> child number
-//    n*2 bytes -> children network id where n is child number
+//   1 byte  -> code IEEEAddressError (0)
+//   8 bytes -> extended address (1)
+//   2 bytes -> network id (9)
+//   1 byte  -> number of associated devices (11)
+//   1 byte  -> start index (12)
+//    n*2 bytes -> children network id where n is child number (14 ... )
 
 // if error
 //   1 byte -> code IEEEAddressError 
@@ -31,7 +30,7 @@ void serialSendIeeeAddress(zdoIncomingMsg_t * inMsg ){
 	iter = dataSend->start;
 	
 	if (status == ZDO_SUCCESS){
-		uint8 size = Z_EXTADDR_LEN + 2 + 2 + cnt;
+		uint8 size = Z_EXTADDR_LEN + 2 + 2 + 2*cnt;
 		for (uint8 i=0; i < size; i++){
 			*iter = *msg;
 			iter++;
