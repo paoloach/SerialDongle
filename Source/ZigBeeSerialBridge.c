@@ -114,6 +114,7 @@ void serialDongleAppInit( byte task_id ){
 	ZDO_RegisterForZDOMsg( serialDongleTaskID, IEEE_addr_rsp);
 	ZDO_RegisterForZDOMsg( serialDongleTaskID, NWK_addr_rsp);
 	ZDO_RegisterForZDOMsg( serialDongleTaskID, Power_Desc_rsp);
+	ZDO_RegisterForZDOMsg( serialDongleTaskID, Node_Desc_rsp);
 	
 	
 	T1CTL=1;
@@ -178,7 +179,6 @@ UINT16 processEvent( byte task_id, UINT16 events ){
 	}
 	
 	if (events & ALIVE) {
-		sendAliveMsg();
 		sendAliveMsg();
 		result = (events ^ ALIVE);
 		osal_start_timerEx(task_id, ALIVE, 5000);

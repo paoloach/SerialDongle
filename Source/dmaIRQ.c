@@ -38,6 +38,7 @@ HAL_ISR_FUNCTION( halDmaIsr, DMA_VECTOR )
   if (DMAIF2){
 	  DMAIF2=0;
 	  URX0IE=1;
+	  URX0IF=0;
 	  rxUsed[rxDMA]=2;
   }
   CLEAR_SLEEP_MODE();

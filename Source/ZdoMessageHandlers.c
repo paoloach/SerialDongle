@@ -58,6 +58,9 @@ ZDOMessageHandler ZDOMessageHandlerFactory(cId_t clusterId) {
 		case Power_Desc_rsp:
 			zdoMessageHandler = nodePowerResponseMessage;
 			break;
+		case Node_Desc_rsp:
+			zdoMessageHandler = nodeDescriptionResponseMessage;
+			break;
 		default:
 			zdoMessageHandler = notHandledMessage;
 	}

@@ -9,7 +9,7 @@ TriggerName=main
 LimitSize=0
 ByteLimit=50
 [DebugChecksum]
-Checksum=-836261481
+Checksum=1631797069
 [CallStack]
 ShowArgs=0
 [Disassembly]
@@ -70,16 +70,18 @@ Fmt5={W}0:IEN2	1	0
 Fmt6={W}0:UInt	3	0
 Fmt7={W}0:len	3	0
 Fmt8={W}0:length	3	0
-Fmt9={W}0:simpleDesc->simpleDesc.pAppInClusterList[3]	4	0
-Fmt10={W}0:usbcif	1	0
-Fmt11={W}0:v	3	0
-Fmt12={W}0:value	3	0
+Fmt9={W}0:rxDataError	4	0
+Fmt10={W}0:simpleDesc->simpleDesc.pAppInClusterList[3]	4	0
+Fmt11={W}0:usbcif	1	0
+Fmt12={W}0:v	3	0
+Fmt13={W}0:value	3	0
 [Breakpoints]
 Bp0=_ "STD_CODE" "{$PROJ_DIR$\..\Source\SerialReceive\requestAttributes.c}.26.2" 0 0 0 0 "" 0 ""
 Bp1=_ "STD_CODE" "{$PROJ_DIR$\..\Source\SerialReceive\RequestAttribute.c}.25.2" 0 0 0 0 "" 0 ""
-Count=2
+Bp2=_ "STD_CODE" "{$PROJ_DIR$\..\Source\SerialReceive\SerialReceive.c}.115.5" 0 0 0 0 "" 0 ""
+Count=3
 [ChipconEmu]
-Stop timers on halt=0
+Stop timers on halt=1
 Leave target running=1
 [Log file]
 LoggingEnabled=_ 0

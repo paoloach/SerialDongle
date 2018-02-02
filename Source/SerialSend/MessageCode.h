@@ -15,9 +15,9 @@ enum MessageCode {
 	IEEEAddress=11,
 	IEEEAddressError=12,
 	BindTable=13,
-	WriteAttributeError=14
-		
-		
+	WriteAttributeError=14,
+	NodeDescriptionError=15,
+	NodeDescription=16
 };
 
 #endif

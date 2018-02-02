@@ -45,7 +45,13 @@ void serialProcessEvent(uint8 * data) {
 		break;
 	case 13:
 		init(data);
-		break;		
+		break;
+	case 14:
+		removeDevice(data);
+		break;	
+	case 15:
+		getNodeDescriptor(data);
+		break;
 	default:
 		invalidCmd(data);		
 	}

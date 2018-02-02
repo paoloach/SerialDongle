@@ -287,7 +287,7 @@
         <option>
           <name>CCDefines</name>
           <state>HAL_PA_LNA</state>
-          <state>SECURE=0</state>
+          <state>SECURE=1</state>
           <state>OSALMEM_METRICS</state>
           <state>REFLECTOR</state>
           <state>xPOWER_SAVE</state>
@@ -1126,10 +1126,16 @@
           <name>$PROJ_DIR$\..\Source\SerialReceive\GetIEEEAddress.c</name>
         </file>
         <file>
+          <name>$PROJ_DIR$\..\Source\SerialReceive\GetNodeDescriptor.c</name>
+        </file>
+        <file>
           <name>$PROJ_DIR$\..\Source\SerialReceive\Init.c</name>
         </file>
         <file>
           <name>$PROJ_DIR$\..\Source\SerialReceive\InvalidCmd.c</name>
+        </file>
+        <file>
+          <name>$PROJ_DIR$\..\Source\SerialReceive\RemoveDevice.c</name>
         </file>
         <file>
           <name>$PROJ_DIR$\..\Source\SerialReceive\RequestActiveEndpoints.c</name>
@@ -1173,6 +1179,12 @@
       </group>
       <group>
         <name>SerialSend</name>
+        <file>
+          <name>$PROJ_DIR$\..\Source\SerialSend\NodeDescriptionResponseMessage.c</name>
+        </file>
+        <file>
+          <name>$PROJ_DIR$\..\Source\SerialSend\NodeDescriptorResponseMessageError.c</name>
+        </file>
         <file>
           <name>$PROJ_DIR$\..\Source\SerialSend\NodePowerResponseMessage.c</name>
         </file>

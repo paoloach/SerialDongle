@@ -29,6 +29,8 @@ void nodePowerResponseMessage(zdoIncomingMsg_t * inMsg);
 void serialSendSimpleDescriptor(ZDO_SimpleDescRsp_t * simpleDesc);
 void serialSendIeeeAddress(zdoIncomingMsg_t * inMsg );
 void serialSendBindTable(struct BindTableResponseEntry * bindTable);
+void nodeDescriptionResponseMessageError(uint16 nwkAddr, uint8 status) ;
+void nodeDescriptionResponseMessage(zdoIncomingMsg_t * inMsg);
 
 
 uint8 * addMem(uint8 * iter, const char * data, uint8 size);
