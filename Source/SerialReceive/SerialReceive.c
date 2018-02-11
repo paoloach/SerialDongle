@@ -116,14 +116,14 @@ HAL_ISR_FUNCTION( usart0RXIsr, URX0_VECTOR ){
 				break;
 			}
 			rxData[0]=c;
-			halDMADesc_t * dmaDesc = HAL_DMA_GET_DESC1234(2);
+			halDMADesc_t * dmaDesc = HAL_DMA_GET_DESC1234(4);
 			HAL_DMA_SET_DEST(dmaDesc, rxData+1);
 			
 			HAL_DMA_SET_LEN(dmaDesc, c);
 			HAL_DMA_SET_IRQ(dmaDesc, HAL_DMA_IRQMASK_ENABLE);
 			URX0IE = 0;
-			HAL_DMA_CLEAR_IRQ(2);
-			HAL_DMA_ARM_CH(2);
+			HAL_DMA_CLEAR_IRQ(4);
+			HAL_DMA_ARM_CH(4);
 			statusReceived=Header1;
 			break;
 			}

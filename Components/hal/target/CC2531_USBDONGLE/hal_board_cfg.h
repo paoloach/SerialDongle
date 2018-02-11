@@ -218,7 +218,6 @@ extern void MAC_RfFrontendSetup(void);
   HAL_TURN_OFF_LED2();                                           \
   LED2_DDR |= LED2_BV;                                           \
   HAL_TURN_OFF_LED3();                                           \
-  LED3_DDR |= LED3_BV;                                           \
                                                                  \
   /* configure tristates */                                      \
   P0INP |= PUSH2_BV;                                             \

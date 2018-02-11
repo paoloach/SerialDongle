@@ -318,7 +318,6 @@ extern void MAC_RfFrontendSetup(void);
   /* For CC2592 this enables LNA */                              \
   P1DIR |= BV(0);                                                \
                                                                  \
-  LED3_DDR |= LED3_BV;                                           \
                                                                  \
   /* Set PA/LNA HGM control P0_7 */                              \
   P0DIR |= BV(7);                                                \

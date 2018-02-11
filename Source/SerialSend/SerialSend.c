@@ -99,8 +99,8 @@ void serialInit(void){
 	URX0IF = 0;
 	EA=1;
 	
-	// SET DMA 1 for writing
-	halDMADesc_t * dmaDesc = HAL_DMA_GET_DESC1234(1);
+	// SET DMA 3 for writing
+	halDMADesc_t * dmaDesc = HAL_DMA_GET_DESC1234(3);
 	HAL_DMA_SET_DEST(dmaDesc, HAL_DMA_U0DBUF);
 	HAL_DMA_SET_VLEN(dmaDesc, HAL_DMA_VLEN_USE_LEN);
 	HAL_DMA_SET_WORD_SIZE(dmaDesc, HAL_DMA_WORDSIZE_BYTE);
@@ -111,8 +111,8 @@ void serialInit(void){
 	HAL_DMA_SET_IRQ(dmaDesc, HAL_DMA_IRQMASK_DISABLE);
 	HAL_DMA_SET_M8(dmaDesc, HAL_DMA_M8_USE_8_BITS);
 	HAL_DMA_SET_PRIORITY(dmaDesc, HAL_DMA_PRI_GUARANTEED);
-	// SET DMA 2 for reading
-	dmaDesc = HAL_DMA_GET_DESC1234(2);
+	// SET DMA 4 for reading
+	dmaDesc = HAL_DMA_GET_DESC1234(4);
 	HAL_DMA_SET_SOURCE(dmaDesc, HAL_DMA_U0DBUF);
 	HAL_DMA_SET_VLEN(dmaDesc, HAL_DMA_VLEN_USE_LEN);
 	HAL_DMA_SET_WORD_SIZE(dmaDesc, HAL_DMA_WORDSIZE_BYTE);
@@ -179,8 +179,8 @@ struct DataSend * getSendBuffer() {
 			maxBufferUsed=4;
 		return dataSends+3;
 	}
-	if (DMA_ARM1 == 0){
-		halDMADesc_t * dmaDesc = HAL_DMA_GET_DESC1234(1);
+	if (DMA_ARM3 == 0){
+		halDMADesc_t * dmaDesc = HAL_DMA_GET_DESC1234(3);
 		if (dataSends[0].used==0x80){
 			dataSends[0].used=1;
 			if (maxBufferUsed < 1)
@@ -223,15 +223,15 @@ void send(enum MessageCode code, uint8 size,struct DataSend * buffer) {
 		buffer->used=0x40;
 	} else {
 		buffer->used = 0x80;
-		halDMADesc_t * dmaDesc = HAL_DMA_GET_DESC1234(1);
+		halDMADesc_t * dmaDesc = HAL_DMA_GET_DESC1234(3);
 		HAL_DMA_SET_SOURCE(dmaDesc, buffer->start-5);
 		
 		HAL_DMA_SET_LEN(dmaDesc, size+5);
 		HAL_DMA_SET_IRQ(dmaDesc, HAL_DMA_IRQMASK_ENABLE);
-		HAL_DMA_CLEAR_IRQ(1);
-		HAL_DMA_ARM_CH(1);
+		HAL_DMA_CLEAR_IRQ(3);
+		HAL_DMA_ARM_CH(3);
 		WAIT_ARM
-		HAL_DMA_MAN_TRIGGER(1);
+		HAL_DMA_MAN_TRIGGER(3);
 	}
 	//while(HAL_DMA_CH_ARMED(1));
 }
@@ -259,15 +259,15 @@ void sendBuffer(uint8 index) {
 	dataSends[index].used = 0x80;
 	uint8 * base = dataSends[index].start-5;
 	uint8 size = base[3];
-	halDMADesc_t * dmaDesc = HAL_DMA_GET_DESC1234(1);
+	halDMADesc_t * dmaDesc = HAL_DMA_GET_DESC1234(3);
 	HAL_DMA_SET_SOURCE(dmaDesc, base);
 	
 	HAL_DMA_SET_LEN(dmaDesc, size+5);
 	HAL_DMA_SET_IRQ(dmaDesc, HAL_DMA_IRQMASK_ENABLE);
-	HAL_DMA_CLEAR_IRQ(1);
-	HAL_DMA_ARM_CH(1);
+	HAL_DMA_CLEAR_IRQ(3);
+	HAL_DMA_ARM_CH(3);
 	WAIT_ARM
-	HAL_DMA_MAN_TRIGGER(1);
+	HAL_DMA_MAN_TRIGGER(3);
 }
 
 

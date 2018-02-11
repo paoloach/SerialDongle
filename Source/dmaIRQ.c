@@ -23,8 +23,8 @@ HAL_ISR_FUNCTION( halDmaIsr, DMA_VECTOR )
   HAL_ENTER_ISR();
 
   DMAIF = 0;
-  if (DMAIF1){
-	  DMAIF1=0;
+  if (DMAIF3){
+	  DMAIF3=0;
 	  if (dataSends[0].used == 0x80)
 		  dataSends[0].used  = 0;
 	  if (dataSends[1].used == 0x80)
@@ -35,8 +35,8 @@ HAL_ISR_FUNCTION( halDmaIsr, DMA_VECTOR )
 		  dataSends[3].used  = 0;	  
 	  
   }
-  if (DMAIF2){
-	  DMAIF2=0;
+  if (DMAIF4){
+	  DMAIF4=0;
 	  URX0IE=1;
 	  URX0IF=0;
 	  rxUsed[rxDMA]=2;
