@@ -17,7 +17,9 @@ enum MessageCode {
 	BindTable=13,
 	WriteAttributeError=14,
 	NodeDescriptionError=15,
-	NodeDescription=16
+	NodeDescription=16,
+	MgmtLqi=17,
+	MgmqLqiNotSupported=18
 };
 
 #endif

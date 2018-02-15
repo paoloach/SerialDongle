@@ -9,7 +9,7 @@ TriggerName=main
 LimitSize=0
 ByteLimit=50
 [DebugChecksum]
-Checksum=1091034176
+Checksum=-98754125
 [CallStack]
 ShowArgs=0
 [Disassembly]
@@ -78,10 +78,11 @@ Fmt13={W}0:value	3	0
 [Breakpoints]
 Bp0=_ "STD_CODE" "{$PROJ_DIR$\..\Source\SerialReceive\requestAttributes.c}.26.2" 0 0 0 0 "" 0 ""
 Bp1=_ "STD_CODE" "{$PROJ_DIR$\..\Source\SerialReceive\RequestAttribute.c}.25.2" 0 0 0 0 "" 0 ""
-Bp2=_ "STD_CODE" "{$PROJ_DIR$\..\Source\SerialReceive\SerialReceive.c}.115.5" 0 0 0 0 "" 0 ""
-Count=3
+Bp2=_ "STD_CODE" "{$PROJ_DIR$\..\Source\SerialSend\MgmtLqiResponseMessage.c}.42.2" 1 0 0 0 "" 0 ""
+Bp3=_ "STD_CODE" "{$PROJ_DIR$\..\Source\ZdoMessageHandlers.c}.55.4" 1 0 0 0 "" 0 ""
+Count=4
 [ChipconEmu]
-Stop timers on halt=0
+Stop timers on halt=1
 Leave target running=1
 [Log file]
 LoggingEnabled=_ 0

@@ -39,7 +39,7 @@ void nodePowerResponseMessage(zdoIncomingMsg_t * inMsg) {
 		*iter = *msg;
 		iter++;
 		*iter = status;
-		send(NodePowerError, 3,dataSend);			
+		send(MgmqLqiNotSupported, 3,dataSend);			
 	}
 
 }

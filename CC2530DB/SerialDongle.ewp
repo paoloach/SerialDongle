@@ -286,6 +286,7 @@
         </option>
         <option>
           <name>CCDefines</name>
+          <state>ZDO_MGMT_LQI_RESPONSE</state>
           <state>HAL_PA_LNA</state>
           <state>SECURE=1</state>
           <state>OSALMEM_METRICS</state>
@@ -1503,7 +1504,7 @@
         <option>
           <name>CCAllowList</name>
           <version>1</version>
-          <state>00000</state>
+          <state>11111</state>
         </option>
         <option>
           <name>CCObjUseModuleName</name>
@@ -1584,7 +1585,7 @@
         <option>
           <name>Compiler Extra Options Edit</name>
           <state>-f $PROJ_DIR$\..\Tools\f8wCoord.cfg</state>
-          <state>-f $PROJ_DIR$\..\Tools\f8wConfig.cfg</state>
+          <state>-f $PROJ_DIR$\..\Tools\f8wConfig_test.cfg</state>
           <state>-f $PROJ_DIR$\..\Tools\f8wZCL.cfg</state>
         </option>
         <option>
@@ -1640,16 +1641,16 @@
         </option>
         <option>
           <name>CCOptLevel</name>
-          <state>0</state>
+          <state>3</state>
         </option>
         <option>
           <name>CCOptStrategy</name>
           <version>0</version>
-          <state>1</state>
+          <state>2</state>
         </option>
         <option>
           <name>CCOptLevelSlave</name>
-          <state>0</state>
+          <state>3</state>
         </option>
         <option>
           <name>CompilerMisraRules04</name>
@@ -2237,6 +2238,9 @@
           <name>$PROJ_DIR$\..\Source\SerialReceive\GetIEEEAddress.c</name>
         </file>
         <file>
+          <name>$PROJ_DIR$\..\Source\SerialReceive\GetMgmtLqiReq.c</name>
+        </file>
+        <file>
           <name>$PROJ_DIR$\..\Source\SerialReceive\GetNodeDescriptor.c</name>
         </file>
         <file>
@@ -2290,6 +2294,9 @@
       </group>
       <group>
         <name>SerialSend</name>
+        <file>
+          <name>$PROJ_DIR$\..\Source\SerialSend\MgmtLqiResponseMessage.c</name>
+        </file>
         <file>
           <name>$PROJ_DIR$\..\Source\SerialSend\NodeDescriptionResponseMessage.c</name>
         </file>
@@ -2953,6 +2960,15 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\Tools\f8wConfig.cfg</name>
+      <excluded>
+        <configuration>Coordinator2592</configuration>
+      </excluded>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Tools\f8wConfig_test.cfg</name>
+      <excluded>
+        <configuration>CoordinatorEB</configuration>
+      </excluded>
     </file>
     <file>
       <name>$PROJ_DIR$\..\Tools\f8wEndev.cfg</name>

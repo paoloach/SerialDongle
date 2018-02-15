@@ -2,10 +2,17 @@
 #include "SerialReceive/DecodingFunctions.h"
 #include "ZDProfile.h"
 
+uint8 cmdData[10];
+uint8 cmdDataIndex=0;
+
 // 1 byte -> size
 // 1 byte -> code
 void serialProcessEvent(uint8 * data) {
 	data++;
+	cmdData[cmdDataIndex] = data[0];
+	cmdDataIndex++;
+	if (cmdDataIndex >= 10)
+		cmdDataIndex=9;
 	switch(data[0]){
 	case 1:
 		getIEEEAddress(data);
@@ -51,6 +58,9 @@ void serialProcessEvent(uint8 * data) {
 		break;	
 	case 15:
 		getNodeDescriptor(data);
+		break;
+	case 16:
+		getMgmtLqiReq(data);
 		break;
 	default:
 		invalidCmd(data);		

@@ -88,8 +88,8 @@ void serialInit(void){
 	// U0GCR
 	// ORDER(5) 0 --> LSB first
 	// BAUD_E(4:0) = B
-	U0GCR |=0x0B; //-->115200
-	//U0GCR |=0x0A; //-->57600
+	//U0GCR |=0x0B; //-->115200
+	U0GCR |=0x0A; //-->57600
 	U0BAUD = 216;
 
 	U0CSR_RE = 1;

@@ -16,4 +16,5 @@ void requestBindTable(uint8 * data);
 void init(uint8 * data);
 void removeDevice(uint8 * data);
 void invalidCmd(uint8 * data);
+void getMgmtLqiReq(uint8 * data);
 #endif

@@ -51,6 +51,9 @@ ZDOMessageHandler ZDOMessageHandlerFactory(cId_t clusterId) {
 		case Mgmt_Bind_rsp:
 			zdoMessageHandler = mgmtBindResponseMessage;
 			break;
+		case Mgmt_Lqi_rsp:
+			zdoMessageHandler = mgmtLqiResponseMessage;
+			break;			
 		case IEEE_addr_rsp:
 		case NWK_addr_rsp:
 			zdoMessageHandler =ieeeAddrResponseMessage;
@@ -100,7 +103,6 @@ static void simpleDecriptorMessage(zdoIncomingMsg_t * msg) {
 static void ieeeAddrResponseMessage(zdoIncomingMsg_t * msg) {
 	serialSendIeeeAddress(msg);
 }
-
 
 static void mgmtBindResponseMessage(zdoIncomingMsg_t * inMsg) {
 	struct BindTableResponseEntry bindTableEntry;

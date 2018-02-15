@@ -55,3 +55,4 @@ CC2530DB/Coordinator2592/Exe/SerialDongle.d51
 *.lst
 *.s51
 *.dep
+*.map

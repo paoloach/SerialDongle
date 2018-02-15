@@ -12,7 +12,11 @@
 // 2 bytes -> rxDataOutOfBuffer (13)
 // 2 bytes -> rxDataError (15)
 // 1 byte  -> dataErrorLen (17)
-// n bytes -> dataError (18)
+// n1 bytes -> dataError (18)
+// 1 byte  -> dataSizeLen(18+n1)
+// n2 bytes -> dataSize(19+n1)
+// 1 byte  -> cmdDataLen(19+n1+n2)
+// n3 bytes -> cmdData(120+n1+n2)
 extern uint8 maxDataSize;
 extern uint8 maxBufferUsed;
 extern uint16 rxData1Count;
@@ -22,6 +26,11 @@ extern uint16 rxDataOutOfBuffer;
 extern uint16 rxDataError;
 extern uint8 errorData[20];
 extern uint8 errorDataIndex;
+extern uint8 sizeData[10];
+extern uint8 sizeDataIndex;
+
+extern uint8 cmdData[10];
+extern uint8 cmdDataIndex;
 
 
 void sendAliveMsg(void) {
@@ -46,7 +55,22 @@ void sendAliveMsg(void) {
 		*iter = errorData[i];
 		iter++;
 	}
-	errorDataIndex=0;
+	*iter = sizeDataIndex;
+	iter++;
+	for(uint8 i=0; i< sizeDataIndex; i++){
+		*iter = sizeData[i];
+		iter++;
+	}
+	*iter = cmdDataIndex;
+	iter++;
+	for(uint8 i=0; i< cmdDataIndex; i++){
+		*iter = cmdData[i];
+		iter++;
+	}	
 	
-	send(MSG_ALIVE, 18+errorDataIndex, dataSend);
+	send(MSG_ALIVE, 19+errorDataIndex+sizeDataIndex+cmdDataIndex, dataSend);
+	
+	errorDataIndex=0;
+	sizeDataIndex=0;
+	cmdDataIndex=0;
 }

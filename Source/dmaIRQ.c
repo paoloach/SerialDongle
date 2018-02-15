@@ -23,6 +23,9 @@ HAL_ISR_FUNCTION( halDmaIsr, DMA_VECTOR )
   HAL_ENTER_ISR();
 
   DMAIF = 0;
+  if (DMAIF0) DMAIF0=0;
+  if (DMAIF1) DMAIF1=0;
+  if (DMAIF2) DMAIF2=0;
   if (DMAIF3){
 	  DMAIF3=0;
 	  if (dataSends[0].used == 0x80)

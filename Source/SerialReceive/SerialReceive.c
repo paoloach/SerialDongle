@@ -5,16 +5,22 @@
 #include "hal_dma.h"
 #include "SerialReceive/SerialReceive.h"
 
+#define RX_BUFFER_SIZE 32
+
 uint16 rxData1Count=0;
 uint16 rxData2Count=0;
 uint16 rxData3Count=0;
 uint16 rxDataOutOfBuffer=0;
 uint16 rxDataError=0;
-uint8 rxData1[32];
-uint8 rxData2[32];
-uint8 rxData3[32];
+
+uint8 rxData1[RX_BUFFER_SIZE];
+uint8 rxData2[RX_BUFFER_SIZE];
+uint8 rxData3[RX_BUFFER_SIZE];
 uint8 errorData[20];
 uint8 errorDataIndex=0;
+uint8 sizeData[10];
+uint8 sizeDataIndex=0;
+
 
 uint8 rxUsed[3];
 uint8 rxDMA;
@@ -115,15 +121,21 @@ HAL_ISR_FUNCTION( usart0RXIsr, URX0_VECTOR ){
 				rxDataOutOfBuffer++;
 				break;
 			}
-			rxData[0]=c;
-			halDMADesc_t * dmaDesc = HAL_DMA_GET_DESC1234(4);
-			HAL_DMA_SET_DEST(dmaDesc, rxData+1);
-			
-			HAL_DMA_SET_LEN(dmaDesc, c);
-			HAL_DMA_SET_IRQ(dmaDesc, HAL_DMA_IRQMASK_ENABLE);
-			URX0IE = 0;
-			HAL_DMA_CLEAR_IRQ(4);
-			HAL_DMA_ARM_CH(4);
+			sizeData[sizeDataIndex]=c;
+			sizeDataIndex++;
+			if (sizeDataIndex>=10)
+				sizeDataIndex=9;
+			if (c < RX_BUFFER_SIZE-1){
+				rxData[0]=c;
+				halDMADesc_t * dmaDesc = HAL_DMA_GET_DESC1234(4);
+				HAL_DMA_SET_DEST(dmaDesc, rxData+1);
+				
+				HAL_DMA_SET_LEN(dmaDesc, c);
+				HAL_DMA_SET_IRQ(dmaDesc, HAL_DMA_IRQMASK_ENABLE);
+				URX0IE = 0;
+				HAL_DMA_CLEAR_IRQ(4);
+				HAL_DMA_ARM_CH(4);
+			}
 			statusReceived=Header1;
 			break;
 			}
