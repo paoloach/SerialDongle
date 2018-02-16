@@ -15,8 +15,6 @@ __sfr __no_init volatile struct  {
 } @ 0xD1;
 
 extern struct DataSend dataSends[4];
-extern uint8 rxDMA;
-extern uint8 rxUsed[3];
 
 HAL_ISR_FUNCTION( halDmaIsr, DMA_VECTOR )
 {
@@ -40,9 +38,6 @@ HAL_ISR_FUNCTION( halDmaIsr, DMA_VECTOR )
   }
   if (DMAIF4){
 	  DMAIF4=0;
-	  URX0IE=1;
-	  URX0IF=0;
-	  rxUsed[rxDMA]=2;
   }
   CLEAR_SLEEP_MODE();
   HAL_EXIT_ISR();

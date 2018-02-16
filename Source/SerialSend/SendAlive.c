@@ -6,8 +6,8 @@
 // 2 bytes ->bkock used (3)
 // 1 byte  -> max data size (5)
 // 1 byte  -> max buffer used (6)
-// 2 bytes -> rxData1Count (7)
-// 2 bytes -> rxData2Count (8)
+// 2 bytes -> rxDataDelta (7)
+// 2 bytes -> rxDataDeltaMax (8)
 // 2 bytes -> rxData3Count (11)
 // 2 bytes -> rxDataOutOfBuffer (13)
 // 2 bytes -> rxDataError (15)
@@ -19,9 +19,7 @@
 // n3 bytes -> cmdData(120+n1+n2)
 extern uint8 maxDataSize;
 extern uint8 maxBufferUsed;
-extern uint16 rxData1Count;
-extern uint16 rxData2Count;
-extern uint16 rxData3Count;
+
 extern uint16 rxDataOutOfBuffer;
 extern uint16 rxDataError;
 extern uint8 errorData[20];
@@ -31,7 +29,8 @@ extern uint8 sizeDataIndex;
 
 extern uint8 cmdData[10];
 extern uint8 cmdDataIndex;
-
+extern uint16 rxDataUsed;
+extern uint16 rxDataUsedMax;
 
 void sendAliveMsg(void) {
 	uint8 * iter ;
@@ -44,9 +43,9 @@ void sendAliveMsg(void) {
 	iter++;
 	*iter = maxBufferUsed;
 	iter++;
-	iter = sendUInt16(iter, rxData1Count);
-	iter = sendUInt16(iter, rxData2Count);
-	iter = sendUInt16(iter, rxData3Count);
+	iter = sendUInt16(iter, rxDataUsed);
+	iter = sendUInt16(iter, rxDataUsedMax);
+	iter = sendUInt16(iter, 0);
 	iter = sendUInt16(iter, rxDataOutOfBuffer);
 	iter = sendUInt16(iter, rxDataError);
 	*iter = errorDataIndex;
