@@ -5,25 +5,25 @@
 #include "hal_dma.h"
 #include "SerialReceive/SerialReceive.h"
 
-#define RX_BUFFER_SIZE 32
+#define RX_BUFFER_SIZE 64
+#define RX_DATA_TMP_LEN 24
 
-uint16 rxData1Count=0;
-uint16 rxData2Count=0;
-uint16 rxData3Count=0;
 uint16 rxDataOutOfBuffer=0;
 uint16 rxDataError=0;
 
-uint8 rxData1[RX_BUFFER_SIZE];
-uint8 rxData2[RX_BUFFER_SIZE];
-uint8 rxData3[RX_BUFFER_SIZE];
+uint8 rxData[RX_BUFFER_SIZE];
+uint8 *rxDataIter;
+uint8 rxDataTmp[RX_DATA_TMP_LEN];
+volatile uint16 rxDataUsed=0;
+uint16 rxDataUsedMax=0;
+volatile uint8 * rxDataTmpWRIter = rxDataTmp;
+uint8 * rxDataTmpRDIter=rxDataTmp;
 uint8 errorData[20];
 uint8 errorDataIndex=0;
 uint8 sizeData[10];
 uint8 sizeDataIndex=0;
-
-
-uint8 rxUsed[3];
-uint8 rxDMA;
+uint8 size=0;
+uint8 rxReady=0;
 
 #define HEADER1 0x45
 #define HEADER2 0x65
@@ -34,115 +34,106 @@ enum StatusReceive {
 	Header2,
 	Header3,
 	Size,
-	DMA
+	Payload
 };
+
+
 
 enum StatusReceive statusReceived=Header1;
 
+static void addErrorData(uint8 c);
+static void addSizeData(uint8 c);
+
+
 void serialReceiveLoop(void) {
-	if (rxUsed[0] == 2){
-		serialProcessEvent(rxData1);
-		rxUsed[0]=0;
+	while (rxDataTmpRDIter != rxDataTmpWRIter){
+		char c = *rxDataTmpRDIter;
+		rxDataTmpRDIter++;
+		if (rxDataTmpRDIter >= rxDataTmp +  RX_DATA_TMP_LEN)
+			rxDataTmpRDIter=rxDataTmp;
+		rxDataUsed--;
+		switch(statusReceived){
+			case Header1:
+				if (c ==  HEADER1)
+					statusReceived = Header2;
+				else 
+					addErrorData(c);				
+				break;
+			case Header2:
+				if (c ==  HEADER2)
+					statusReceived = Header3;
+				else 
+					addErrorData(c);
+				break;
+			case Header3:
+				if (c ==  HEADER3)
+					statusReceived = Size;
+				else
+					addErrorData(c);
+				break;	
+			case Size:
+				size=c;
+				addSizeData(c);
+				if (size <  RX_BUFFER_SIZE){
+					statusReceived = Payload;
+					rxDataIter	= rxData;
+					*rxDataIter = size;
+					rxDataIter++;
+				}else 
+					statusReceived = Header1;
+				break;
+			case Payload:
+				if (size > 0){
+					*rxDataIter = c;
+					rxDataIter++;
+					size--;
+				}
+				if (size == 0){
+					statusReceived = Header1;
+					rxReady=1;
+				}
+				break;
+			default:
+				statusReceived = Header1;
+		}
 	}
-	if (rxUsed[1] == 2){
-		serialProcessEvent(rxData2);
-		rxUsed[1]=0;
-	}
-	if (rxUsed[2] == 2){
-		serialProcessEvent(rxData3);
-		rxUsed[2]=0;
+			
+	
+	if (rxReady ){
+		serialProcessEvent(rxData);
+		rxReady=0;
 	}
 }
 
-// USART  0 RX IRQ
 HAL_ISR_FUNCTION( usart0RXIsr, URX0_VECTOR ){
 	HAL_ENTER_ISR();
-
+		
 	URX0IF = 0;
-	char c = U0DBUF;
-	switch(statusReceived){
-		case Header1:
-			if (c ==  HEADER1)
-				statusReceived = Header2;
-			else {
-				rxDataError++;
-				errorData[errorDataIndex] = c;
-				errorDataIndex++;
-				if (errorDataIndex >= 20)
-					errorDataIndex=19;
-			}
-			break;
-		case Header2:
-			if (c ==  HEADER2)
-				statusReceived = Header3;
-			else {
-				statusReceived = Header1;
-				rxDataError++;
-				errorData[errorDataIndex] = c;
-				errorDataIndex++;
-				if (errorDataIndex >= 20)
-					errorDataIndex=19;
-			}
-			break;
-		case Header3:
-			if (c ==  HEADER3)
-				statusReceived = Size;
-			else{
-				statusReceived = Header1;
-				rxDataError++;
-				errorData[errorDataIndex] = c;
-				errorDataIndex++;
-				if (errorDataIndex >= 20)
-					errorDataIndex=19;
-			}
-			break;	
-		case Size:{
-			uint8 * rxData;
-			if (rxUsed[0] == 0){
-				rxData=rxData1;
-				rxUsed[0] = 1;
-				rxData1Count++;
-				rxDMA=0;
-				URX0IE = 0;	
-			} else if (rxUsed[1]==0){
-				rxData=rxData2;
-				rxUsed[1] = 1;
-				rxData2Count++;
-				rxDMA=1;
-				URX0IE = 0;	
-			}else if (rxUsed[2]==0){
-				rxData=rxData3;
-				rxUsed[2] = 1;
-				rxData3Count++;
-				rxDMA=2;
-				URX0IE = 0;
-			} else {
-				statusReceived = Header1;
-				rxDataOutOfBuffer++;
-				break;
-			}
-			sizeData[sizeDataIndex]=c;
-			sizeDataIndex++;
-			if (sizeDataIndex>=10)
-				sizeDataIndex=9;
-			if (c < RX_BUFFER_SIZE-1){
-				rxData[0]=c;
-				halDMADesc_t * dmaDesc = HAL_DMA_GET_DESC1234(4);
-				HAL_DMA_SET_DEST(dmaDesc, rxData+1);
-				
-				HAL_DMA_SET_LEN(dmaDesc, c);
-				HAL_DMA_SET_IRQ(dmaDesc, HAL_DMA_IRQMASK_ENABLE);
-				URX0IE = 0;
-				HAL_DMA_CLEAR_IRQ(4);
-				HAL_DMA_ARM_CH(4);
-			}
-			statusReceived=Header1;
-			break;
-			}
-	default:
-		statusReceived = Header1;
-	}
-
+	*rxDataTmpWRIter = U0DBUF;
+	rxDataTmpWRIter ++;
+	rxDataUsed++;
+	if (rxDataUsed > rxDataUsedMax)
+		rxDataUsedMax = rxDataUsed;
+	if (rxDataTmpWRIter >=rxDataTmp +  RX_DATA_TMP_LEN)
+		rxDataTmpWRIter = rxDataTmp;
+	
 	CLEAR_SLEEP_MODE();
 	HAL_EXIT_ISR();
 }
+
+static void addErrorData(uint8 c) {
+	rxDataError++;
+	errorData[errorDataIndex] = c;
+	errorDataIndex++;
+	if (errorDataIndex >= 20)
+		errorDataIndex=19;
+}
+
+static void addSizeData(uint8 c){
+	sizeData[sizeDataIndex]=size;
+	sizeDataIndex++;
+	if (sizeDataIndex>=10)
+		sizeDataIndex=9;
+}
+
+
