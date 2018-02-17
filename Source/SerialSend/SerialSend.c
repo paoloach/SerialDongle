@@ -10,6 +10,7 @@
 ***************************************************************************************************/
 #include "iocc2530.h"
 #include "hal_dma.h"
+#include "hal_assert.h"
 
 #include "SerialSend.h"
 
@@ -38,19 +39,17 @@ __sfr __no_init volatile struct  {
 
 
 #define HAL_DMA_U0DBUF             0x70C1
-
-uint8 data1[MAX_DATA_SIZE+5];
-uint8 data2[MAX_DATA_SIZE+5];
-uint8 data3[MAX_DATA_SIZE+5];
-uint8 data4[MAX_DATA_SIZE+5];
-
-struct DataSend dataSends[4];
-
-uint8 maxDataSize=0; 
-uint8 maxBufferUsed=0;
 #define HEADER1 0x55
 #define HEADER2 0xAA
 #define HEADER3 0x42
+uint8 allocation=0;
+uint8 deallocation=0;
+static uint8 sendingBuffer[256];
+uint16 bufferMap=0;
+struct DataSend dataSends[4];
+static struct DataSend * getFreeSendBuffer(void);
+static uint8 * sendAlloc(uint8 size);
+static void sendFree(uint8 * ptr);
 
 /*********************************************************************
  * @fn      serialInit
@@ -128,105 +127,146 @@ void serialInit(void){
 		
 	DMAIE=1;
 	
-	data1[0]= HEADER1;
-	data2[0]= HEADER1;
-	data3[0]= HEADER1;
-	data4[0]= HEADER1;
-
-	data1[1]= HEADER2;
-	data2[1]= HEADER2;
-	data3[1]= HEADER2;
-	data4[1]= HEADER2;
-
-	data1[2]= HEADER3;
-	data2[2]= HEADER3;
-	data3[2]= HEADER3;
-	data4[2]= HEADER3;
-	
-	dataSends[0].start = data1+5;	
-	dataSends[0].used=0;
-	dataSends[1].start = data2+5;
-	dataSends[1].used=0;
-	dataSends[2].start = data3+5;
-	dataSends[2].used=0;
-	dataSends[3].start = data4+5;
-	dataSends[3].used=0;
+	dataSends[0].used=Free;
+	dataSends[0].private=0;
+	dataSends[1].used=Free;
+	dataSends[1].private=0;
+	dataSends[2].used=Free;
+	dataSends[2].private=0;
+	dataSends[3].used=Free;
+	dataSends[3].private=0;
 }
 
-struct DataSend * getSendBuffer() {
-	if (dataSends[0].used==0){
-		dataSends[0].used=1;
-		if (maxBufferUsed < 1)
-			maxBufferUsed=1;
+static uint8 * sendAlloc(uint8 size){
+	uint8 blk;
+	uint16 mask;
+	uint8 i;
+	uint16 tmpMap;
+	
+	size += 5;
+	blk = (size / 16);
+	if ( (size % 16) != 0)
+		blk++;
+	mask=0;
+	for (i=0; i < blk; i++)
+		mask = (mask << 1) | 1;
+	tmpMap = bufferMap;
+	for (i=0; i < 16; i++){
+		if ( (tmpMap & mask) == 0){
+			break;
+		}
+		tmpMap = tmpMap >> 1;
+	}
+	if (i==16)
+		return NULL;
+	mask = mask << i;
+	bufferMap = bufferMap | mask;
+	uint8 * result = sendingBuffer + i*16;
+	*result = HEADER1;
+	result++;
+	*result = HEADER2;
+	result++;
+	*result = HEADER3;
+	result++;
+	*result = size-5;
+	result++;
+	result++;
+	return result;
+}
+static void sendFree(uint8 * ptr) {
+	uint8 blkStart;
+	uint8 blkCnt;
+	uint8 size;
+	uint8 * buffer = ptr-5;
+	uint16 mask;
+	uint8 i;
+	
+	if (buffer[0] != HEADER1 || buffer[1] != HEADER2 || buffer[2] != HEADER3){
+		return;
+	}
+	
+	if (buffer < sendingBuffer){
+		halAssertHandler();
+		return;
+		
+	}
+	
+	blkStart = (buffer- sendingBuffer)%16;
+	size = buffer[3]+5;
+	blkCnt = size / 16;
+	if ( (size % 16)  != 0)
+		blkCnt++;
+	mask = 0;
+	for(i=0; i< blkCnt; i++)
+		mask = (mask << 1) | 1;
+	mask = mask << blkStart;
+	mask = mask ^ 0xFFFF;
+	bufferMap = bufferMap & mask;
+	if (bufferMap != 0){
+		halAssertHandler();
+	}
+}
+
+struct DataSend * getFreeSendBuffer(void) {
+	if (dataSends[0].used == Free){
 		return dataSends;
 	}
-	if (dataSends[1].used==0){
-		dataSends[1].used=1;
-		if (maxBufferUsed < 2)
-			maxBufferUsed=2;
-
-		return dataSends+1;
+	if (dataSends[1].used == Free){
+		return &dataSends[1];
 	}
-	if (dataSends[2].used==0){
-		dataSends[2].used=1;
-		if (maxBufferUsed < 3)
-			maxBufferUsed=3;
-		return dataSends+2;
+	if (dataSends[2].used == Free){
+		return &dataSends[2];
 	}
-	if (dataSends[3].used==0){
-		dataSends[3].used=1;
-		if (maxBufferUsed < 4)
-			maxBufferUsed=4;
-		return dataSends+3;
-	}
-	if (DMA_ARM3 == 0){
-		halDMADesc_t * dmaDesc = HAL_DMA_GET_DESC1234(3);
-		if (dataSends[0].used==0x80){
-			dataSends[0].used=1;
-			if (maxBufferUsed < 1)
-				maxBufferUsed=1;
-			return dataSends;
-		}
-		if (dataSends[1].used==0x80){
-			dataSends[1].used=1;
-			if (maxBufferUsed < 2)
-				maxBufferUsed=2;
-
-			return dataSends+1;
-		}
-		if (dataSends[2].used==0x80){
-			dataSends[2].used=1;
-			if (maxBufferUsed < 3)
-				maxBufferUsed=3;
-			return dataSends+2;
-		}
-		if (dataSends[3].used==0x80){
-			dataSends[3].used=1;
-			if (maxBufferUsed < 4)
-				maxBufferUsed=4;
-			return dataSends+3;
-		}
+	if (dataSends[3].used == Free){
+		return &dataSends[3];
 	}
 	return NULL;
 }
 
+struct DataSend * getPrivateSendBuffer(uint8 * buffer){
+	buffer[0] = HEADER1;
+	buffer[1] = HEADER2;
+	buffer[2] = HEADER3;
+	struct DataSend * sendData =  getFreeSendBuffer();
+	if (sendData != NULL){
+		sendData->start = buffer+5;
+		sendData->used = Waiting;
+		sendData->private=1;
+	}
+	return sendData;
+}
+
+struct DataSend * getSendBuffer(uint8 size) {
+	uint8 * buffer ;
+	struct DataSend * sendData =  getFreeSendBuffer();
+	if (sendData != NULL){
+		buffer = sendAlloc(size);
+		allocation++;
+		if (buffer != NULL){
+			sendData->start = buffer;
+			sendData->used = Waiting;
+			sendData->private=0;
+		} else {
+			sendData->start = NULL;
+		}
+	}
+	return sendData;
+}
+
 
 #define WAIT_ARM	asm("NOP");asm("NOP");asm("NOP");asm("NOP");asm("NOP");asm("NOP");asm("NOP");asm("NOP");asm("NOP");
-void send(enum MessageCode code, uint8 size,struct DataSend * buffer) {
-	if (size > maxDataSize)
-		maxDataSize=size;
-	
-	uint8 * base = buffer->start-5;
-	base[3] = size;
+void send(enum MessageCode code,struct DataSend * dataSend) {
+	uint8 * base = dataSend->start-5;
 	base[4] = code;
-	if (dataSends[0].used == 0x80 ||dataSends[1].used == 0x80||dataSends[2].used == 0x80||dataSends[3].used == 0x80){
-		buffer->used=0x40;
+	
+	if (dataSends[0].used == UsedByDMA ||dataSends[1].used == UsedByDMA ||dataSends[2].used == UsedByDMA ||dataSends[3].used == UsedByDMA){
+		dataSend->used = WaitingDMA;
 	} else {
-		buffer->used = 0x80;
+		dataSend->used = UsedByDMA;
 		halDMADesc_t * dmaDesc = HAL_DMA_GET_DESC1234(3);
 		HAL_DMA_SET_SOURCE(dmaDesc, base);
 		
-		HAL_DMA_SET_LEN(dmaDesc, size+5);
+		HAL_DMA_SET_LEN(dmaDesc, base[3]+5);
 		HAL_DMA_SET_IRQ(dmaDesc, HAL_DMA_IRQMASK_ENABLE);
 		HAL_DMA_CLEAR_IRQ(3);
 		HAL_DMA_ARM_CH(3);
@@ -238,31 +278,55 @@ void send(enum MessageCode code, uint8 size,struct DataSend * buffer) {
 
 static void sendBuffer(uint8 index);
 void serialSendLoop(void) {
-	if (dataSends[0].used == 0x80 ||dataSends[1].used == 0x80||dataSends[2].used == 0x80||dataSends[3].used == 0x80){
-		return;
+	if (dataSends[0].used == ToFree){
+		if (dataSends[0].private==0){
+			sendFree(dataSends[0].start);
+			deallocation++;
+		}
+		dataSends[0].used = Free;
 	}
-	if (dataSends[0].used == 0x40){
+	if (dataSends[1].used == ToFree){
+		if (dataSends[1].private==0){
+			sendFree(dataSends[1].start);
+			deallocation++;
+		}
+		dataSends[1].used = Free;
+	}
+	if (dataSends[2].used == ToFree){
+		if (dataSends[2].private==0){
+			sendFree(dataSends[2].start);
+			deallocation++;
+		}
+		dataSends[2].used = Free;
+	}
+	if (dataSends[3].used == ToFree){
+		if (dataSends[3].private==0){
+			sendFree(dataSends[3].start);
+			deallocation++;
+		}
+		dataSends[3].used = Free;
+	}
+	if (dataSends[0].used == WaitingDMA){
 		sendBuffer(0);
 	}
-	if (dataSends[1].used == 0x40){
+	if (dataSends[1].used == WaitingDMA){
 		sendBuffer(1);
 	}
-	if (dataSends[2].used == 0x40){
+	if (dataSends[2].used ==WaitingDMA){
 		sendBuffer(2);
 	}
-	if (dataSends[3].used == 0x40){
+	if (dataSends[3].used == WaitingDMA){
 		sendBuffer(3);
 	}
 }
 
 void sendBuffer(uint8 index) {
-	dataSends[index].used = 0x80;
+	dataSends[index].used = UsedByDMA;
 	uint8 * base = dataSends[index].start-5;
-	uint8 size = base[3];
 	halDMADesc_t * dmaDesc = HAL_DMA_GET_DESC1234(3);
 	HAL_DMA_SET_SOURCE(dmaDesc, base);
 	
-	HAL_DMA_SET_LEN(dmaDesc, size+5);
+	HAL_DMA_SET_LEN(dmaDesc,  base[3]+5);
 	HAL_DMA_SET_IRQ(dmaDesc, HAL_DMA_IRQMASK_ENABLE);
 	HAL_DMA_CLEAR_IRQ(3);
 	HAL_DMA_ARM_CH(3);

@@ -4967,11 +4967,11 @@
       <inputs>
         <tool>
           <name>ICC8051</name>
-          <file> 206 268 269 90 154 197 84 155 199 156 216 68</file>
+          <file> 206 268 269 90 154 197 84 155 199 156 196 216 68</file>
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 90 154 197 84 155 199 156 216 68</file>
+          <file> 90 154 197 84 155 199 156 196 216 68</file>
         </tool>
       </inputs>
     </file>

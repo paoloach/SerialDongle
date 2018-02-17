@@ -14,6 +14,7 @@
 //   n bytes -> attribute data
 void serialSendAttributeResponseMsg(zclReadRspCmd_t * readRsp, uint16 clusterId, afAddrType_t * addr){
 	uint8 * iter ;
+	struct DataSend * dataSend;
 
 	zclReadRspStatus_t * iterAttr = readRsp->attrList;
 	zclReadRspStatus_t * iterEnd = readRsp->attrList+readRsp->numAttr;
@@ -22,9 +23,17 @@ void serialSendAttributeResponseMsg(zclReadRspCmd_t * readRsp, uint16 clusterId,
 	uint8 size;
 	
 	for (;iterAttr != iterEnd; iterAttr++){
-
-		struct DataSend * dataSend;
-		while((dataSend = getSendBuffer())==NULL);
+		size=8;
+		if (iterAttr->status == ZCL_STATUS_SUCCESS){
+			attrSize = zclGetAttrDataLength(iterAttr->dataType, iterAttr->data);
+			size+=2+attrSize;
+		}
+		
+		while((dataSend = getSendBuffer(size))==NULL);
+		if (dataSend->start == NULL){
+			dataSend->used=Free;
+			return;
+		}
 		iter = dataSend->start;
 		iter = sendUInt16(iter, addr->addr.shortAddr);
 		*iter = addr->endPoint;
@@ -33,21 +42,17 @@ void serialSendAttributeResponseMsg(zclReadRspCmd_t * readRsp, uint16 clusterId,
 		iter = sendUInt16(iter, iterAttr->attrID);
 		*iter = iterAttr->status;	
 		iter++;
-		size=8;
 		if (iterAttr->status == ZCL_STATUS_SUCCESS){
 			*iter = iterAttr->dataType;
 			iter++;
-			size++;
 			attrSize = zclGetAttrDataLength(iterAttr->dataType, iterAttr->data);
 			*iter =attrSize;
 			iter++;
-			size++;
 			for (i=0; i < attrSize; i++){
 				*iter = iterAttr->data[i];
 				iter++;
-				size++;
 			}
 		}
-		send(AttributeResponse, size,dataSend);
+		send(AttributeResponse, dataSend);
 	}
 }

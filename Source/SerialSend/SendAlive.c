@@ -17,8 +17,6 @@
 // n2 bytes -> dataSize(19+n1)
 // 1 byte  -> cmdDataLen(19+n1+n2)
 // n3 bytes -> cmdData(120+n1+n2)
-extern uint8 maxDataSize;
-extern uint8 maxBufferUsed;
 
 extern uint16 rxDataOutOfBuffer;
 extern uint16 rxDataError;
@@ -27,25 +25,48 @@ extern uint8 errorDataIndex;
 extern uint8 sizeData[10];
 extern uint8 sizeDataIndex;
 
+extern uint8 allocation;
+extern uint8 deallocation;
+extern uint16 bufferMap;
+
 extern uint8 cmdData[10];
 extern uint8 cmdDataIndex;
 extern uint16 rxDataUsed;
 extern uint16 rxDataUsedMax;
 
+#define SEND_ALIVE_DATA	40
+static uint8 data[SEND_ALIVE_DATA];
+#define dataEnd  data + SEND_ALIVE_DATA
+
+
 void sendAliveMsg(void) {
 	uint8 * iter ;
 	struct DataSend * dataSend;
-	while((dataSend = getSendBuffer())==NULL);
+	
+	
+	dataSend = getPrivateSendBuffer(data);
+	if (dataSend == NULL)
+		return;
+	
+	if (19+errorDataIndex+sizeDataIndex+cmdDataIndex + 5 > SEND_ALIVE_DATA){
+		cmdDataIndex=0;
+		sizeDataIndex=0;
+		if (19+errorDataIndex+ 5 > SEND_ALIVE_DATA){
+			errorDataIndex=0;
+		}
+	}
+	data[3] = 19+errorDataIndex+sizeDataIndex+cmdDataIndex;
+	
 	iter = dataSend->start;
 	iter = sendUInt16(iter, osal_heap_mem_used());
 	iter = sendUInt16(iter, osal_heap_block_cnt());
-	*iter = maxDataSize;
+	*iter = allocation;
 	iter++;
-	*iter = maxBufferUsed;
+	*iter = deallocation;
 	iter++;
 	iter = sendUInt16(iter, rxDataUsed);
 	iter = sendUInt16(iter, rxDataUsedMax);
-	iter = sendUInt16(iter, 0);
+	iter = sendUInt16(iter, bufferMap);
 	iter = sendUInt16(iter, rxDataOutOfBuffer);
 	iter = sendUInt16(iter, rxDataError);
 	*iter = errorDataIndex;
@@ -67,7 +88,7 @@ void sendAliveMsg(void) {
 		iter++;
 	}	
 	
-	send(MSG_ALIVE, 19+errorDataIndex+sizeDataIndex+cmdDataIndex, dataSend);
+	send(MSG_ALIVE, dataSend);
 	
 	errorDataIndex=0;
 	sizeDataIndex=0;

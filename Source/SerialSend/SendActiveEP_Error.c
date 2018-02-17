@@ -7,10 +7,10 @@
 void serialSendActiveEPError(uint16 nwkAdd, afStatus_t ret){
 	uint8 * iter ;
 	struct DataSend * dataSend;
-	while((dataSend = getSendBuffer())==NULL);
+	while((dataSend = getSendBuffer(3))==NULL);
 	iter = dataSend->start;
 	
 	iter = sendUInt16(iter, nwkAdd);
 	*iter = ret;
-	send(ActiveEP_Error, 3,dataSend);
+	send(ActiveEP_Error, dataSend);
 }

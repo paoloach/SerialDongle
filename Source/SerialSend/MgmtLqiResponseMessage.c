@@ -28,23 +28,28 @@
 void mgmtLqiResponseMessage(zdoIncomingMsg_t * msg){
 	uint8 * iter ;
 	struct DataSend * dataSend;
-	while((dataSend = getSendBuffer())==NULL);
-	iter = dataSend->start;
-	
 	uint8 *adsu;
 	uint8 status;
+
 	adsu = msg->asdu;
 	status = *adsu++;
-	*iter = msg->srcAddr.addr.shortAddr;
-	iter++;
-	*iter = (msg->srcAddr.addr.shortAddr >> 8);
-	iter++;
 	if (status == ZDP_SUCCESS){
 		uint8 respTableCount = adsu[2];
 		uint8 byteToSend = 22*respTableCount + 3;
+		while((dataSend = getSendBuffer(2+byteToSend))==NULL);
+		iter = dataSend->start;
+		*iter = msg->srcAddr.addr.shortAddr;
+		iter++;
+		*iter = (msg->srcAddr.addr.shortAddr >> 8);
+		iter++;
 		osal_memcpy(iter, adsu, byteToSend);
-		send(MgmtLqi, 2+byteToSend,dataSend);
-	} else if (status == NOT_SUPPORTED){
-		send(MgmqLqiNotSupported, 2,dataSend);
+		send(MgmtLqi,dataSend);
+	} else if (status == ZDP_NOT_SUPPORTED){
+		while((dataSend = getSendBuffer(2))==NULL);
+		iter = dataSend->start;
+		*iter = msg->srcAddr.addr.shortAddr;
+		iter++;
+		*iter = (msg->srcAddr.addr.shortAddr >> 8);
+		send(MgmqLqiNotSupported, dataSend);
 	}
 }

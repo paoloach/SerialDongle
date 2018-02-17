@@ -26,14 +26,14 @@ HAL_ISR_FUNCTION( halDmaIsr, DMA_VECTOR )
   if (DMAIF2) DMAIF2=0;
   if (DMAIF3){
 	  DMAIF3=0;
-	  if (dataSends[0].used == 0x80)
-		  dataSends[0].used  = 0;
-	  if (dataSends[1].used == 0x80)
-		  dataSends[1].used  = 0;
-	  if (dataSends[2].used == 0x80)
-		  dataSends[2].used  = 0;	  
-	  if (dataSends[3].used == 0x80) 
-		  dataSends[3].used  = 0;	  
+	  if (dataSends[0].used == UsedByDMA)
+		  dataSends[0].used  = ToFree;
+	  if (dataSends[1].used == UsedByDMA)
+		  dataSends[1].used  = ToFree;
+	  if (dataSends[2].used == UsedByDMA)
+		  dataSends[2].used  = ToFree;	  
+	  if (dataSends[3].used == UsedByDMA) 
+		  dataSends[3].used  = ToFree;	  
 	  
   }
   if (DMAIF4){

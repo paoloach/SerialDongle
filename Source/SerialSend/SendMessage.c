@@ -21,14 +21,26 @@ void sendMessage(char * msg){
 	uint8 * iter;
 	uint8 size=0;
 	struct DataSend * dataSend;
-	while((dataSend = getSendBuffer())==NULL);
+	char * tmp;
+	
+	tmp = msg;
+	while(*tmp != 0){
+		size++;
+		tmp++;
+	}
+	
+	
+	while((dataSend = getSendBuffer(size))==NULL);
+		if (dataSend->start == NULL){
+		dataSend->used=Free;
+		return;
+	}
 	iter = dataSend->start;
 	while(*msg != 0){
 		*iter = *msg;
 		iter++;
 		msg++;
-		size++;
 	}
-	send(STRING, size,dataSend);
+	send(STRING, dataSend);
 }
 

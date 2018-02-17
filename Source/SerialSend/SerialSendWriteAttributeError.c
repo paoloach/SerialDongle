@@ -9,7 +9,11 @@
 void serialSendWriteAttributeError(uint16 networkId, uint8 endpoint, uint16 cluster, uint16 attribute, ZStatus_t status){
 	uint8 * iter ;
 	struct DataSend * dataSend;
-	while((dataSend = getSendBuffer())==NULL);
+	while((dataSend = getSendBuffer(8))==NULL);
+	if (dataSend->start == NULL){
+		dataSend->used=Free;
+		return;
+	}
 	iter = dataSend->start;
 	
 	iter = sendUInt16(iter, networkId);
@@ -18,5 +22,5 @@ void serialSendWriteAttributeError(uint16 networkId, uint8 endpoint, uint16 clus
 	iter = sendUInt16(iter, cluster);
 	iter = sendUInt16(iter, attribute);
 	*iter = status;
-	send(WriteAttributeError, 8,dataSend);
+	send(WriteAttributeError, dataSend);
 }

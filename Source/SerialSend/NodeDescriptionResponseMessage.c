@@ -22,17 +22,17 @@
 void nodeDescriptionResponseMessage(zdoIncomingMsg_t * inMsg) {
 	uint8 * iter ;
 	struct DataSend * dataSend;
-	while((dataSend = getSendBuffer())==NULL);
-	iter = dataSend->start;
-	
 	uint8 *msg;
 	uint8 status;
 	uint8 len;
+
 	msg = inMsg->asdu;
 	status = *msg++;
-	
 
 	if (status == ZDP_SUCCESS){
+		while((dataSend = getSendBuffer(16))==NULL);
+		iter = dataSend->start;
+
 		*iter = *msg;
 		iter++;
 		msg++;
@@ -48,15 +48,18 @@ void nodeDescriptionResponseMessage(zdoIncomingMsg_t * inMsg) {
 		len = 11;
 		while ( len-- )
     		*iter++ = *msg++;
-		send(NodeDescription, 16,dataSend);
+		send(NodeDescription, dataSend);
 	} else {
+		while((dataSend = getSendBuffer(3))==NULL);
+		iter = dataSend->start;
+
 		*iter = *msg;
 		iter++;
 		msg++;
 		*iter = *msg;
 		iter++;
 		*iter = status;
-		send(NodeDescriptionError, 3,dataSend);			
+		send(NodeDescriptionError, dataSend);			
 	}
 
 }

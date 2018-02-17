@@ -17,7 +17,11 @@ void serialSendSimpleDescriptor(ZDO_SimpleDescRsp_t * simpleDesc){
 	uint8 size=10+2* simpleDesc->simpleDesc.AppNumInClusters + 2* simpleDesc->simpleDesc.AppNumOutClusters;
 	uint8 * iter ;
 	struct DataSend * dataSend;
-	while((dataSend = getSendBuffer())==NULL);
+	while((dataSend = getSendBuffer(size))==NULL);
+	if (dataSend->start == NULL){
+		dataSend->used=Free;
+		return;
+	}
 	iter = dataSend->start;
 
 
@@ -38,5 +42,5 @@ void serialSendSimpleDescriptor(ZDO_SimpleDescRsp_t * simpleDesc){
 	for (i=0; i <simpleDesc->simpleDesc.AppNumOutClusters; i++){
 		iter = sendUInt16(iter, simpleDesc->simpleDesc.pAppInClusterList[i]);
 	}	
-	send(SimpleDescriptor, size,dataSend);
+	send(SimpleDescriptor, dataSend);
 }

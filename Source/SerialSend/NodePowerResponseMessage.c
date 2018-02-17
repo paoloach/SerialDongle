@@ -13,14 +13,15 @@
 void nodePowerResponseMessage(zdoIncomingMsg_t * inMsg) {
 	uint8 * iter ;
 	struct DataSend * dataSend;
-	while((dataSend = getSendBuffer())==NULL);
-	iter = dataSend->start;
-	
 	uint8 *msg;
 	uint8 status;
+
 	msg = inMsg->asdu;
 	status = *msg++;
 	if (status == ZDP_SUCCESS){
+		while((dataSend = getSendBuffer(4))==NULL);
+		iter = dataSend->start;
+		
 		*iter = *msg;
 		iter++;
 		msg++;
@@ -31,15 +32,18 @@ void nodePowerResponseMessage(zdoIncomingMsg_t * inMsg) {
 		iter++;
 		msg++;
 		*iter = *msg;
-		send(NodePower, 4,dataSend);
+		send(NodePower,dataSend);
 	} else {
+		while((dataSend = getSendBuffer(3))==NULL);
+		iter = dataSend->start;
+		
 		*iter = *msg;
 		iter++;
 		msg++;
 		*iter = *msg;
 		iter++;
 		*iter = status;
-		send(MgmqLqiNotSupported, 3,dataSend);			
+		send(MgmqLqiNotSupported, dataSend);			
 	}
 
 }

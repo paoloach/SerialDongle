@@ -10,7 +10,11 @@
 void serialSendBindTable(struct BindTableResponseEntry * bindTable) {
 	uint8 * iter ;
 	struct DataSend * dataSend;
-	while((dataSend = getSendBuffer())==NULL);
+	while((dataSend = getSendBuffer(14))==NULL);
+	if (dataSend->start == NULL){
+		dataSend->used=Free;
+		return;
+	}
 	iter = dataSend->start;
 	
 	iter = sendExtAddr(iter, bindTable->srcAddr);
@@ -19,5 +23,5 @@ void serialSendBindTable(struct BindTableResponseEntry * bindTable) {
 	iter = sendUInt16(iter, bindTable->clusterID);		
 	iter = sendUInt16(iter, bindTable->dstAddr);
 	*iter = bindTable->dstEP;
-	send(BindTable, 14,dataSend);				
+	send(BindTable, dataSend);				
 }

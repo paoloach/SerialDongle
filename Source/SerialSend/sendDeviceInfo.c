@@ -14,7 +14,11 @@
 void serialSendDeviceInfo(associated_devices_t * device){
 	uint8 * iter ;
 	struct DataSend * dataSend;
-	while((dataSend = getSendBuffer())==NULL);
+	while((dataSend = getSendBuffer(10))==NULL);
+	if (dataSend->start == NULL){
+		dataSend->used=Free;
+		return;
+	}
 	iter = dataSend->start;
 	
 	iter = sendUInt16(iter, device->shortAddr);
@@ -33,7 +37,7 @@ void serialSendDeviceInfo(associated_devices_t * device){
 	*iter = device->linkInfo.txCost;
 	iter++;	
 	*iter = device->linkInfo.rxLqi;	
-	send(DeviceInfo, 10, dataSend);
+	send(DeviceInfo, dataSend);
 }
 
 

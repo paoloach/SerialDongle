@@ -13,32 +13,38 @@
 // if error
 //   1 byte -> code IEEEAddressError 
 void serialSendIeeeAddress(zdoIncomingMsg_t * inMsg ){
-	byte cnt = 0;
+	byte cnt;
 	uint8  status;
 	uint8 * iter ;
+	struct DataSend * dataSend;
+	uint8 * msg;
 	
+	msg = inMsg->asdu;
 	if ( inMsg->asduLen > (1 + Z_EXTADDR_LEN + 2) ) {
  		cnt = inMsg->asdu[1 + Z_EXTADDR_LEN + 2];
 	} else {
     	cnt = 0;
   	}
-	uint8 * msg = inMsg->asdu;
+
 	status =  *msg++;
 
-	struct DataSend * dataSend;
-	while((dataSend = getSendBuffer())==NULL);
-	iter = dataSend->start;
-	
 	if (status == ZDO_SUCCESS){
 		uint8 size = Z_EXTADDR_LEN + 2 + 2 + 2*cnt;
+		while((dataSend = getSendBuffer(size))==NULL);
+		if (dataSend->start == NULL){
+			dataSend->used=Free;
+			return;
+		}
+		iter = dataSend->start;
 		for (uint8 i=0; i < size; i++){
 			*iter = *msg;
 			iter++;
 			msg++;
 		}
-		send(IEEEAddress, size,dataSend);	
+		send(IEEEAddress, dataSend);	
 	} else {
-		send(IEEEAddressError, 0,dataSend);
+		while((dataSend = getSendBuffer(0))==NULL);
+		send(IEEEAddressError, dataSend);
 	}
 
 }
