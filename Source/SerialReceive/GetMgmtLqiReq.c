@@ -9,5 +9,5 @@ void getMgmtLqiReq(uint8 * data) {
 	data++;
 	destAddr.addr.shortAddr = BUILD_UINT16(data[0], data[1]);
 	destAddr.addrMode = afAddr16Bit;
-	ZDP_MgmtLqiReq(&destAddr,data[2], 1);
+	ZDP_MgmtLqiReq(&destAddr,data[2], 0);
 }

@@ -1398,6 +1398,7 @@
         </option>
         <option>
           <name>CCDefines</name>
+          <state>ZDO_MGMT_LQI_RESPONSE</state>
           <state>HAL_PA_LNA_CC2592</state>
           <state>SECURE=1</state>
           <state>OSALMEM_METRICS</state>
@@ -2377,9 +2378,6 @@
         <name>$PROJ_DIR$\..\Source\OSAL_Coordinator.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\Source\SerialCmdCode.h</name>
-      </file>
-      <file>
         <name>$PROJ_DIR$\..\Source\TimerEvents.h</name>
       </file>
       <file>
@@ -2410,9 +2408,6 @@
         <name>$PROJ_DIR$\..\Source\ZigbeeSerialBridge_data.h</name>
       </file>
     </group>
-    <file>
-      <name>$PROJ_DIR$\..\source__\zcl_samplesw.h</name>
-    </file>
   </group>
   <group>
     <name>Dissasemble</name>

@@ -43,7 +43,7 @@ void mgmtLqiResponseMessage(zdoIncomingMsg_t * msg){
 		uint8 respTableCount = adsu[2];
 		uint8 byteToSend = 22*respTableCount + 3;
 		osal_memcpy(iter, adsu, byteToSend);
-		send(MgmtLqi, byteToSend,dataSend);
+		send(MgmtLqi, 2+byteToSend,dataSend);
 	} else if (status == NOT_SUPPORTED){
 		send(MgmqLqiNotSupported, 2,dataSend);
 	}
