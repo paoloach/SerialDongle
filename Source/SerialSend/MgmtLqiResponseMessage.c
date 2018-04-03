@@ -36,14 +36,21 @@ void mgmtLqiResponseMessage(zdoIncomingMsg_t * msg){
 	if (status == ZDP_SUCCESS){
 		uint8 respTableCount = adsu[2];
 		uint8 byteToSend = 22*respTableCount + 3;
-		while((dataSend = getSendBuffer(2+byteToSend))==NULL);
-		iter = dataSend->start;
-		*iter = msg->srcAddr.addr.shortAddr;
-		iter++;
-		*iter = (msg->srcAddr.addr.shortAddr >> 8);
-		iter++;
-		osal_memcpy(iter, adsu, byteToSend);
-		send(MgmtLqi,dataSend);
+		if (byteToSend < LONG_BUFFER_DMA_SIZE){
+			while((dataSend = getSendBuffer(2+byteToSend))==NULL);
+			iter = dataSend->start;
+			*iter = msg->srcAddr.addr.shortAddr;
+			iter++;
+			*iter = (msg->srcAddr.addr.shortAddr >> 8);
+			iter++;
+			osal_memcpy(iter, adsu, byteToSend);
+			send(MgmtLqi,dataSend);
+		} else {
+			initLongBuffer(byteToSend, MgmtLqi);
+			cpyIntoLongBuffer(adsu, byteToSend);
+			longBufferSend();
+
+		}
 	} else if (status == ZDP_NOT_SUPPORTED){
 		while((dataSend = getSendBuffer(2))==NULL);
 		iter = dataSend->start;

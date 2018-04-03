@@ -102,6 +102,7 @@ void serialDongleAppInit( byte task_id ){
 	  
 	endpointRequestTaskId(serialDongleTaskID);
 	zclHA_Init( &simpleDesc );
+	
   	// Register the Application to receive the unprocessed Foundation command/response messages
  	zcl_registerForMsg( serialDongleTaskID );
 	
@@ -116,7 +117,7 @@ void serialDongleAppInit( byte task_id ){
 	ZDO_RegisterForZDOMsg( serialDongleTaskID, Power_Desc_rsp);
 	ZDO_RegisterForZDOMsg( serialDongleTaskID, Node_Desc_rsp);
 	ZDO_RegisterForZDOMsg( serialDongleTaskID, Mgmt_Lqi_rsp);
-	
+
 	
 	T1CTL=1;
 	

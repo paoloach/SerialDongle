@@ -43,11 +43,6 @@ void sendAliveMsg(void) {
 	uint8 * iter ;
 	struct DataSend * dataSend;
 	
-	
-	dataSend = getPrivateSendBuffer(data);
-	if (dataSend == NULL)
-		return;
-	
 	if (19+errorDataIndex+sizeDataIndex+cmdDataIndex + 5 > SEND_ALIVE_DATA){
 		cmdDataIndex=0;
 		sizeDataIndex=0;
@@ -55,7 +50,11 @@ void sendAliveMsg(void) {
 			errorDataIndex=0;
 		}
 	}
-	data[3] = 19+errorDataIndex+sizeDataIndex+cmdDataIndex;
+
+	uint16 size = 19+errorDataIndex+sizeDataIndex+cmdDataIndex;
+	dataSend = getPrivateSendBuffer(data, size);
+	if (dataSend == NULL)
+		return;
 	
 	iter = dataSend->start;
 	iter = sendUInt16(iter, osal_heap_mem_used());
