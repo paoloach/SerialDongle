@@ -9,7 +9,7 @@ TriggerName=main
 LimitSize=0
 ByteLimit=50
 [DebugChecksum]
-Checksum=-460832017
+Checksum=30891826
 [CallStack]
 ShowArgs=0
 [Disassembly]
@@ -86,10 +86,9 @@ LoggingEnabled=_ 0
 LogFile=_ ""
 [Breakpoints]
 Bp0=_ "STD_CODE" "LogicalCode:0x5B639" 0 0 0 0 "" 0 ""
-Bp1=_ "STD_CODE" "{$PROJ_DIR$\..\Source\SerialSend\SerialSend.c}.206.3" 0 0 0 0 "" 0 ""
-Count=2
+Count=1
 [ChipconEmu]
-Stop timers on halt=1
+Stop timers on halt=0
 Leave target running=1
 [Aliases]
 Count=0
