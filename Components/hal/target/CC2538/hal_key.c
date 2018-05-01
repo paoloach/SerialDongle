@@ -1,7 +1,7 @@
 /**************************************************************************************************
   Filename:       hal_key.c
-  Revised:        $Date: 2014-07-29 21:18:07 -0700 (Tue, 29 Jul 2014) $
-  Revision:       $Revision: 39577 $
+  Revised:        $Date: 2014-12-05 13:07:19 -0800 (Fri, 05 Dec 2014) $
+  Revision:       $Revision: 41365 $
 
   Description:    This file contains the interface to the HAL KEY Service.
 
@@ -81,6 +81,47 @@ bool Hal_KeyIntEnable;
 void interrupt_keybd(void);
 uint8 hal_key_no_debounce(void);
 
+#ifdef HAL_LEGACY_KEYS
+#else
+uint8 bspKeyPushedEx(uint8_t ui8ReadMask);
+
+/**************************************************************************************************
+* @fn      bspKeyPushedEx()
+*
+* @brief   Wait for keypresses to stabilize for 500 consecutive checks, and then return the state
+*          of the keys immidiately. The original (non-Ex) version of this function blocks as long
+*          as any key is being pressed.
+*
+* @param   none
+*
+* @return  bitmask of the currently pressed keys
+**************************************************************************************************/
+uint8 bspKeyPushedEx(uint8_t ui8ReadMask)
+{
+  uint32_t ui32DirPins;
+  uint32_t ui32SelPin;
+  uint32_t ui32DirPins_prev = ~GPIOPinRead(BSP_KEY_DIR_BASE, BSP_KEY_DIR_ALL);
+  uint32_t ui32SelPin_prev = ~GPIOPinRead(BSP_KEY_SEL_BASE, BSP_KEY_SELECT);
+  uint16 i;
+  
+  // Read pin states + debounce
+  for(i = 0; i < 500; i++)
+  {
+    ui32DirPins = ~GPIOPinRead(BSP_KEY_DIR_BASE, BSP_KEY_DIR_ALL);
+    ui32SelPin  = ~GPIOPinRead(BSP_KEY_SEL_BASE, BSP_KEY_SELECT);
+    
+    if ((ui32DirPins != ui32DirPins_prev) || (ui32SelPin != ui32SelPin_prev))
+    {
+      i = 0;
+      ui32DirPins_prev = ui32DirPins;
+      ui32SelPin_prev = ui32SelPin;
+    }
+  }
+  
+  return ((ui32DirPins & (BSP_KEY_LEFT | BSP_KEY_RIGHT | BSP_KEY_UP | BSP_KEY_DOWN) | (ui32SelPin & BSP_KEY_SELECT)));
+}
+#endif
+
 /**************************************************************************************************
  * @fn      HalKeyInit
  *
@@ -113,8 +154,12 @@ void HalKeyInit( void )
 uint8 hal_key_keys(void)                                           
 {                                                                 
   uint8 x = 0;
+
+#ifdef HAL_LEGACY_KEYS
   uint8 ucKeysPressed = bspKeyPushed(BSP_KEY_ALL);
-  
+#else
+  uint8 ucKeysPressed = bspKeyPushedEx(BSP_KEY_ALL);
+#endif
   if(ucKeysPressed & BSP_KEY_LEFT)
   {
     x |= HAL_KEY_SW_4;
@@ -153,7 +198,12 @@ uint8 hal_key_int_keys(void)
   /* Get bitmask of buttons pushed (clear directional keys' bitmask) */
   uint8 ucKeysPressed;
   
+#ifdef HAL_LEGACY_KEYS
   ucKeysPressed = bspKeyPushed(BSP_KEY_DIR_ALL);
+#else
+  ucKeysPressed = bspKeyPushedEx(BSP_KEY_DIR_ALL);
+#endif
+
   if(ucKeysPressed & BSP_KEY_LEFT)
   {
     x |= HAL_KEY_SW_4;
@@ -171,7 +221,13 @@ uint8 hal_key_int_keys(void)
     x |= HAL_KEY_SW_3;
   }
   
+  
+#ifdef HAL_LEGACY_KEYS
   ucKeysPressed = bspKeyPushed(BSP_KEY_SELECT);
+#else
+  ucKeysPressed = bspKeyPushedEx(BSP_KEY_SELECT);
+#endif
+
   if(ucKeysPressed & BSP_KEY_SELECT)
   {
     x |= HAL_KEY_SW_5;
@@ -293,7 +349,11 @@ void HalKeyPoll( void )
   }
   
   /* Callback */
-  if (keys && (pHal_KeyProcessFunction))
+  if (pHal_KeyProcessFunction 
+#ifdef HAL_LEGACY_KEYS
+    && keys //in legacy modes, only report key presses and do not report when a key is released
+#endif
+    )
   {
     (pHal_KeyProcessFunction) (keys, HAL_KEY_STATE_NORMAL);
   }

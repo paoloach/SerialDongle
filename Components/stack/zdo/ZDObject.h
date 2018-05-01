@@ -1,7 +1,7 @@
 /**************************************************************************************************
   Filename:       ZDObject.h
-  Revised:        $Date: 2014-01-21 09:55:55 -0800 (Tue, 21 Jan 2014) $
-  Revision:       $Revision: 36901 $
+  Revised:        $Date: 2015-01-22 13:22:52 -0800 (Thu, 22 Jan 2015) $
+  Revision:       $Revision: 41965 $
 
   Description:    This file contains the interface to the Zigbee Device Object.
 
@@ -64,9 +64,14 @@ extern "C"
 #define ZDO_MAX_RTG_ITEMS       10
 #define ZDO_MAX_BIND_ITEMS      3
 
-#define ZDO_MIN_REQ_TIMEOUT     1
-#define ZDO_MAX_REQ_TIMEOUT     2160
+  
+//Current version of the stack indicated in NodeDesc
+#define STACK_COMPLIANCE_CURRENT_REV_POS     9
+#define STACK_COMPLIANCE_CURRENT_REV      0x15   //Rev 21
 
+//Minimum stack revision to validate/request certain features. Ej. update TC Link key
+#define STACK_COMPL_REV_21                0x15
+  
 /*********************************************************************
  * TYPEDEFS
  */
@@ -179,6 +184,24 @@ typedef struct
 
 typedef struct
 {
+  uint8  extAddr[Z_EXTADDR_LEN];
+  uint32 age;
+} ZDO_ChildInfo_t;
+
+typedef struct ZDO_ChildInfoList_s
+{
+  ZDO_ChildInfo_t child;
+  struct ZDO_ChildInfoList_s *next;
+} ZDO_ChildInfoList_t;
+
+typedef struct
+{
+  uint8           numOfChildren;
+  ZDO_ChildInfo_t childInfo[];
+} ZDO_ParentAnnce_t;
+
+typedef struct
+{
   uint32 channelMask;
   uint8 scanDuration;
   uint8 scanCount;
@@ -240,8 +263,9 @@ extern ZDMatchEndDeviceBind_t *matchED;
  */
 extern void ZDO_Init( void );
 
+
 /*
- * ZDO_StartDevice - Start the device in a network
+ * ZDO_StartDevice - Start the device in a network. 
  */
 extern void ZDO_StartDevice( byte logicalType, devStartModes_t startMode,
                              byte beaconOrder, byte superframeOrder );
@@ -264,6 +288,11 @@ extern byte ZDO_AnyClusterMatches(
                               byte ACnt, uint16 *AList, byte BCnt, uint16 *BList );
 
 /*
+ * ZDO_ProcessNodeDescRsp - Process the Node_Desc_rsp message.
+ */
+extern void ZDO_ProcessNodeDescRsp( zdoIncomingMsg_t *inMsg );
+   
+/*
  * ZDO_ProcessNodeDescReq - Process the Node_Desc_req message.
  */
 extern void ZDO_ProcessNodeDescReq( zdoIncomingMsg_t *inMsg );
@@ -277,6 +306,11 @@ extern void ZDO_ProcessPowerDescReq( zdoIncomingMsg_t *inMsg );
  * ZDO_ProcessSimpleDescReq - Process the Simple_Desc_req message
  */
 extern void ZDO_ProcessSimpleDescReq( zdoIncomingMsg_t *inMsg );
+
+/*
+ * ZDO_ProcessSimpleDescRsp - Process the Simple_Desc_rsp message
+ */
+extern void ZDO_ProcessSimpleDescRsp( zdoIncomingMsg_t *inMsg );
 
 /*
  * ZDO_ProcessActiveEPReq - Process the Active_EP_req message
@@ -297,13 +331,6 @@ void ZDO_ProcessServerDiscRsp( zdoIncomingMsg_t *inMsg );
  * ZDO_ProcessServerDiscReq - Process the Server_Discovery_req message.
  */
 void ZDO_ProcessServerDiscReq( zdoIncomingMsg_t *inMsg );
-
-#if defined ( ZIGBEE_CHILD_AGING )
-/*
- * ZDO_ProcessEndDeviceTimeoutReq - Process the End_Device_Timeout_Req message.
- */
-void ZDO_ProcessEndDeviceTimeoutReq( zdoIncomingMsg_t *inMsg );
-#endif // ZIGBEE_CHILD_AGING
 
 /*********************************************************************
  * Internal ZDO interfaces
@@ -349,11 +376,6 @@ extern void ZDO_FinishProcessingMgmtNwkDiscReq( void );
 extern void ZDO_ParseMgmtNwkUpdateReq( zdoIncomingMsg_t *inMsg, ZDO_MgmtNwkUpdateReq_t *pReq );
 
 /*
- * ZDO_ParseEndDeviceTimeoutRsp - Parse the End_Device_Timeout_rsp message.
- */
-void ZDO_ParseEndDeviceTimeoutRsp( zdoIncomingMsg_t *inMsg, uint16 *pRsp );
-
-/*
  * ZDO_ProcessMgmtLqiReq - Called to parse the incoming
  * Management LQI Request
  */
@@ -380,6 +402,10 @@ extern void ZDO_ProcessUserDescReq( zdoIncomingMsg_t *inMsg );
 extern void ZDO_ProcessUserDescSet( zdoIncomingMsg_t *inMsg );
 
 extern void ZDO_ProcessDeviceAnnce( zdoIncomingMsg_t *inMsg );
+
+extern void ZDO_ProcessParentAnnce( zdoIncomingMsg_t *inMsg );
+
+extern void ZDO_ProcessParentAnnceRsp( zdoIncomingMsg_t *inMsg );
 
 extern void ZDO_BuildSimpleDescBuf( uint8 *buf, SimpleDescriptionFormat_t *desc );
 
@@ -537,6 +563,11 @@ extern void ZDO_ProcessBindUnbindReq( zdoIncomingMsg_t *inMsg, ZDO_BindUnbindReq
  * ZDO_ParseDeviceAnnce - Called to parse an End_Device_annce message
  */
 extern void ZDO_ParseDeviceAnnce( zdoIncomingMsg_t *inMsg, ZDO_DeviceAnnce_t *pAnnce );
+
+/*
+ * ZDO_ParseParentAnnce - Called to parse a Parent_annce and Parent_annce_rsp message
+ */
+extern ZDO_ParentAnnce_t *ZDO_ParseParentAnnce( zdoIncomingMsg_t *inMsg );
 
 /*
  * ZDO_ParseMgmtNwkUpdateNotify - Parse the Mgmt_NWK_Update_notify message

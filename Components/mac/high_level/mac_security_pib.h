@@ -1,7 +1,7 @@
 /**************************************************************************************************
   Filename:       mac_security_pib.h
-  Revised:        $Date: 2014-05-16 10:48:08 -0700 (Fri, 16 May 2014) $
-  Revision:       $Revision: 38567 $
+  Revised:        $Date: 2014-11-06 11:03:55 -0800 (Thu, 06 Nov 2014) $
+  Revision:       $Revision: 41021 $
 
   Description:    Internal interface file for the Security-related MAC PIB module.
 
@@ -136,7 +136,7 @@ MAC_INTERNAL_API uint8 macSecurityPibIndex(uint8 pibAttribute);
 /**************************************************************************************************
 */
 
-#if defined( FEATURE_MAC_PIB_PTR ) && (defined( CC26XX ) || defined( CC26XX_PG2 ))
+#if defined( FEATURE_MAC_PIB_PTR ) && defined( CC26XX )
 #error "ERROR! CC26XX does not support FEATURE_MAC_PIB_PTR."
 #endif
 

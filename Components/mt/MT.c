@@ -1,7 +1,7 @@
 /***************************************************************************************************
   Filename:       MT.c
-  Revised:        $Date: 2014-03-21 17:08:59 -0700 (Fri, 21 Mar 2014) $
-  Revision:       $Revision: 37840 $
+  Revised:        $Date: 2015-01-18 19:44:10 -0800 (Sun, 18 Jan 2015) $
+  Revision:       $Revision: 41896 $
 
   Description:    MonitorTest Event Loop functions.
                   Everything in the MonitorTest Task (except the serial driver).
@@ -117,14 +117,22 @@
 #if defined (MT_MAC_PROTOBUF_FUNC)
   #include "mtmacpb.h"
 #endif
-#if defined (MT_GP_FUNC)
+#if defined (MT_GP_CB_FUNC)
   #include "MT_GP.h"
+#endif
+
+#if defined (MT_APP_CNF_FUNC)
+  #include "MT_APP_CONFIG.h"
 #endif
 
 #include "hal_uart.h"
 #include "hal_led.h"
 #include "hal_key.h"
 #include "MT_UART.h"
+
+#if defined (FEATURE_DUAL_MAC)
+  #include "dmmgr.h"
+#endif 
 
 /**************************************************************************************************
  * CONSTANTS
@@ -209,7 +217,13 @@ mtProcessMsg_t mtProcessIncoming[] =
 #endif
 
   NULL,                               // MT_RPC_SYS_RESERVED14
-  NULL,                               // MT_RPC_SYS_RESERVED15
+  
+#if defined (MT_APP_CNF_FUNC) 
+  MT_AppCnfCommandProcessing,        // MT_RPC_SYS_APP_CNF
+#else
+  NULL,
+#endif
+  
   NULL,                               // MT_RPC_SYS_RESERVED16
 #if defined (MT_MAC_PROTOBUF_FUNC)
   MT_MacPBCmdProc,                    // MT_RPC_SYS_PROTOBUF
@@ -219,7 +233,7 @@ mtProcessMsg_t mtProcessIncoming[] =
   NULL,                               // MT_RPC_SYS_RES18
   NULL,                               // MT_RPC_SYS_RES19
   NULL,                               // MT_RPC_SYS_RES20
-#if defined (MT_GP_FUNC)
+#if defined (MT_GP_CB_FUNC)
   MT_GpCommandProcessing,
 #else
   NULL,
@@ -277,7 +291,9 @@ void MT_Init(uint8 taskID)
 #if defined (MT_ZDO_FUNC)
   MT_ZdoInit();
 #endif
+#ifndef ZBIT
   MT_SysResetInd();
+#endif /* !ZBIT */
 }
 
 /***************************************************************************************************
@@ -291,10 +307,19 @@ void MT_Init(uint8 taskID)
  *
  * @return  void
  ***************************************************************************************************/
+#if !defined(NPI)
 void MT_BuildAndSendZToolResponse(uint8 cmdType, uint8 cmdId, uint8 dataLen, uint8 *pData)
 {
   uint8 *msg_ptr;
 
+#ifdef FEATURE_DUAL_MAC
+  msg_ptr = DMMGR_BuildRspMsg( cmdType, cmdId, dataLen, pData );
+
+  if ( msg_ptr )
+  {
+    MT_TransportSend(msg_ptr);
+  }
+#else
   if ((msg_ptr = MT_TransportAlloc((mtRpcCmdType_t)(cmdType & 0xE0), dataLen)) != NULL)
   {
     msg_ptr[MT_RPC_POS_LEN] = dataLen;
@@ -304,8 +329,9 @@ void MT_BuildAndSendZToolResponse(uint8 cmdType, uint8 cmdId, uint8 dataLen, uin
 
     MT_TransportSend(msg_ptr);
   }
+#endif /* FEATURE_DUAL_MAC */
 }
-
+#endif /* NPI */
 /***************************************************************************************************
  * @fn      MT_ProcessIncoming
  *

@@ -2,7 +2,7 @@
 <project>
     <fileVersion>3</fileVersion>
     <configuration>
-        <name>CoordinatorEB</name>
+        <name>Coordinator2592</name>
         <toolchain>
             <name>8051</name>
         </toolchain>
@@ -113,15 +113,15 @@
                 </option>
                 <option>
                     <name>ExePath</name>
-                    <state>CoordinatorEB\Exe</state>
+                    <state>Coordinator2592\Exe</state>
                 </option>
                 <option>
                     <name>ObjPath</name>
-                    <state>CoordinatorEB\Obj</state>
+                    <state>Coordinator2592\Obj</state>
                 </option>
                 <option>
                     <name>ListPath</name>
-                    <state>CoordinatorEB\List</state>
+                    <state>Coordinator2592\List</state>
                 </option>
                 <option>
                     <name>GOutputBinary</name>
@@ -305,9 +305,11 @@
                 </option>
                 <option>
                     <name>CCDefines</name>
+                    <state>xNO_SERIAL</state>
                     <state>ZDO_MGMT_LQI_RESPONSE</state>
-                    <state>HAL_PA_LNA</state>
-                    <state>SECURE=0</state>
+                    <state>HAL_LCD=FALSE</state>
+                    <state>HAL_PA_LNA_CC2592</state>
+                    <state>SECURE=1</state>
                     <state>OSALMEM_METRICS</state>
                     <state>REFLECTOR</state>
                     <state>xPOWER_SAVE</state>
@@ -488,7 +490,7 @@
                 <option>
                     <name>Compiler Extra Options Edit</name>
                     <state>-f $PROJ_DIR$\..\Tools\f8wCoord.cfg</state>
-                    <state>-f $PROJ_DIR$\..\Tools\f8wConfig.cfg</state>
+                    <state>-f $PROJ_DIR$\..\Tools\f8wConfig_test.cfg</state>
                     <state>-f $PROJ_DIR$\..\Tools\f8wZCL.cfg</state>
                 </option>
                 <option>
@@ -496,7 +498,7 @@
                     <state>$PROJ_DIR$</state>
                     <state>$PROJ_DIR$\..\Source</state>
                     <state>$PROJ_DIR$\..\Source\ha</state>
-                    <state>$PROJ_DIR$\..\Source\zmain</state>
+                    <state>$PROJ_DIR$\..\Components\ZMain</state>
                     <state>$PROJ_DIR$\..\Components\hal\include</state>
                     <state>$PROJ_DIR$\..\Components\hal\target\CC2530EB</state>
                     <state>$PROJ_DIR$\..\Components\hal\target\CC2531_USBDONGLE</state>
@@ -512,6 +514,8 @@
                     <state>$PROJ_DIR$\..\Components\services\saddr</state>
                     <state>$PROJ_DIR$\..\Components\services\sdata</state>
                     <state>$PROJ_DIR$\..\Components\stack\af</state>
+                    <state>$PROJ_DIR$\..\Components\stack\bdb</state>
+                    <state>$PROJ_DIR$\..\Components\stack\GP</state>
                     <state>$PROJ_DIR$\..\Components\stack\nwk</state>
                     <state>$PROJ_DIR$\..\Components\stack\sapi</state>
                     <state>$PROJ_DIR$\..\Components\stack\sec</state>
@@ -544,7 +548,7 @@
                 </option>
                 <option>
                     <name>CCOptLevel</name>
-                    <state>0</state>
+                    <state>3</state>
                 </option>
                 <option>
                     <name>CCOptStrategy</name>
@@ -553,7 +557,7 @@
                 </option>
                 <option>
                     <name>CCOptLevelSlave</name>
-                    <state>0</state>
+                    <state>3</state>
                 </option>
                 <option>
                     <name>CompilerMisraRules04</name>
@@ -599,7 +603,7 @@
                 <option>
                     <name>CCAllowList2</name>
                     <version>0</version>
-                    <state>0000000</state>
+                    <state>1111110</state>
                 </option>
                 <option>
                     <name>CCOptStrategySlave</name>
@@ -1169,7 +1173,7 @@
         </settings>
     </configuration>
     <configuration>
-        <name>Coordinator2592</name>
+        <name>Cordinatore</name>
         <toolchain>
             <name>8051</name>
         </toolchain>
@@ -1280,15 +1284,15 @@
                 </option>
                 <option>
                     <name>ExePath</name>
-                    <state>Coordinator2592\Exe</state>
+                    <state>Cordinatore\Exe</state>
                 </option>
                 <option>
                     <name>ObjPath</name>
-                    <state>Coordinator2592\Obj</state>
+                    <state>Cordinatore\Obj</state>
                 </option>
                 <option>
                     <name>ListPath</name>
-                    <state>Coordinator2592\List</state>
+                    <state>Cordinatore\List</state>
                 </option>
                 <option>
                     <name>GOutputBinary</name>
@@ -1472,8 +1476,9 @@
                 </option>
                 <option>
                     <name>CCDefines</name>
+                    <state>xNO_SERIAL</state>
                     <state>ZDO_MGMT_LQI_RESPONSE</state>
-                    <state>HAL_PA_LNA_CC2592</state>
+                    <state>HAL_LCD=FALSE</state>
                     <state>SECURE=1</state>
                     <state>OSALMEM_METRICS</state>
                     <state>REFLECTOR</state>
@@ -1663,7 +1668,7 @@
                     <state>$PROJ_DIR$</state>
                     <state>$PROJ_DIR$\..\Source</state>
                     <state>$PROJ_DIR$\..\Source\ha</state>
-                    <state>$PROJ_DIR$\..\Source\zmain</state>
+                    <state>$PROJ_DIR$\..\Components\ZMain</state>
                     <state>$PROJ_DIR$\..\Components\hal\include</state>
                     <state>$PROJ_DIR$\..\Components\hal\target\CC2530EB</state>
                     <state>$PROJ_DIR$\..\Components\hal\target\CC2531_USBDONGLE</state>
@@ -1679,6 +1684,8 @@
                     <state>$PROJ_DIR$\..\Components\services\saddr</state>
                     <state>$PROJ_DIR$\..\Components\services\sdata</state>
                     <state>$PROJ_DIR$\..\Components\stack\af</state>
+                    <state>$PROJ_DIR$\..\Components\stack\bdb</state>
+                    <state>$PROJ_DIR$\..\Components\stack\GP</state>
                     <state>$PROJ_DIR$\..\Components\stack\nwk</state>
                     <state>$PROJ_DIR$\..\Components\stack\sapi</state>
                     <state>$PROJ_DIR$\..\Components\stack\sec</state>
@@ -1716,7 +1723,7 @@
                 <option>
                     <name>CCOptStrategy</name>
                     <version>0</version>
-                    <state>2</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>CCOptLevelSlave</name>
@@ -1766,12 +1773,12 @@
                 <option>
                     <name>CCAllowList2</name>
                     <version>0</version>
-                    <state>1111100</state>
+                    <state>1111110</state>
                 </option>
                 <option>
                     <name>CCOptStrategySlave</name>
                     <version>0</version>
-                    <state>2</state>
+                    <state>1</state>
                 </option>
             </data>
         </settings>
@@ -2481,7 +2488,7 @@
                 <name>$PROJ_DIR$\..\Source\endpointRequestList.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\Tools\f8wCoord.cfg</name>
+                <name>$PROJ_DIR$\..\Components\ZMain\OnBoard.h</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Source\OSAL_Coordinator.c</name>
@@ -2509,6 +2516,652 @@
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Source\ZigBeeSerialBridge.c</name>
+                <configuration>
+                    <name>Coordinator2592</name>
+                    <settings>
+                        <name>ICC8051</name>
+                        <data>
+                            <version>12</version>
+                            <wantNonLocal>0</wantNonLocal>
+                            <debug>1</debug>
+                            <option>
+                                <name>CCOptSizeSpeedSlave</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>CCOptimizationSlave</name>
+                                <version>0</version>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>OutputFile</name>
+                                <state>$FILE_BNAME$.r51</state>
+                            </option>
+                            <option>
+                                <name>CCDefines</name>
+                                <state>xNO_SERIAL</state>
+                                <state>ZDO_MGMT_LQI_RESPONSE</state>
+                                <state>HAL_LCD=FALSE</state>
+                                <state>HAL_PA_LNA_CC2592</state>
+                                <state>SECURE=1</state>
+                                <state>OSALMEM_METRICS</state>
+                                <state>REFLECTOR</state>
+                                <state>xPOWER_SAVE</state>
+                                <state>HAL_KEY=0</state>
+                                <state>TC_LINKKEY_JOIN</state>
+                                <state>REFLECTOR</state>
+                                <state>NV_INIT</state>
+                                <state>NV_RESTORE</state>
+                                <state>xHOLD_AUTO_START</state>
+                                <state>xZTOOL_P1</state>
+                                <state>xMT_TASK</state>
+                                <state>xMT_APP_FUNC</state>
+                                <state>xMT_SYS_FUNC</state>
+                                <state>xMT_ZDO_FUNC</state>
+                                <state>MULTICAST_ENABLED=FALSE</state>
+                                <state>ZCL_READ</state>
+                                <state>ZCL_WRITE</state>
+                                <state>ZCL_REPORT</state>
+                                <state>ZCL_EZMODE</state>
+                                <state>ZCL_BASIC</state>
+                                <state>ZCL_IDENTIFY</state>
+                                <state>ZCL_ON_OFF</state>
+                                <state>ZCL_DIAGNOSTIC</state>
+                                <state>FEATURE_SYSTEM_STATS</state>
+                            </option>
+                            <option>
+                                <name>CCPreprocFile</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>CCPreprocComments</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>CCPreprocLine</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>CCListCFile</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>CCListCMnemonics</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>CCListCMessages</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>CCListAssFile</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>CCListAssSource</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>CCEnableRemarks</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>CCDiagSuppress</name>
+                                <state>Pe001,Pa010</state>
+                            </option>
+                            <option>
+                                <name>CCDiagRemark</name>
+                                <state></state>
+                            </option>
+                            <option>
+                                <name>CCDiagWarning</name>
+                                <state></state>
+                            </option>
+                            <option>
+                                <name>CCDiagError</name>
+                                <state></state>
+                            </option>
+                            <option>
+                                <name>CCObjPrefix</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>LangConform</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>CharIs</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>CCRequirePrototypes</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>CCMultibyteSupport</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>CCMigrationPreprocExtentions</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>CCObjUseModuleName</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>CCObjModuleName</name>
+                                <state></state>
+                            </option>
+                            <option>
+                                <name>CCDebugInfo</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>OCCProcessorVariant</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>OCCDptr</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>OCCDataMemoryModel</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>OCCCodeMemoryModel</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>OCCCallingConvention</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>OCCConstantPlacement</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>OCCNrOfVirtualRegisters</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>CCDiagWarnAreErr</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>CCCompilerRuntimeInfo</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>RomMonBpPadding</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>PreInclude</name>
+                                <state></state>
+                            </option>
+                            <option>
+                                <name>CCLibConfigHeader</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>NoUBROFMessages</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>CompilerMisraOverride</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>Compiler Extra Options Check</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>Compiler Extra Options Edit</name>
+                                <state>-f $PROJ_DIR$\..\Tools\f8wCoord.cfg</state>
+                                <state>-f $PROJ_DIR$\..\Tools\f8wConfig_test.cfg</state>
+                                <state>-f $PROJ_DIR$\..\Tools\f8wZCL.cfg</state>
+                            </option>
+                            <option>
+                                <name>CCIncludePath2</name>
+                                <state>$PROJ_DIR$</state>
+                                <state>$PROJ_DIR$\..\Source</state>
+                                <state>$PROJ_DIR$\..\Source\ha</state>
+                                <state>$PROJ_DIR$\..\Components\ZMain</state>
+                                <state>$PROJ_DIR$\..\Components\hal\include</state>
+                                <state>$PROJ_DIR$\..\Components\hal\target\CC2530EB</state>
+                                <state>$PROJ_DIR$\..\Components\hal\target\CC2531_USBDONGLE</state>
+                                <state>$PROJ_DIR$\..\Components\hal\target\CC2530USB\usb\class_UsbCoordinator</state>
+                                <state>$PROJ_DIR$\..\Components\hal\target\CC2530USB\usb\library</state>
+                                <state>$PROJ_DIR$\..\Components\hal\target\CC2530USB\usb\library\cc2531</state>
+                                <state>$PROJ_DIR$\..\Components\mac\include</state>
+                                <state>$PROJ_DIR$\..\Components\mac\high_level</state>
+                                <state>$PROJ_DIR$\..\Components\mac\low_level\srf04</state>
+                                <state>$PROJ_DIR$\..\Components\mac\low_level\srf04\single_chip</state>
+                                <state>$PROJ_DIR$\..\Components\mt</state>
+                                <state>$PROJ_DIR$\..\Components\osal\include</state>
+                                <state>$PROJ_DIR$\..\Components\services\saddr</state>
+                                <state>$PROJ_DIR$\..\Components\services\sdata</state>
+                                <state>$PROJ_DIR$\..\Components\stack\af</state>
+                                <state>$PROJ_DIR$\..\Components\stack\bdb</state>
+                                <state>$PROJ_DIR$\..\Components\stack\GP</state>
+                                <state>$PROJ_DIR$\..\Components\stack\nwk</state>
+                                <state>$PROJ_DIR$\..\Components\stack\sapi</state>
+                                <state>$PROJ_DIR$\..\Components\stack\sec</state>
+                                <state>$PROJ_DIR$\..\Components\stack\sys</state>
+                                <state>$PROJ_DIR$\..\Components\stack\zcl</state>
+                                <state>$PROJ_DIR$\..\Components\stack\zdo</state>
+                                <state>$PROJ_DIR$\..\Components\zmac</state>
+                                <state>$PROJ_DIR$\..\Components\zmac\f8w</state>
+                            </option>
+                            <option>
+                                <name>CCStdIncCheck</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>CompilerMisraRules98</name>
+                                <version>0</version>
+                                <state>1000111110110101101110011100111111101110011011000101110111101101100111111111111100110011111001110111001111111111111111111111111</state>
+                            </option>
+                            <option>
+                                <name>CCOverrideModuleTypeDefault</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>CCRadioModuleType</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>CCRadioModuleTypeSlave</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>CCOptLevel</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>CCOptStrategy</name>
+                                <version>0</version>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>CCOptLevelSlave</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>CompilerMisraRules04</name>
+                                <version>0</version>
+                                <state>111101110010111111111000110111111111111111111111111110010111101111010101111111111111111111111111101111111011111001111011111011111111111111111</state>
+                            </option>
+                            <option>
+                                <name>IccLang</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>IccCDialect</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>IccAllowVLA</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>IccCppDialect</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>IccCppInlineSemantics</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>IccStaticDestr</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>IccFloatSemantics</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>NoSizeConstraints</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>CCAllowList2</name>
+                                <version>0</version>
+                                <state>0000000</state>
+                            </option>
+                            <option>
+                                <name>CCOptStrategySlave</name>
+                                <version>0</version>
+                                <state>1</state>
+                            </option>
+                        </data>
+                    </settings>
+                </configuration>
+                <configuration>
+                    <name>Cordinatore</name>
+                    <settings>
+                        <name>ICC8051</name>
+                        <data>
+                            <version>12</version>
+                            <wantNonLocal>1</wantNonLocal>
+                            <debug>1</debug>
+                            <option>
+                                <name>CCOptSizeSpeedSlave</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>CCOptimizationSlave</name>
+                                <version>0</version>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>OutputFile</name>
+                                <state>$FILE_BNAME$.r51</state>
+                            </option>
+                            <option>
+                                <name>CCDefines</name>
+                                <state>xNO_SERIAL</state>
+                                <state>ZDO_MGMT_LQI_RESPONSE</state>
+                                <state>HAL_LCD=FALSE</state>
+                                <state>HAL_PA_LNA_CC2592</state>
+                                <state>SECURE=1</state>
+                                <state>OSALMEM_METRICS</state>
+                                <state>REFLECTOR</state>
+                                <state>xPOWER_SAVE</state>
+                                <state>HAL_KEY=0</state>
+                                <state>TC_LINKKEY_JOIN</state>
+                                <state>REFLECTOR</state>
+                                <state>NV_INIT</state>
+                                <state>NV_RESTORE</state>
+                                <state>xHOLD_AUTO_START</state>
+                                <state>xZTOOL_P1</state>
+                                <state>xMT_TASK</state>
+                                <state>xMT_APP_FUNC</state>
+                                <state>xMT_SYS_FUNC</state>
+                                <state>xMT_ZDO_FUNC</state>
+                                <state>MULTICAST_ENABLED=FALSE</state>
+                                <state>ZCL_READ</state>
+                                <state>ZCL_WRITE</state>
+                                <state>ZCL_REPORT</state>
+                                <state>ZCL_EZMODE</state>
+                                <state>ZCL_BASIC</state>
+                                <state>ZCL_IDENTIFY</state>
+                                <state>ZCL_ON_OFF</state>
+                                <state>ZCL_DIAGNOSTIC</state>
+                                <state>FEATURE_SYSTEM_STATS</state>
+                            </option>
+                            <option>
+                                <name>CCPreprocFile</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>CCPreprocComments</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>CCPreprocLine</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>CCListCFile</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>CCListCMnemonics</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>CCListCMessages</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>CCListAssFile</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>CCListAssSource</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>CCEnableRemarks</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>CCDiagSuppress</name>
+                                <state>Pe001,Pa010</state>
+                            </option>
+                            <option>
+                                <name>CCDiagRemark</name>
+                                <state></state>
+                            </option>
+                            <option>
+                                <name>CCDiagWarning</name>
+                                <state></state>
+                            </option>
+                            <option>
+                                <name>CCDiagError</name>
+                                <state></state>
+                            </option>
+                            <option>
+                                <name>CCObjPrefix</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>LangConform</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>CharIs</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>CCRequirePrototypes</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>CCMultibyteSupport</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>CCMigrationPreprocExtentions</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>CCObjUseModuleName</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>CCObjModuleName</name>
+                                <state></state>
+                            </option>
+                            <option>
+                                <name>CCDebugInfo</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>OCCProcessorVariant</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>OCCDptr</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>OCCDataMemoryModel</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>OCCCodeMemoryModel</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>OCCCallingConvention</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>OCCConstantPlacement</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>OCCNrOfVirtualRegisters</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>CCDiagWarnAreErr</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>CCCompilerRuntimeInfo</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>RomMonBpPadding</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>PreInclude</name>
+                                <state></state>
+                            </option>
+                            <option>
+                                <name>CCLibConfigHeader</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>NoUBROFMessages</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>CompilerMisraOverride</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>Compiler Extra Options Check</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>Compiler Extra Options Edit</name>
+                                <state>-f $PROJ_DIR$\..\Tools\f8wCoord.cfg</state>
+                                <state>-f $PROJ_DIR$\..\Tools\f8wConfig_test.cfg</state>
+                                <state>-f $PROJ_DIR$\..\Tools\f8wZCL.cfg</state>
+                            </option>
+                            <option>
+                                <name>CCIncludePath2</name>
+                                <state>$PROJ_DIR$</state>
+                                <state>$PROJ_DIR$\..\Source</state>
+                                <state>$PROJ_DIR$\..\Source\ha</state>
+                                <state>$PROJ_DIR$\..\Components\ZMain</state>
+                                <state>$PROJ_DIR$\..\Components\hal\include</state>
+                                <state>$PROJ_DIR$\..\Components\hal\target\CC2530EB</state>
+                                <state>$PROJ_DIR$\..\Components\hal\target\CC2531_USBDONGLE</state>
+                                <state>$PROJ_DIR$\..\Components\hal\target\CC2530USB\usb\class_UsbCoordinator</state>
+                                <state>$PROJ_DIR$\..\Components\hal\target\CC2530USB\usb\library</state>
+                                <state>$PROJ_DIR$\..\Components\hal\target\CC2530USB\usb\library\cc2531</state>
+                                <state>$PROJ_DIR$\..\Components\mac\include</state>
+                                <state>$PROJ_DIR$\..\Components\mac\high_level</state>
+                                <state>$PROJ_DIR$\..\Components\mac\low_level\srf04</state>
+                                <state>$PROJ_DIR$\..\Components\mac\low_level\srf04\single_chip</state>
+                                <state>$PROJ_DIR$\..\Components\mt</state>
+                                <state>$PROJ_DIR$\..\Components\osal\include</state>
+                                <state>$PROJ_DIR$\..\Components\services\saddr</state>
+                                <state>$PROJ_DIR$\..\Components\services\sdata</state>
+                                <state>$PROJ_DIR$\..\Components\stack\af</state>
+                                <state>$PROJ_DIR$\..\Components\stack\bdb</state>
+                                <state>$PROJ_DIR$\..\Components\stack\GP</state>
+                                <state>$PROJ_DIR$\..\Components\stack\nwk</state>
+                                <state>$PROJ_DIR$\..\Components\stack\sapi</state>
+                                <state>$PROJ_DIR$\..\Components\stack\sec</state>
+                                <state>$PROJ_DIR$\..\Components\stack\sys</state>
+                                <state>$PROJ_DIR$\..\Components\stack\zcl</state>
+                                <state>$PROJ_DIR$\..\Components\stack\zdo</state>
+                                <state>$PROJ_DIR$\..\Components\zmac</state>
+                                <state>$PROJ_DIR$\..\Components\zmac\f8w</state>
+                            </option>
+                            <option>
+                                <name>CCStdIncCheck</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>CompilerMisraRules98</name>
+                                <version>0</version>
+                                <state>1000111110110101101110011100111111101110011011000101110111101101100111111111111100110011111001110111001111111111111111111111111</state>
+                            </option>
+                            <option>
+                                <name>CCOverrideModuleTypeDefault</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>CCRadioModuleType</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>CCRadioModuleTypeSlave</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>CCOptLevel</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>CCOptStrategy</name>
+                                <version>0</version>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>CCOptLevelSlave</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>CompilerMisraRules04</name>
+                                <version>0</version>
+                                <state>111101110010111111111000110111111111111111111111111110010111101111010101111111111111111111111111101111111011111001111011111011111111111111111</state>
+                            </option>
+                            <option>
+                                <name>IccLang</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>IccCDialect</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>IccAllowVLA</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>IccCppDialect</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>IccCppInlineSemantics</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>IccStaticDestr</name>
+                                <state>1</state>
+                            </option>
+                            <option>
+                                <name>IccFloatSemantics</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>NoSizeConstraints</name>
+                                <state>0</state>
+                            </option>
+                            <option>
+                                <name>CCAllowList2</name>
+                                <version>0</version>
+                                <state>0000000</state>
+                            </option>
+                            <option>
+                                <name>CCOptStrategySlave</name>
+                                <version>0</version>
+                                <state>1</state>
+                            </option>
+                        </data>
+                    </settings>
+                </configuration>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Source\ZigBeeSerialBridge.h</name>
@@ -2517,6 +3170,718 @@
                 <name>$PROJ_DIR$\..\Source\ZigBeeSerialBridge_data.h</name>
             </file>
         </group>
+    </group>
+    <group>
+        <name>BDB</name>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\bdb\bdb.c</name>
+            <configuration>
+                <name>Coordinator2592</name>
+                <settings>
+                    <name>ICC8051</name>
+                    <data>
+                        <version>12</version>
+                        <wantNonLocal>0</wantNonLocal>
+                        <debug>1</debug>
+                        <option>
+                            <name>CCOptSizeSpeedSlave</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>CCOptimizationSlave</name>
+                            <version>0</version>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>OutputFile</name>
+                            <state>$FILE_BNAME$.r51</state>
+                        </option>
+                        <option>
+                            <name>CCDefines</name>
+                            <state>xNO_SERIAL</state>
+                            <state>ZDO_MGMT_LQI_RESPONSE</state>
+                            <state>HAL_LCD=FALSE</state>
+                            <state>HAL_PA_LNA_CC2592</state>
+                            <state>SECURE=1</state>
+                            <state>OSALMEM_METRICS</state>
+                            <state>REFLECTOR</state>
+                            <state>xPOWER_SAVE</state>
+                            <state>HAL_KEY=0</state>
+                            <state>TC_LINKKEY_JOIN</state>
+                            <state>REFLECTOR</state>
+                            <state>NV_INIT</state>
+                            <state>NV_RESTORE</state>
+                            <state>xHOLD_AUTO_START</state>
+                            <state>xZTOOL_P1</state>
+                            <state>xMT_TASK</state>
+                            <state>xMT_APP_FUNC</state>
+                            <state>xMT_SYS_FUNC</state>
+                            <state>xMT_ZDO_FUNC</state>
+                            <state>MULTICAST_ENABLED=FALSE</state>
+                            <state>ZCL_READ</state>
+                            <state>ZCL_WRITE</state>
+                            <state>ZCL_REPORT</state>
+                            <state>ZCL_EZMODE</state>
+                            <state>ZCL_BASIC</state>
+                            <state>ZCL_IDENTIFY</state>
+                            <state>ZCL_ON_OFF</state>
+                            <state>ZCL_DIAGNOSTIC</state>
+                            <state>FEATURE_SYSTEM_STATS</state>
+                        </option>
+                        <option>
+                            <name>CCPreprocFile</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>CCPreprocComments</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>CCPreprocLine</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>CCListCFile</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>CCListCMnemonics</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>CCListCMessages</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>CCListAssFile</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>CCListAssSource</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>CCEnableRemarks</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>CCDiagSuppress</name>
+                            <state>Pe001,Pa010</state>
+                        </option>
+                        <option>
+                            <name>CCDiagRemark</name>
+                            <state></state>
+                        </option>
+                        <option>
+                            <name>CCDiagWarning</name>
+                            <state></state>
+                        </option>
+                        <option>
+                            <name>CCDiagError</name>
+                            <state></state>
+                        </option>
+                        <option>
+                            <name>CCObjPrefix</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>LangConform</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>CharIs</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>CCRequirePrototypes</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>CCMultibyteSupport</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>CCMigrationPreprocExtentions</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>CCObjUseModuleName</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>CCObjModuleName</name>
+                            <state></state>
+                        </option>
+                        <option>
+                            <name>CCDebugInfo</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>OCCProcessorVariant</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>OCCDptr</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>OCCDataMemoryModel</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>OCCCodeMemoryModel</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>OCCCallingConvention</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>OCCConstantPlacement</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>OCCNrOfVirtualRegisters</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>CCDiagWarnAreErr</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>CCCompilerRuntimeInfo</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>RomMonBpPadding</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>PreInclude</name>
+                            <state></state>
+                        </option>
+                        <option>
+                            <name>CCLibConfigHeader</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>NoUBROFMessages</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>CompilerMisraOverride</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>Compiler Extra Options Check</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>Compiler Extra Options Edit</name>
+                            <state>-f $PROJ_DIR$\..\Tools\f8wCoord.cfg</state>
+                            <state>-f $PROJ_DIR$\..\Tools\f8wConfig_test.cfg</state>
+                            <state>-f $PROJ_DIR$\..\Tools\f8wZCL.cfg</state>
+                        </option>
+                        <option>
+                            <name>CCIncludePath2</name>
+                            <state>$PROJ_DIR$</state>
+                            <state>$PROJ_DIR$\..\Source</state>
+                            <state>$PROJ_DIR$\..\Source\ha</state>
+                            <state>$PROJ_DIR$\..\Components\ZMain</state>
+                            <state>$PROJ_DIR$\..\Components\hal\include</state>
+                            <state>$PROJ_DIR$\..\Components\hal\target\CC2530EB</state>
+                            <state>$PROJ_DIR$\..\Components\hal\target\CC2531_USBDONGLE</state>
+                            <state>$PROJ_DIR$\..\Components\hal\target\CC2530USB\usb\class_UsbCoordinator</state>
+                            <state>$PROJ_DIR$\..\Components\hal\target\CC2530USB\usb\library</state>
+                            <state>$PROJ_DIR$\..\Components\hal\target\CC2530USB\usb\library\cc2531</state>
+                            <state>$PROJ_DIR$\..\Components\mac\include</state>
+                            <state>$PROJ_DIR$\..\Components\mac\high_level</state>
+                            <state>$PROJ_DIR$\..\Components\mac\low_level\srf04</state>
+                            <state>$PROJ_DIR$\..\Components\mac\low_level\srf04\single_chip</state>
+                            <state>$PROJ_DIR$\..\Components\mt</state>
+                            <state>$PROJ_DIR$\..\Components\osal\include</state>
+                            <state>$PROJ_DIR$\..\Components\services\saddr</state>
+                            <state>$PROJ_DIR$\..\Components\services\sdata</state>
+                            <state>$PROJ_DIR$\..\Components\stack\af</state>
+                            <state>$PROJ_DIR$\..\Components\stack\bdb</state>
+                            <state>$PROJ_DIR$\..\Components\stack\GP</state>
+                            <state>$PROJ_DIR$\..\Components\stack\nwk</state>
+                            <state>$PROJ_DIR$\..\Components\stack\sapi</state>
+                            <state>$PROJ_DIR$\..\Components\stack\sec</state>
+                            <state>$PROJ_DIR$\..\Components\stack\sys</state>
+                            <state>$PROJ_DIR$\..\Components\stack\zcl</state>
+                            <state>$PROJ_DIR$\..\Components\stack\zdo</state>
+                            <state>$PROJ_DIR$\..\Components\zmac</state>
+                            <state>$PROJ_DIR$\..\Components\zmac\f8w</state>
+                        </option>
+                        <option>
+                            <name>CCStdIncCheck</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>CompilerMisraRules98</name>
+                            <version>0</version>
+                            <state>1000111110110101101110011100111111101110011011000101110111101101100111111111111100110011111001110111001111111111111111111111111</state>
+                        </option>
+                        <option>
+                            <name>CCOverrideModuleTypeDefault</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>CCRadioModuleType</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>CCRadioModuleTypeSlave</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>CCOptLevel</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>CCOptStrategy</name>
+                            <version>0</version>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>CCOptLevelSlave</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>CompilerMisraRules04</name>
+                            <version>0</version>
+                            <state>111101110010111111111000110111111111111111111111111110010111101111010101111111111111111111111111101111111011111001111011111011111111111111111</state>
+                        </option>
+                        <option>
+                            <name>IccLang</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>IccCDialect</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>IccAllowVLA</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>IccCppDialect</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>IccCppInlineSemantics</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>IccStaticDestr</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>IccFloatSemantics</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>NoSizeConstraints</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>CCAllowList2</name>
+                            <version>0</version>
+                            <state>0000000</state>
+                        </option>
+                        <option>
+                            <name>CCOptStrategySlave</name>
+                            <version>0</version>
+                            <state>1</state>
+                        </option>
+                    </data>
+                </settings>
+            </configuration>
+            <configuration>
+                <name>Cordinatore</name>
+                <settings>
+                    <name>ICC8051</name>
+                    <data>
+                        <version>12</version>
+                        <wantNonLocal>1</wantNonLocal>
+                        <debug>1</debug>
+                        <option>
+                            <name>CCOptSizeSpeedSlave</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>CCOptimizationSlave</name>
+                            <version>0</version>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>OutputFile</name>
+                            <state>$FILE_BNAME$.r51</state>
+                        </option>
+                        <option>
+                            <name>CCDefines</name>
+                            <state>xNO_SERIAL</state>
+                            <state>ZDO_MGMT_LQI_RESPONSE</state>
+                            <state>HAL_LCD=FALSE</state>
+                            <state>HAL_PA_LNA_CC2592</state>
+                            <state>SECURE=1</state>
+                            <state>OSALMEM_METRICS</state>
+                            <state>REFLECTOR</state>
+                            <state>xPOWER_SAVE</state>
+                            <state>HAL_KEY=0</state>
+                            <state>TC_LINKKEY_JOIN</state>
+                            <state>REFLECTOR</state>
+                            <state>NV_INIT</state>
+                            <state>NV_RESTORE</state>
+                            <state>xHOLD_AUTO_START</state>
+                            <state>xZTOOL_P1</state>
+                            <state>xMT_TASK</state>
+                            <state>xMT_APP_FUNC</state>
+                            <state>xMT_SYS_FUNC</state>
+                            <state>xMT_ZDO_FUNC</state>
+                            <state>MULTICAST_ENABLED=FALSE</state>
+                            <state>ZCL_READ</state>
+                            <state>ZCL_WRITE</state>
+                            <state>ZCL_REPORT</state>
+                            <state>ZCL_EZMODE</state>
+                            <state>ZCL_BASIC</state>
+                            <state>ZCL_IDENTIFY</state>
+                            <state>ZCL_ON_OFF</state>
+                            <state>ZCL_DIAGNOSTIC</state>
+                            <state>FEATURE_SYSTEM_STATS</state>
+                        </option>
+                        <option>
+                            <name>CCPreprocFile</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>CCPreprocComments</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>CCPreprocLine</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>CCListCFile</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>CCListCMnemonics</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>CCListCMessages</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>CCListAssFile</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>CCListAssSource</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>CCEnableRemarks</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>CCDiagSuppress</name>
+                            <state>Pe001,Pa010</state>
+                        </option>
+                        <option>
+                            <name>CCDiagRemark</name>
+                            <state></state>
+                        </option>
+                        <option>
+                            <name>CCDiagWarning</name>
+                            <state></state>
+                        </option>
+                        <option>
+                            <name>CCDiagError</name>
+                            <state></state>
+                        </option>
+                        <option>
+                            <name>CCObjPrefix</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>LangConform</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>CharIs</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>CCRequirePrototypes</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>CCMultibyteSupport</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>CCMigrationPreprocExtentions</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>CCObjUseModuleName</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>CCObjModuleName</name>
+                            <state></state>
+                        </option>
+                        <option>
+                            <name>CCDebugInfo</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>OCCProcessorVariant</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>OCCDptr</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>OCCDataMemoryModel</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>OCCCodeMemoryModel</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>OCCCallingConvention</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>OCCConstantPlacement</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>OCCNrOfVirtualRegisters</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>CCDiagWarnAreErr</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>CCCompilerRuntimeInfo</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>RomMonBpPadding</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>PreInclude</name>
+                            <state></state>
+                        </option>
+                        <option>
+                            <name>CCLibConfigHeader</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>NoUBROFMessages</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>CompilerMisraOverride</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>Compiler Extra Options Check</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>Compiler Extra Options Edit</name>
+                            <state>-f $PROJ_DIR$\..\Tools\f8wCoord.cfg</state>
+                            <state>-f $PROJ_DIR$\..\Tools\f8wConfig_test.cfg</state>
+                            <state>-f $PROJ_DIR$\..\Tools\f8wZCL.cfg</state>
+                        </option>
+                        <option>
+                            <name>CCIncludePath2</name>
+                            <state>$PROJ_DIR$</state>
+                            <state>$PROJ_DIR$\..\Source</state>
+                            <state>$PROJ_DIR$\..\Source\ha</state>
+                            <state>$PROJ_DIR$\..\Components\ZMain</state>
+                            <state>$PROJ_DIR$\..\Components\hal\include</state>
+                            <state>$PROJ_DIR$\..\Components\hal\target\CC2530EB</state>
+                            <state>$PROJ_DIR$\..\Components\hal\target\CC2531_USBDONGLE</state>
+                            <state>$PROJ_DIR$\..\Components\hal\target\CC2530USB\usb\class_UsbCoordinator</state>
+                            <state>$PROJ_DIR$\..\Components\hal\target\CC2530USB\usb\library</state>
+                            <state>$PROJ_DIR$\..\Components\hal\target\CC2530USB\usb\library\cc2531</state>
+                            <state>$PROJ_DIR$\..\Components\mac\include</state>
+                            <state>$PROJ_DIR$\..\Components\mac\high_level</state>
+                            <state>$PROJ_DIR$\..\Components\mac\low_level\srf04</state>
+                            <state>$PROJ_DIR$\..\Components\mac\low_level\srf04\single_chip</state>
+                            <state>$PROJ_DIR$\..\Components\mt</state>
+                            <state>$PROJ_DIR$\..\Components\osal\include</state>
+                            <state>$PROJ_DIR$\..\Components\services\saddr</state>
+                            <state>$PROJ_DIR$\..\Components\services\sdata</state>
+                            <state>$PROJ_DIR$\..\Components\stack\af</state>
+                            <state>$PROJ_DIR$\..\Components\stack\bdb</state>
+                            <state>$PROJ_DIR$\..\Components\stack\GP</state>
+                            <state>$PROJ_DIR$\..\Components\stack\nwk</state>
+                            <state>$PROJ_DIR$\..\Components\stack\sapi</state>
+                            <state>$PROJ_DIR$\..\Components\stack\sec</state>
+                            <state>$PROJ_DIR$\..\Components\stack\sys</state>
+                            <state>$PROJ_DIR$\..\Components\stack\zcl</state>
+                            <state>$PROJ_DIR$\..\Components\stack\zdo</state>
+                            <state>$PROJ_DIR$\..\Components\zmac</state>
+                            <state>$PROJ_DIR$\..\Components\zmac\f8w</state>
+                        </option>
+                        <option>
+                            <name>CCStdIncCheck</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>CompilerMisraRules98</name>
+                            <version>0</version>
+                            <state>1000111110110101101110011100111111101110011011000101110111101101100111111111111100110011111001110111001111111111111111111111111</state>
+                        </option>
+                        <option>
+                            <name>CCOverrideModuleTypeDefault</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>CCRadioModuleType</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>CCRadioModuleTypeSlave</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>CCOptLevel</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>CCOptStrategy</name>
+                            <version>0</version>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>CCOptLevelSlave</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>CompilerMisraRules04</name>
+                            <version>0</version>
+                            <state>111101110010111111111000110111111111111111111111111110010111101111010101111111111111111111111111101111111011111001111011111011111111111111111</state>
+                        </option>
+                        <option>
+                            <name>IccLang</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>IccCDialect</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>IccAllowVLA</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>IccCppDialect</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>IccCppInlineSemantics</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>IccStaticDestr</name>
+                            <state>1</state>
+                        </option>
+                        <option>
+                            <name>IccFloatSemantics</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>NoSizeConstraints</name>
+                            <state>0</state>
+                        </option>
+                        <option>
+                            <name>CCAllowList2</name>
+                            <version>0</version>
+                            <state>0000000</state>
+                        </option>
+                        <option>
+                            <name>CCOptStrategySlave</name>
+                            <version>0</version>
+                            <state>1</state>
+                        </option>
+                    </data>
+                </settings>
+            </configuration>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\bdb\bdb.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\bdb\bdb_FindingAndBinding.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\bdb\bdb_interface.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\bdb\bdb_Reporting.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\bdb\bdb_Reporting.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\bdb\bdb_tlCommissioning.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\bdb\bdb_tlCommissioning.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\bdb\bdb_touchlink.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\bdb\bdb_touchlink.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\bdb\bdb_touchlink_initiator.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\bdb\bdb_touchlink_initiator.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\bdb\bdb_touchlink_target.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\bdb\bdb_touchlink_target.h</name>
+        </file>
+    </group>
+    <group>
+        <name>GP</name>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\GP\cGP_stub.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\GP\dGP_stub.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\GP\gp_common.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\GP\gp_common.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\GP\gp_interface.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\GP\gp_proxyTbl.c</name>
+        </file>
     </group>
     <group>
         <name>HAL</name>
@@ -2539,9 +3904,6 @@
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Components\hal\include\hal_board.h</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\Components\hal\target\CC2531_USBDONGLE\hal_board_cfg.h</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Components\hal\include\hal_defs.h</name>
@@ -2577,74 +3939,61 @@
         <group>
             <name>Target</name>
             <group>
-                <name>CC2530EB</name>
-                <group>
-                    <name>Config</name>
-                </group>
-                <group>
-                    <name>Drivers</name>
-                    <file>
-                        <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_adc.c</name>
-                    </file>
-                    <file>
-                        <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_dma.c</name>
-                    </file>
-                    <file>
-                        <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_flash.c</name>
-                    </file>
-                    <file>
-                        <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_key.c</name>
-                        <excluded>
-                            <configuration>CoordinatorEB</configuration>
-                            <configuration>Coordinator2592</configuration>
-                        </excluded>
-                    </file>
-                    <file>
-                        <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_lcd.c</name>
-                        <excluded>
-                            <configuration>CoordinatorEB</configuration>
-                            <configuration>Coordinator2592</configuration>
-                        </excluded>
-                    </file>
-                    <file>
-                        <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_led.c</name>
-                    </file>
-                    <file>
-                        <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_sleep.c</name>
-                    </file>
-                    <file>
-                        <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_startup.c</name>
-                    </file>
-                    <file>
-                        <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_timer.c</name>
-                    </file>
-                </group>
-                <group>
-                    <name>Includes</name>
-                    <file>
-                        <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_aes.h</name>
-                    </file>
-                    <file>
-                        <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_ccm.h</name>
-                    </file>
-                    <file>
-                        <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_dma.h</name>
-                    </file>
-                    <file>
-                        <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_mcu.h</name>
-                    </file>
-                    <file>
-                        <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_types.h</name>
-                    </file>
-                </group>
+                <name>Config</name>
+                <file>
+                    <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_board_cfg.h</name>
+                </file>
             </group>
             <group>
-                <name>CC2531_USBDONGLE</name>
+                <name>Drivers</name>
                 <file>
-                    <name>$PROJ_DIR$\..\Components\hal\target\CC2531_USBDONGLE\hal_usbdongle_cfg.c</name>
+                    <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_adc.c</name>
                 </file>
                 <file>
-                    <name>$PROJ_DIR$\..\Components\hal\target\CC2531_USBDONGLE\hal_usbdongle_cfg.h</name>
+                    <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_dma.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_flash.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_key.c</name>
+                    <excluded>
+                        <configuration>Coordinator2592</configuration>
+                        <configuration>Cordinatore</configuration>
+                    </excluded>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_led.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_sleep.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_startup.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_timer.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_uart.c</name>
+                </file>
+            </group>
+            <group>
+                <name>Includes</name>
+                <file>
+                    <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_aes.h</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_ccm.h</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_dma.h</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_mcu.h</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_types.h</name>
                 </file>
             </group>
         </group>
@@ -2764,6 +4113,15 @@
         </group>
     </group>
     <group>
+        <name>MT</name>
+        <file>
+            <name>$PROJ_DIR$\..\Components\mt\MT_GP.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\mt\MT_GP.h</name>
+        </file>
+    </group>
+    <group>
         <name>NWK</name>
         <file>
             <name>$PROJ_DIR$\..\Components\stack\nwk\AddrMgr.h</name>
@@ -2793,20 +4151,6 @@
             <name>$PROJ_DIR$\..\Components\stack\nwk\BindingTable.h</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\Components\stack\nwk\bindTable2.c</name>
-            <excluded>
-                <configuration>CoordinatorEB</configuration>
-                <configuration>Coordinator2592</configuration>
-            </excluded>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\Components\stack\nwk\bindTable2.h</name>
-            <excluded>
-                <configuration>CoordinatorEB</configuration>
-                <configuration>Coordinator2592</configuration>
-            </excluded>
-        </file>
-        <file>
             <name>$PROJ_DIR$\..\Components\stack\nwk\NLMEDE.h</name>
         </file>
         <file>
@@ -2825,20 +4169,16 @@
             <name>$PROJ_DIR$\..\Components\stack\nwk\nwk_util.h</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\..\Components\osal\mcu\cc2530\OSAL_Math.s51</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\osal\mcu\cc2530\OSAL_Nv.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\Components\stack\nwk\reflecttrack.h</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\Components\stack\nwk\rtg.h</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\Components\stack\sapi\sapi.c</name>
-            <excluded>
-                <configuration>CoordinatorEB</configuration>
-                <configuration>Coordinator2592</configuration>
-            </excluded>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\Components\stack\sapi\sapi.h</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\Components\stack\nwk\stub_aps.c</name>
@@ -2868,7 +4208,7 @@
             <name>$PROJ_DIR$\..\Components\osal\common\OSAL.c</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\Components\osal\include\osal.h</name>
+            <name>$PROJ_DIR$\..\Components\osal\include\OSAL.h</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\Components\osal\common\OSAL_Clock.c</name>
@@ -2877,23 +4217,10 @@
             <name>$PROJ_DIR$\..\Components\osal\include\OSAL_Clock.h</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\Components\osal\mcu\cc2530\OSAL_Math.s51</name>
-        </file>
-        <file>
             <name>$PROJ_DIR$\..\Components\osal\common\OSAL_Memory.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\Components\osal\include\OSAL_Memory.h</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\Source\OSAL_Memory2.c</name>
-            <excluded>
-                <configuration>CoordinatorEB</configuration>
-                <configuration>Coordinator2592</configuration>
-            </excluded>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\Components\osal\mcu\cc2530\OSAL_Nv.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\Components\osal\include\OSAL_Nv.h</name>
@@ -2903,9 +4230,6 @@
         </file>
         <file>
             <name>$PROJ_DIR$\..\Components\osal\include\OSAL_PwrMgr.h</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\Components\osal\include\osal_task.h</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\Components\osal\include\OSAL_Tasks.h</name>
@@ -2941,28 +4265,22 @@
             <name>$PROJ_DIR$\..\Components\stack\zcl\zcl_diagnostic.h</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\Components\stack\zcl\zcl_ezmode.c</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\Components\stack\zcl\zcl_ezmode.h</name>
-        </file>
-        <file>
             <name>$PROJ_DIR$\..\Components\stack\zcl\zcl_general.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\Components\stack\zcl\zcl_general.h</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\Source\ha\zcl_ha.c</name>
+            <name>$PROJ_DIR$\..\Components\stack\zcl\zcl_green_power.c</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\Source\ha\zcl_ha.h</name>
+            <name>$PROJ_DIR$\..\Components\stack\zcl\zcl_green_power.h</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\Components\stack\zcl\zcl_LinkQuality.c</name>
+            <name>$PROJ_DIR$\..\Components\external\zcl_ha.c</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\Components\stack\zcl\zcl_LinkQuality.h</name>
+            <name>$PROJ_DIR$\..\Components\external\zcl_ha.h</name>
         </file>
     </group>
     <group>
@@ -2992,19 +4310,11 @@
             <name>$PROJ_DIR$\..\Tools\f8wConfig.cfg</name>
             <excluded>
                 <configuration>Coordinator2592</configuration>
+                <configuration>Cordinatore</configuration>
             </excluded>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\Tools\f8wConfig_test.cfg</name>
-            <excluded>
-                <configuration>CoordinatorEB</configuration>
-            </excluded>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\Tools\f8wEndev.cfg</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\Tools\f8wRouter.cfg</name>
+            <name>$PROJ_DIR$\..\Tools\f8wCoord.cfg</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\Tools\f8wZCL.cfg</name>
@@ -3067,16 +4377,13 @@
     <group>
         <name>ZMain</name>
         <file>
-            <name>$PROJ_DIR$\..\Source\zmain\chipcon_cstartup.s51</name>
+            <name>$PROJ_DIR$\..\Components\ZMain\chipcon_cstartup.s51</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\Source\zmain\OnBoard.c</name>
+            <name>$PROJ_DIR$\..\Components\ZMain\OnBoard.c</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\Source\zmain\OnBoard.h</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\Source\zmain\ZMain.c</name>
+            <name>$PROJ_DIR$\..\Components\ZMain\ZMain.c</name>
         </file>
     </group>
 </project>

@@ -1,12 +1,12 @@
 /******************************************************************************
   Filename:       OSAL_Nv.c
-  Revised:        $Date: 2013-08-07 10:27:19 -0700 (Wed, 07 Aug 2013) $
-  Revision:       $Revision: 34901 $
+  Revised:        $Date: 2014-12-19 13:07:30 -0800 (Fri, 19 Dec 2014) $
+  Revision:       $Revision: 41556 $
 
   Description:    This module contains the OSAL non-volatile memory functions.
 
 
-  Copyright 2006-2013 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2006-2014 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -52,6 +52,9 @@
 #include "hal_types.h"
 #include "OSAL_Nv.h"
 #include "ZComDef.h"
+#ifdef HAL_MCU_CC2533
+#include "hal_batmon.h"
+#endif
 
 /*********************************************************************
  * CONSTANTS
@@ -90,7 +93,14 @@ static const uint16 hotIds[OSAL_NV_MAX_HOT] = {
  * MACROS
  */
 
+#if (defined HAL_MCU_CC2530 || defined HAL_MCU_CC2531)
 #define OSAL_NV_CHECK_BUS_VOLTAGE  HalAdcCheckVdd(VDD_MIN_NV)
+#elif defined HAL_MCU_CC2533
+# define  OSAL_NV_CHECK_BUS_VOLTAGE  (HalBatMonRead( HAL_BATMON_MIN_FLASH ))
+#else
+# warning No implementation of a low Vdd check.
+# define  OSAL_NV_CHECK_BUS_VOLTAGE
+#endif
 
 #define OSAL_NV_DATA_SIZE( LEN )                      \
   (((LEN) >= ((uint16)(65536UL - OSAL_NV_WORD_SIZE))) ? \

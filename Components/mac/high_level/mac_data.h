@@ -1,7 +1,7 @@
 /**************************************************************************************************
   Filename:       mac_data.h
-  Revised:        $Date: 2014-05-09 18:50:29 -0700 (Fri, 09 May 2014) $
-  Revision:       $Revision: 38492 $
+  Revised:        $Date: 2014-11-06 11:03:55 -0800 (Thu, 06 Nov 2014) $
+  Revision:       $Revision: 41021 $
 
   Description:    Internal interface file for the MAC data module.
 
@@ -171,10 +171,10 @@ MAC_INTERNAL_API void macDataSend(macEvent_t *pEvent);
 MAC_INTERNAL_API void macApiDataReq(macEvent_t *pEvent);
 MAC_INTERNAL_API void macDataRxInd(macEvent_t *pEvent);
 
-#if defined( CC26XX ) || defined( CC26XX_PG2 )
+#if defined (CC26XX)
 MAC_INTERNAL_API void macAutoPendMaintainSrcMatchTable(macTx_t *pCurr);
 MAC_INTERNAL_API void macAutoPendAddSrcMatchTableEntry(macTx_t *pMsg);
-#endif /* defined( CC26XX ) || defined( CC26XX_PG2 ) */   
+#endif /* CC26XX */   
 
 /**************************************************************************************************
 */

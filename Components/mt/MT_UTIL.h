@@ -1,7 +1,7 @@
 /***************************************************************************************************
   Filename:       MT_UTIL.h
-  Revised:        $Date: 2009-10-01 14:19:11 -0700 (Thu, 01 Oct 2009) $
-  Revision:       $Revision: 20838 $
+  Revised:        $Date: 2014-11-06 23:59:26 -0800 (Thu, 06 Nov 2014) $
+  Revision:       $Revision: 41038 $
 
   Description:  MonitorTest Utility Functions
 
@@ -70,7 +70,7 @@ extern uint8 MT_UtilCommandProcessing(uint8 *pBuf);
  *
  * @return  None
  ***************************************************************************************************/
-void MT_UtilKeyEstablishInd(keyEstablishmentInd_t *pInd);
+void MT_UtilKeyEstablishInd(zclKE_StatusInd_t *pInd);
 #endif
 #endif /* MT_UTIL_FUNC */
 

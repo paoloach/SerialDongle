@@ -1,7 +1,7 @@
 /**************************************************************************************************
   Filename:       mt_rpc.h
-  Revised:        $Date: 2014-03-21 17:08:59 -0700 (Fri, 21 Mar 2014) $
-  Revision:       $Revision: 37840 $
+  Revised:        $Date: 2014-06-20 15:25:38 -0700 (Fri, 20 Jun 2014) $
+  Revision:       $Revision: 39136 $
 
   Description:    Public interface file for the RPC Transport Protocol Design.
 
@@ -83,6 +83,12 @@ extern "C" {
 #define MT_RPC_ERR_PARAMETER  3     /* invalid parameter */
 #define MT_RPC_ERR_LENGTH     4     /* invalid length */
 
+#ifdef FEATURE_DUAL_MAC
+#define MT_RPC_ERR_VER_UNSUPP 5     /* unsupported mt extension version */
+#define MT_RPC_ERR_STACK_ID   6     /* Missing or invalid stack id */
+#define MT_RPC_ERR_BUSY       7     /* System is busy */
+#endif /* FEATURE_DUAL_MAC */
+
 /***************************************************************************************************
  * TYPEDEF
  ***************************************************************************************************/
@@ -114,7 +120,7 @@ typedef enum {
   MT_RPC_SYS_SPARE_12,
   MT_RPC_SYS_UBL = 13,  // 13 to be compatible with existing RemoTI.
   MT_RPC_SYS_RES14,
-  MT_RPC_SYS_RES15,
+  MT_RPC_SYS_APP_CNF,
   MT_RPC_SYS_RES16,
   MT_RPC_SYS_PROTOBUF,
   MT_RPC_SYS_RES18,  // RPC_SYS_PB_NWK_MGR

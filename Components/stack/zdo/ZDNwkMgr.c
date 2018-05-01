@@ -56,6 +56,12 @@ extern "C"
   #include "MT_ZDO.h"
 #endif
   
+#if defined ( LCD_SUPPORTED )
+  #include "OnBoard.h"
+#endif
+
+/* HAL */
+#include "hal_lcd.h"
   
 /******************************************************************************
  * CONSTANTS
@@ -63,6 +69,12 @@ extern "C"
 
 #define ONE_MINUTE             60000  // 1(m) * 60(s) * 1000(ms)
 
+#if defined ( LCD_SUPPORTED )
+  const char NwkMgrStr_1[]     = "NM-fail not hi";
+  const char NwkMgrStr_2[]     = "NM-cur<last fail";
+  const char NwkMgrStr_3[]     = "NM-energy too hi";
+  const char NwkMgrStr_4[]     = "NM-energy not up";
+#endif
   
 /******************************************************************************
  * TYPEDEFS
@@ -403,6 +415,10 @@ static void ZDNwkMgr_CheckForChannelChange( ZDO_MgmtNwkUpdateNotify_t *pNotify )
   failureRate = ( pNotify->transmissionFailures * 100 ) / pNotify->totalTransmissions;
   if ( failureRate < ZDNWKMGR_CC_TX_FAILURE )
   {
+#if defined ( LCD_SUPPORTED )
+    HalLcdWriteString( (char*)NwkMgrStr_1, HAL_LCD_LINE_1 );
+    HalLcdWriteStringValueValue( ": ", failureRate, 10, ZDNWKMGR_CC_TX_FAILURE, 10, HAL_LCD_LINE_2 );
+#endif
     return;
   }
 
@@ -410,6 +426,11 @@ static void ZDNwkMgr_CheckForChannelChange( ZDO_MgmtNwkUpdateNotify_t *pNotify )
   // a channel change should be considered
   if ( failureRate < ZDNwkMgr_LastChannelFailureRate )
   {
+#if defined ( LCD_SUPPORTED )
+    HalLcdWriteString( (char*)NwkMgrStr_2, HAL_LCD_LINE_1 );
+    HalLcdWriteStringValueValue( ": ", failureRate, 10, 
+                                 ZDNwkMgr_LastChannelFailureRate, 10, HAL_LCD_LINE_2 );
+#endif
     return;
   }
   
@@ -428,6 +449,11 @@ static void ZDNwkMgr_CheckForChannelChange( ZDO_MgmtNwkUpdateNotify_t *pNotify )
   // threshold, a channel change should not be done.
   if ( lowestEnergyValue > ZDNWKMGR_ACCEPTABLE_ENERGY_LEVEL )
   {
+#if defined ( LCD_SUPPORTED )
+    HalLcdWriteString( (char*)NwkMgrStr_3, HAL_LCD_LINE_1 );
+    HalLcdWriteStringValueValue( ": ", lowestEnergyValue, 10, 
+                                 ZDNWKMGR_ACCEPTABLE_ENERGY_LEVEL, 10, HAL_LCD_LINE_2 );
+#endif
     return;
   }
 
@@ -738,6 +764,13 @@ static void ZDNwkMgr_CheckForChannelInterference( ZDNwkMgr_EDScanConfirm_t *pEDS
     
     ZDNwkMgr_NumUpdateNotifySent++;
   }
+#if defined ( LCD_SUPPORTED )
+  else
+  {
+    HalLcdWriteString( (char*)NwkMgrStr_4, HAL_LCD_LINE_1 );
+    HalLcdWriteStringValueValue( ": ", _NIB.nwkLogicalChannel, 10, channelEnergy, 10, HAL_LCD_LINE_2 );
+  }
+#endif
 }
 
 /*********************************************************************

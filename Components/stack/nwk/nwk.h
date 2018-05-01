@@ -1,7 +1,7 @@
 /**************************************************************************************************
   Filename:       nwk.h
-  Revised:        $Date: 2014-01-14 08:55:19 -0800 (Tue, 14 Jan 2014) $
-  Revision:       $Revision: 36831 $
+  Revised:        $Date: 2014-12-01 14:58:34 -0800 (Mon, 01 Dec 2014) $
+  Revision:       $Revision: 41287 $
 
   Description:    Network layer logic component interface.
 
@@ -84,6 +84,7 @@ extern "C" {
 #define NWK_MTO_RTG_REQ_DELAY_EVT 0x1000
 #define NWK_BROADCAST_MSG_EVT     0x2000
 #define NWK_CHILD_AGE_TIMER_EVT   0x4000
+// Event 0x8000 is Reserved for SYS_EVENT_MSG
 
 //NWK PACKET: FIELD IDENTIFIERS
 #define NWK_CMD_ID                  0
@@ -147,10 +148,9 @@ extern "C" {
 
 #define NWK_SEND_TIMER_INTERVAL         2
 #define NWK_BCAST_TIMER_INTERVAL        100 // NWK_BCAST_TIMER_EVT duration
-#define NWK_CHILD_AGE_TIMER_INTERVAL    60000  // One Minute 1(m) * 60(s) * 1000(ms)
+#define NWK_CHILD_AGE_TIMER_INTERVAL    1000  // One Second 1(s) * 1000(ms)
 
 #define INVALID_NODE_ADDR                           0xFFFE
-#define INVALID_PAN_ID                              0xFFFE
 
 // Link cost constants
 #define DEF_LINK_COST              1   // Default link cost
@@ -195,6 +195,14 @@ extern "C" {
 // Status of child device
 #define NWK_CHILD_NOT_IN_TABLE          1
 
+// Router parent capabilities information bitmask
+// Bits   Value    Description
+//   0    0x01     MAC Data Poll Keepalive Supported
+#define NWK_PARENT_INFO_UNDEFINED             0x00
+#define NWK_PARENT_INFO_MAC_DATA_POLL         0x01
+   
+#define PARENT_INFO_MAC_DATA_POLL_BIT         0x00
+   
 /*********************************************************************
  * TYPEDEFS
  */
@@ -284,8 +292,8 @@ typedef struct
   nwkKeyDesc spare2;    // Not used
 
   // Zigbee Pro extensions
-  uint8      nwkAddrAlloc;
-  uint8      nwkUniqueAddr;
+  uint8      spare3;                // nwkAddrAlloc deprecated - not used anymore
+  uint8      spare4;                // nwkUniqueAddr deprecated - not used anymore
   uint8      nwkLinkStatusPeriod;   // The time in seconds betwee link status
                                     // command frames
   uint8      nwkRouterAgeLimit;     // The number of missed link status
@@ -361,8 +369,15 @@ extern ZStatus_t nwk_start_coord( void );
  * Free any network discovery data
  */
 extern void nwk_desc_list_free( void );
+
+/*
+ * This function sets to null the discovery nwk list
+ */
+extern void nwk_desc_list_release(void);
+
 extern networkDesc_t *nwk_getNetworkDesc( uint8 *ExtendedPANID, uint16 PanId, byte Channel );
 extern networkDesc_t *nwk_getNwkDescList( void );
+
 extern void nwk_BeaconFromNative(byte* buff, byte size, beaconPayload_t* beacon);
 extern void nwk_BeaconToNative(beaconPayload_t* beacon, byte* buff, byte size);
 
@@ -379,7 +394,6 @@ extern uint8 nwk_stateIdle( void );
 /*********************************************************************
  * Functionality - not to be called directly.
  */
-extern void nwk_ScanJoiningOrphan( ZMacScanCnf_t *param );
 extern void nwk_ScanPANChanSelect( ZMacScanCnf_t *param );
 extern void nwk_ScanPANChanVerify( ZMacScanCnf_t *param );
 

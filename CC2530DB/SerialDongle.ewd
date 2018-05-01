@@ -2,7 +2,7 @@
 <project>
     <fileVersion>3</fileVersion>
     <configuration>
-        <name>CoordinatorEB</name>
+        <name>Coordinator2592</name>
         <toolchain>
             <name>8051</name>
         </toolchain>
@@ -705,7 +705,7 @@
         </debuggerPlugins>
     </configuration>
     <configuration>
-        <name>Coordinator2592</name>
+        <name>Cordinatore</name>
         <toolchain>
             <name>8051</name>
         </toolchain>
@@ -897,7 +897,7 @@
                 </option>
                 <option>
                     <name>ChipconEraseFlash</name>
-                    <state>0</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>ChipconRetainMemory</name>
@@ -943,7 +943,7 @@
                 </option>
                 <option>
                     <name>ChipconFlashLockInfo</name>
-                    <state>&lt;page size info. missing&gt;</state>
+                    <state>Page size info is missing</state>
                 </option>
                 <option>
                     <name>ChipconBootLock</name>

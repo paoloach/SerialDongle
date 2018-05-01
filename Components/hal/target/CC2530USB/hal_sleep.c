@@ -1,12 +1,12 @@
 /**************************************************************************************
   Filename:       hal_sleep.c
-  Revised:        $Date: 2012-12-05 11:00:05 -0800 (Wed, 05 Dec 2012) $
-  Revision:       $Revision: 32448 $
+  Revised:        $Date: 2014-12-19 13:07:30 -0800 (Fri, 19 Dec 2014) $
+  Revision:       $Revision: 41556 $
 
   Description:    This module contains the HAL power management procedures for the CC2530.
 
 
-  Copyright 2006-2012 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2006-2014 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -566,4 +566,35 @@ HAL_ISR_FUNCTION(halSleepTimerIsr, ST_VECTOR)
   
   CLEAR_SLEEP_MODE();
   HAL_EXIT_ISR();
+}
+
+/**************************************************************************************************
+ * @fn          halSleepWait
+ *
+ * @brief       Perform a blocking wait for the specified number of microseconds.
+ *              Use assumptions about number of clock cycles needed for the various instructions.
+ *              This function assumes a 32 MHz clock.
+ *              NB! This function is highly dependent on architecture and compiler!
+ *
+ * input parameters
+ *
+ * @param       duration - Duration of wait in microseconds.
+ *
+ * output parameters
+ *
+ * None.
+ *
+ * @return      None.
+ **************************************************************************************************
+ */
+#pragma optimize=none
+void halSleepWait(uint16 duration)
+{
+  duration >>= 1;
+
+  while (duration-- > 0)
+  {
+    ASM_NOP; ASM_NOP; ASM_NOP; ASM_NOP; ASM_NOP; ASM_NOP; ASM_NOP; ASM_NOP; ASM_NOP; ASM_NOP; ASM_NOP; ASM_NOP;
+    ASM_NOP; ASM_NOP; ASM_NOP; ASM_NOP; ASM_NOP; ASM_NOP; ASM_NOP; ASM_NOP; ASM_NOP; ASM_NOP; ASM_NOP; ASM_NOP;
+  }
 }

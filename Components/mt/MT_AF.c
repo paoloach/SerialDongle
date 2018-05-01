@@ -1,23 +1,21 @@
 /**************************************************************************************************
   Filename:       MT_AF.c
-  Revised:        $Date: 2014-04-23 13:11:00 -0700 (Wed, 23 Apr 2014) $
-  Revision:       $Revision: 38260 $
-
+  Revised:        $Date: 2015-01-26 08:25:50 -0800 (Mon, 26 Jan 2015) $
+  Revision:       $Revision: 42025 $
 
   Description:    MonitorTest functions for the AF layer.
 
-
-  Copyright 2007-2014 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2007-2015 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
   who downloaded the software, his/her employer (which must be your employer)
-  and Texas Instruments Incorporated (the "License").  You may not use this
+  and Texas Instruments Incorporated (the "License"). You may not use this
   Software unless you agree to abide by the terms of the License. The License
   limits your use, and you acknowledge, that the Software may not be modified,
   copied or distributed unless embedded on a Texas Instruments microcontroller
   or used solely and exclusively in conjunction with a Texas Instruments radio
-  frequency transceiver, which is integrated into your product.  Other than for
+  frequency transceiver, which is integrated into your product. Other than for
   the foregoing purpose, you may not use, reproduce, copy, prepare derivative
   works of, modify, distribute, perform, display or sell this Software and/or
   its documentation for any purpose.
@@ -55,10 +53,7 @@
 #if defined INTER_PAN
 #include "stub_aps.h"
 #endif
-   
-#if defined ( MT_GP_FUNC )
-#include "MT_GP.h"
-#endif
+
 
 /* ------------------------------------------------------------------------------------------------
  *                                          Constants
@@ -121,12 +116,12 @@ uint16 _afCallbackSub;
  * ------------------------------------------------------------------------------------------------
  */
 
-void MT_AfRegister(uint8 *pBuf);
-void MT_AfDelete(uint8 *pBuf);
-void MT_AfDataRequest(uint8 *pBuf);
+static void MT_AfRegister(uint8 *pBuf);
+static void MT_AfDelete(uint8 *pBuf);
+static void MT_AfDataRequest(uint8 *pBuf);
 
-#if defined ( ZIGBEE_SOURCE_ROUTING )
-void MT_AfDataRequestSrcRtg(uint8 *pBuf);
+#if defined ( ZIGBEEPRO )
+static void MT_AfDataRequestSrcRtg(uint8 *pBuf);
 #endif
 
 #if defined INTER_PAN
@@ -219,7 +214,7 @@ uint8 MT_AfCommandProcessing(uint8 *pBuf)
     case MT_AF_REGISTER:
       MT_AfRegister(pBuf);
       break;
-      
+
     case MT_AF_DELETE:
       MT_AfDelete( pBuf );
       break;
@@ -229,7 +224,7 @@ uint8 MT_AfCommandProcessing(uint8 *pBuf)
       MT_AfDataRequest(pBuf);
       break;
 
-#if defined ( ZIGBEE_SOURCE_ROUTING )
+#if defined( ZIGBEEPRO )
     case MT_AF_DATA_REQUEST_SRCRTG:
       MT_AfDataRequestSrcRtg(pBuf);
       break;
@@ -274,7 +269,7 @@ uint8 MT_AfCommandProcessing(uint8 *pBuf)
  *
  * @return  none
  ***************************************************************************************************/
-void MT_AfRegister(uint8 *pBuf)
+static void MT_AfRegister(uint8 *pBuf)
 {
   uint8 cmdId;
   uint8 retValue = ZMemError;
@@ -313,7 +308,7 @@ void MT_AfRegister(uint8 *pBuf)
  *
  * @return  none
  ***************************************************************************************************/
-void MT_AfDelete(uint8 *pBuf)
+static void MT_AfDelete(uint8 *pBuf)
 {
   uint8 cmdId;
   uint8 retValue = ZMemError;
@@ -323,7 +318,7 @@ void MT_AfDelete(uint8 *pBuf)
   pBuf += MT_RPC_FRAME_HDR_SZ;
 
   retValue = afDelete( *pBuf );
-  
+
   /* Build and send back the response */
   MT_BuildAndSendZToolResponse(((uint8)MT_RPC_CMD_SRSP | (uint8)MT_RPC_SYS_AF), cmdId, 1, &retValue);
 }
@@ -337,7 +332,7 @@ void MT_AfDelete(uint8 *pBuf)
  *
  * @return  none
  ***************************************************************************************************/
-void MT_AfDataRequest(uint8 *pBuf)
+static void MT_AfDataRequest(uint8 *pBuf)
 {
   #define MT_AF_REQ_MSG_LEN  10
   #define MT_AF_REQ_MSG_EXT  10
@@ -365,19 +360,19 @@ void MT_AfDataRequest(uint8 *pBuf)
     }
     else
     {
-      dstAddr.addr.shortAddr = BUILD_UINT16(pBuf[0], pBuf[1]);
+      dstAddr.addr.shortAddr = osal_build_uint16( pBuf );
     }
     pBuf += Z_EXTADDR_LEN;
 
     dstAddr.endPoint = *pBuf++;
-    dstAddr.panId = BUILD_UINT16(pBuf[0], pBuf[1]);
+    dstAddr.panId = osal_build_uint16( pBuf );
     pBuf += 2;
   }
   else
   {
     /* Destination address */
     dstAddr.addrMode = afAddr16Bit;
-    dstAddr.addr.shortAddr = BUILD_UINT16(pBuf[0], pBuf[1]);
+    dstAddr.addr.shortAddr = osal_build_uint16( pBuf );
     pBuf += 2;
 
     /* Destination endpoint */
@@ -389,7 +384,7 @@ void MT_AfDataRequest(uint8 *pBuf)
   epDesc = afFindEndPointDesc(*pBuf++);
 
   /* ClusterId */
-  cId = BUILD_UINT16(pBuf[0], pBuf[1]);
+  cId = osal_build_uint16( pBuf );
   pBuf +=2;
 
   /* TransId */
@@ -404,7 +399,7 @@ void MT_AfDataRequest(uint8 *pBuf)
   /* Length */
   if (cmd1 == MT_AF_DATA_REQUEST_EXT)
   {
-    dataLen = BUILD_UINT16(pBuf[0], pBuf[1]);
+    dataLen = osal_build_uint16( pBuf );
     tempLen = dataLen + MT_AF_REQ_MSG_LEN + MT_AF_REQ_MSG_EXT;
     pBuf += 2;
   }
@@ -449,14 +444,6 @@ void MT_AfDataRequest(uint8 *pBuf)
       }
     }
   }
-#if defined ( MT_GP_FUNC )
-  else if ( ( cmd1 == MT_AF_DATA_REQUEST_EXT ) 
-           && ( dstAddr.endPoint == ZGP_ENDPOINT_ID )
-           && ( dstAddr.panId == 0 ) )
-  {
-    retValue = MT_GpGenerateResponse( dstAddr.addr.extAddr, dataLen, pBuf );
-  }
-#endif
   else
   {
     retValue = AF_DataRequest(&dstAddr, epDesc, cId, dataLen, pBuf, &transId, txOpts, radius);
@@ -468,8 +455,7 @@ void MT_AfDataRequest(uint8 *pBuf)
   }
 }
 
-#if defined ( ZIGBEE_SOURCE_ROUTING )
-
+#if defined( ZIGBEEPRO )
 /***************************************************************************************************
  * @fn      MT_AfDataRequestSrcRtg
  *
@@ -479,7 +465,7 @@ void MT_AfDataRequest(uint8 *pBuf)
  *
  * @return  none
  ***************************************************************************************************/
-void MT_AfDataRequestSrcRtg(uint8 *pBuf)
+static void MT_AfDataRequestSrcRtg(uint8 *pBuf)
 {
   uint8 cmdId, dataLen = 0;
   uint8 retValue = ZFailure;
@@ -499,7 +485,7 @@ void MT_AfDataRequestSrcRtg(uint8 *pBuf)
   /* Initialize the panID field to zero to avoid inter-pan */
   osal_memset( &dstAddr, 0, sizeof(afAddrType_t) );
   dstAddr.addrMode = afAddr16Bit;
-  dstAddr.addr.shortAddr = BUILD_UINT16(pBuf[0], pBuf[1]);
+  dstAddr.addr.shortAddr = osal_build_uint16( pBuf );
   pBuf += 2;
 
   /* Destination endpoint */
@@ -510,7 +496,7 @@ void MT_AfDataRequestSrcRtg(uint8 *pBuf)
   epDesc = afFindEndPointDesc( srcEP );
 
   /* ClusterId */
-  cId = BUILD_UINT16(pBuf[0], pBuf[1]);
+  cId = osal_build_uint16( pBuf );
   pBuf +=2;
 
   /* TransId */
@@ -530,7 +516,7 @@ void MT_AfDataRequestSrcRtg(uint8 *pBuf)
   {
     for( i = 0; i < relayCnt; i++ )
     {
-      pRelayList[i]  = BUILD_UINT16( pBuf[0], pBuf[1] );
+      pRelayList[i] = osal_build_uint16( pBuf );
       pBuf += 2;
     }
 
@@ -603,7 +589,7 @@ static void MT_AfInterPanCtl(uint8 *pBuf)
     break;
 
   case InterPanChk:
-    panId = BUILD_UINT16(pBuf[0], pBuf[1]);
+    panId = osal_build_uint16( pBuf );
     rtrn = (StubAPS_InterPan(panId, pBuf[2])) ? ZSuccess : ZFailure;
     break;
 
@@ -776,11 +762,8 @@ void MT_AfIncomingMsg(afIncomingMSGPacket_t *pMsg)
   *pTmp++ = pMsg->SecurityUse;
 
   /* Timestamp */
-  *pTmp++ = BREAK_UINT32(pMsg->timestamp, 0);
-  *pTmp++ = BREAK_UINT32(pMsg->timestamp, 1);
-  *pTmp++ = BREAK_UINT32(pMsg->timestamp, 2);
-  *pTmp++ = BREAK_UINT32(pMsg->timestamp, 3);
-
+  osal_buffer_uint32( pTmp, pMsg->timestamp );
+  pTmp += 4;
 
   /* Data Length */
   if (cmd == MT_AF_INCOMING_MSG_EXT)
@@ -821,11 +804,11 @@ void MT_AfIncomingMsg(afIncomingMSGPacket_t *pMsg)
     (void)osal_memcpy(pTmp, pMsg->cmd.Data, dataLen);
     pTmp += dataLen;
   }
-  
+
   // MAC Source address
   *pTmp++ = LO_UINT16(pMsg->macSrcAddr);
   *pTmp++ = HI_UINT16(pMsg->macSrcAddr);
-  
+
   // messages result radius
   *pTmp = pMsg->radius;
 
@@ -852,7 +835,7 @@ void MT_AfIncomingMsg(afIncomingMSGPacket_t *pMsg)
  * @return      None.
  **************************************************************************************************
  */
-void MT_AfDataRetrieve(uint8 *pBuf)
+static void MT_AfDataRetrieve(uint8 *pBuf)
 {
   #define MT_AF_RTV_HDR_SZ  2
 
@@ -862,7 +845,7 @@ void MT_AfDataRetrieve(uint8 *pBuf)
   uint8 len = 0;
 
   pBuf += MT_RPC_FRAME_HDR_SZ;
-  timestamp = BUILD_UINT32(pBuf[0], pBuf[1], pBuf[2], pBuf[3]);
+  timestamp = osal_build_uint32( pBuf, 4 );
 
   while (pItem != NULL)
   {
@@ -880,7 +863,7 @@ void MT_AfDataRetrieve(uint8 *pBuf)
     uint8 *pRsp;
 
     pBuf += 4;
-    idx = BUILD_UINT16(pBuf[0], pBuf[1]);
+    idx = osal_build_uint16( pBuf );
     len = pBuf[2];
 
     if (len == 0)  // Indication to delete the afIncomingMSGPacket.
@@ -936,13 +919,13 @@ void MT_AfDataRetrieve(uint8 *pBuf)
  * @return      None.
  **************************************************************************************************
  */
-void MT_AfDataStore(uint8 *pBuf)
+static void MT_AfDataStore(uint8 *pBuf)
 {
   uint16 idx;
   uint8 len, rtrn = afStatus_FAILED;
 
   pBuf += MT_RPC_FRAME_HDR_SZ;
-  idx = BUILD_UINT16(pBuf[0], pBuf[1]);
+  idx = osal_build_uint16( pBuf );
   len = pBuf[2];
   pBuf += 3;
 
@@ -1011,9 +994,9 @@ static void MT_AfAPSF_ConfigGet(uint8 *pBuf)
 {
   afAPSF_Config_t cfg = { 0, 0 };
   uint8 buf[2];
-  
+
   afAPSF_ConfigGet( pBuf[MT_RPC_POS_DAT0], &cfg );
-  
+
   buf[0] = cfg.frameDelay;
   buf[1] = cfg.windowSize;
 

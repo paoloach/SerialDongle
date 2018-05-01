@@ -1,7 +1,7 @@
 /**************************************************************************************************
   Filename:       ZComDef.h
-  Revised:        $Date: 2014-06-02 17:47:51 -0700 (Mon, 02 Jun 2014) $
-  Revision:       $Revision: 38757 $
+  Revised:        $Date: 2014-11-24 23:50:22 -0800 (Mon, 24 Nov 2014) $
+  Revision:       $Revision: 41235 $
 
   Description:    Type definitions and macros.
 
@@ -94,6 +94,12 @@ extern "C"
 #define COMPID_TEST_ASSOC_CONFIRM         22
 #define COMPID_TEST_REMOTE_DATA_CONFIRM   23
 
+// OSAL NV Item IDs
+#define ZCD_NV_EX_LEGACY                  0x0000
+#define ZCD_NV_EX_ADDRMGR                 0x0001
+#define ZCD_NV_EX_BINDING_TABLE           0x0002
+#define ZCD_NV_EX_DEVICE_LIST             0x0003
+
 // OSAL NV item IDs
 #define ZCD_NV_EXTADDR                    0x0001
 #define ZCD_NV_BOOTCOUNTER                0x0002
@@ -104,7 +110,8 @@ extern "C"
 #define ZCD_NV_NIB                        0x0021
 #define ZCD_NV_DEVICE_LIST                0x0022
 #define ZCD_NV_ADDRMGR                    0x0023
-#define ZCD_NV_POLL_RATE                  0x0024
+#define ZCD_NV_POLL_RATE_OLD16            0x0024 // Deprecated when poll rate changed from 16 to 32 bits
+#define ZCD_NV_POLL_RATE                  0x0035
 #define ZCD_NV_QUEUED_POLL_RATE           0x0025
 #define ZCD_NV_RESPONSE_POLL_RATE         0x0026
 #define ZCD_NV_REJOIN_POLL_RATE           0x0027
@@ -121,6 +128,7 @@ extern "C"
 #define ZCD_NV_CONCENTRATOR_ENABLE        0x0032
 #define ZCD_NV_CONCENTRATOR_DISCOVERY     0x0033
 #define ZCD_NV_CONCENTRATOR_RADIUS        0x0034
+                                       // 0x0035 used above for new 32 bit Poll Rate
 #define ZCD_NV_CONCENTRATOR_RC            0x0036
 #define ZCD_NV_NWK_MGR_MODE               0x0037
 #define ZCD_NV_SRC_RTG_EXPIRY_TIME        0x0038
@@ -152,6 +160,15 @@ extern "C"
 // System statistics and metrics NV ID
 #define ZCD_NV_DIAGNOSTIC_STATS           0x0050
 
+// Additional NWK Layer NV item IDs
+#define ZCD_NV_NWK_PARENT_INFO            0x0051
+#define ZCD_NV_NWK_ENDDEV_TIMEOUT_DEF     0x0052
+#define ZCD_NV_END_DEV_TIMEOUT_VALUE      0x0053
+#define ZCD_NV_END_DEV_CONFIGURATION      0x0054
+  
+#define ZCD_NV_BDBNODEISONANETWORK        0x0055  //bdbNodeIsOnANetwork attribute
+#define ZCD_NV_BDBREPORTINGCONFIG         0x0056
+  
 // Security NV Item IDs
 #define ZCD_NV_SECURITY_LEVEL             0x0061
 #define ZCD_NV_PRECFGKEY                  0x0062
@@ -160,6 +177,7 @@ extern "C"
 #define ZCD_NV_SECURE_PERMIT_JOIN         0x0065
 #define ZCD_NV_APS_LINK_KEY_TYPE          0x0066
 #define ZCD_NV_APS_ALLOW_R19_SECURITY     0x0067
+#define ZCD_NV_DISTRIBUTED_KEY            0x0068 //Default distributed nwk key Id. Nv ID not in use
 
 #define ZCD_NV_IMPLICIT_CERTIFICATE       0x0069
 #define ZCD_NV_DEVICE_PRIVATE_KEY         0x006A
@@ -172,6 +190,14 @@ extern "C"
 #define ZCD_NV_RANDOM_SEED                0x0070
 #define ZCD_NV_TRUSTCENTER_ADDR           0x0071
 
+#define ZCD_NV_CERT_283                   0x0072
+#define ZCD_NV_PRIVATE_KEY_283            0x0073
+#define ZCD_NV_PUBLIC_KEY_283             0x0074
+
+#define ZCD_NV_NWK_SEC_MATERIAL_TABLE_START 0x0075
+#define ZCD_NV_NWK_SEC_MATERIAL_TABLE_END   0x0080   
+
+   
 // ZDO NV Item IDs
 #define ZCD_NV_USERDESC                   0x0081
 #define ZCD_NV_NWKKEY                     0x0082
@@ -225,7 +251,14 @@ extern "C"
 
 // NV Items Reserved for Trust Center Link Key Table entries
 // 0x0101 - 0x01FF
-#define ZCD_NV_TCLK_TABLE_START           0x0101
+#define ZCD_NV_TCLK_SEED                  0x0101  //Seed
+#define ZCD_NV_TCLK_JOIN_DEV              0x0102  //Nv Id where Joining device store their APS key. Key is in plain text.
+#define ZCD_NV_TCLK_DEFAULT               0x0103  //Not accually a Nv Item but Id used by SecMgr
+  
+#define ZCD_NV_TCLK_IC_TABLE_START        0x0104  //IC keys, refered with shift byte
+#define ZCD_NV_TCLK_IC_TABLE_END          0x0110
+   
+#define ZCD_NV_TCLK_TABLE_START           0x0111  //Entries to store users of the keys
 #define ZCD_NV_TCLK_TABLE_END             0x01FF
 
 // NV Items Reserved for APS Link Key Table entries
@@ -238,6 +271,11 @@ extern "C"
 #define ZCD_NV_DUPLICATE_DEVICE_LIST              0x0301
 #define ZCD_NV_DUPLICATE_DEVICE_LIST_KA_TIMEOUT   0x0302
 
+// NV Items Reserved for Proxy Table entries
+// 0x0310 - 0x033F  
+#define ZCD_NV_PROXY_TABLE_START                  0x0310
+#define ZCD_NV_PROXY_TABLE_END                    0x033F
+
 // NV Items Reserved for applications (user applications)
 // 0x0401 – 0x0FFF
 
@@ -246,12 +284,15 @@ extern "C"
 //   These are bit weighted - you can OR these together.
 //   Setting one of these bits will set their associated NV items
 //   to code initialized values.
-#define ZCD_STARTOPT_DEFAULT_CONFIG_STATE  0x01
-#define ZCD_STARTOPT_DEFAULT_NETWORK_STATE 0x02
-#define ZCD_STARTOPT_AUTO_START            0x04
-#define ZCD_STARTOPT_CLEAR_CONFIG   ZCD_STARTOPT_DEFAULT_CONFIG_STATE
-#define ZCD_STARTOPT_CLEAR_STATE    ZCD_STARTOPT_DEFAULT_NETWORK_STATE
-
+#define ZCD_STARTOPT_DEFAULT_CONFIG_STATE     0x01
+#define ZCD_STARTOPT_DEFAULT_NETWORK_STATE    0x02
+#define ZCD_STARTOPT_AUTO_START               0x04
+#define ZCD_STARTOPT_CLEAR_CONFIG             ZCD_STARTOPT_DEFAULT_CONFIG_STATE
+#define ZCD_STARTOPT_CLEAR_STATE              ZCD_STARTOPT_DEFAULT_NETWORK_STATE
+//FrameCounter should be persistence across factory new resets, this should not 
+//used as part of FN reset procedure. Set to reset the FrameCounter of all 
+//Nwk Security Material
+#define ZCD_STARTOPT_CLEAR_NWK_FRAME_COUNTER  0x80   
 
 #define ZCL_KE_IMPLICIT_CERTIFICATE_LEN    48
 #define ZCL_KE_CA_PUBLIC_KEY_LEN           22
@@ -334,6 +375,8 @@ typedef struct
 #define ZSecOldFrmCount             0xa2
 #define ZSecMaxFrmCount             0xa3
 #define ZSecCcmFail                 0xa4
+#define ZSecFailure                 0xad
+
 
 	// NWK status values
 #define ZNwkInvalidParam            0xc1

@@ -1,12 +1,12 @@
 /**************************************************************************************************
   Filename:       mac_tx.c
-  Revised:        $Date: 2014-03-13 10:50:10 -0700 (Thu, 13 Mar 2014) $
-  Revision:       $Revision: 37663 $
+  Revised:        $Date: 2015-01-11 12:16:24 -0800 (Sun, 11 Jan 2015) $
+  Revision:       $Revision: 41712 $
 
   Description:    Describe the purpose and contents of the file.
 
 
-  Copyright 2006-2014 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2006-2015 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -65,9 +65,22 @@
 
 /* target specific */
 #include "mac_radio_defs.h"
+#include "mac_main.h"
 
 /* debug */
 #include "mac_assert.h"
+
+
+typedef struct macTimer_s
+{
+  struct macTimer_s     *pNext;                     /* next timer in queue */
+  int32                 backoff;                    /* timer expiration count */
+  void                  (*pFunc)(uint8 parameter);  /* timer callback function */
+  uint8                 parameter;                  /* callback function parameter */
+} macTimer_t;
+
+extern void macTimer(macTimer_t *pTimer, uint32 backoffs);
+extern void macTimerCancel(macTimer_t *pTimer);
 
 
 /* ------------------------------------------------------------------------------------------------
@@ -77,6 +90,7 @@
 #define MFR_LEN                   MAC_FCS_FIELD_LEN
 #define PREPENDED_BYTE_LEN        1
 
+#define ACK_TX_TIMEOUT_BACKOFFS   14 
 
 /* ------------------------------------------------------------------------------------------------
  *                                         Global Constants
@@ -107,6 +121,8 @@ uint8 macTxBe;
 uint8 macTxCsmaBackoffDelay;
 uint8 macTxGpInterframeDelay;
 
+/* MAC Timer for ACK transmit timeout */
+macTimer_t macTxAckIsrTimer;
 
 /* ------------------------------------------------------------------------------------------------
  *                                         Local Variables
@@ -123,13 +139,14 @@ static uint8 txRetransmitFlag;
  * ------------------------------------------------------------------------------------------------
  */
 static void txCsmaPrep(void);
-#ifdef FEATURE_GREEN_POWER
+#if (ZG_BUILD_RTR_TYPE)
 static void txGreenPowerPrep(void);
 #endif
 static void txGo(void);
 static void txCsmaGo(void);
 static void txComplete(uint8 status);
 
+static void txAckIsrTimeout(uint8 event);
 
 /**************************************************************************************************
  * @fn          macTxInit
@@ -145,6 +162,9 @@ MAC_INTERNAL_API void macTxInit(void)
 {
   macTxActive      = MAC_TX_ACTIVE_NO_ACTIVITY;
   txRetransmitFlag = 0;
+  
+  macTxAckIsrTimer.pFunc = &txAckIsrTimeout;
+
 }
 
 
@@ -209,21 +229,21 @@ MAC_INTERNAL_API void macTxFrame(uint8 txType)
     MAC_RADIO_TX_PREP_SLOTTED();
   }
 
-#ifdef FEATURE_GREEN_POWER
+#if (ZG_BUILD_RTR_TYPE)
   else if (macTxType == MAC_TX_TYPE_GREEN_POWER)
   {
     txGreenPowerPrep();
   }
-#endif /* #ifdef FEATURE_GREEN_POWER */
+#endif
 
   else
   {
     MAC_ASSERT((macTxType == MAC_TX_TYPE_SLOTTED_CSMA) || (macTxType == MAC_TX_TYPE_UNSLOTTED_CSMA));
 
     nb = 0;
-    macTxBe = (pMacDataTx->internal.txOptions & MAC_TXOPTION_ALT_BE) ? macPib.altBe : macPib.minBe;
+    macTxBe = (pMacDataTx->internal.txOptions & MAC_TXOPTION_ALT_BE) ? pMacPib->altBe : pMacPib->minBe;
 
-    if ((macTxType == MAC_TX_TYPE_SLOTTED_CSMA) && (macPib.battLifeExt))
+    if ((macTxType == MAC_TX_TYPE_SLOTTED_CSMA) && (pMacPib->battLifeExt))
     {
       macTxBe = MIN(2, macTxBe);
     }
@@ -287,6 +307,19 @@ MAC_INTERNAL_API void macTxFrame(uint8 txType)
     }
     else
     {
+      if( macRxOutgoingAckFlag == MAC_RX_FLAG_ACK_REQUEST )
+      {
+        /* Add a timeout for queued frame. This special case timeout will be 
+         * invoked when the ack done ISR is not fired even after 
+         * ACK_TX_TIMEOUT_BACKOFFS.
+         * The ACK_TX_TIMEOUT_BACKOFFS value is empirically used keeping in mind
+         * the time for a 127 byte packet to be received over-the-air
+         * MAC_A_MAX_PHY_PACKET_SIZE is always set to 127 bytes which is the 
+         * maximum size a packet can have.
+      	 */
+        macTimer(&macTxAckIsrTimer, ACK_TX_TIMEOUT_BACKOFFS);        
+      }
+      
       macTxActive = MAC_TX_ACTIVE_QUEUED;
       HAL_EXIT_CRITICAL_SECTION(s);
     }
@@ -319,7 +352,7 @@ static void txCsmaPrep(void)
 }
 
 
-#ifdef FEATURE_GREEN_POWER
+#if (ZG_BUILD_RTR_TYPE)
 /*=================================================================================================
  * @fn          txGreenPowerPrep
  *
@@ -343,7 +376,8 @@ static void txGreenPowerPrep(void)
 
   MAC_RADIO_TX_PREP_GREEN_POWER();
 }
-#endif /* #ifdef FEATURE_GREEN_POWER */
+
+#endif
 
 
 /*=================================================================================================
@@ -372,12 +406,12 @@ static void txGo(void)
     MAC_RADIO_TX_GO_SLOTTED();
   }
 
-#ifdef FEATURE_GREEN_POWER
+#if (ZG_BUILD_RTR_TYPE)
   else if (macTxType == MAC_TX_TYPE_GREEN_POWER)
   {
     MAC_RADIO_TX_GO_GREEN_POWER();
   }
-#endif /* #ifdef FEATURE_GREEN_POWER */
+#endif
 
   else
   {
@@ -493,13 +527,13 @@ MAC_INTERNAL_API void macTxChannelBusyCallback(void)
 
   /*  clear channel assement failed, follow through with CSMA algorithm */
   nb++;
-  if (nb > macPib.maxCsmaBackoffs)
+  if (nb > pMacPib->maxCsmaBackoffs)
   {
     txComplete(MAC_CHANNEL_ACCESS_FAILURE);
   }
   else
   {
-    macTxBe = MIN(macTxBe+1, macPib.maxBe);
+    macTxBe = MIN(macTxBe+1, pMacPib->maxBe);
     txCsmaPrep();
     macTxActive = MAC_TX_ACTIVE_GO;
     txCsmaGo();
@@ -647,6 +681,33 @@ MAC_INTERNAL_API void macTxAckNotReceivedCallback(void)
   }
 }
 
+/*=================================================================================================
+ * @fn          txAckIsrTimeout
+ *
+ * @brief       Timeout for ACK Done ISR interrupt. This would be invoked in case ACK done is not fired within 1 ms
+ *
+ * @param       none
+ *
+ * @return      none
+ *=================================================================================================
+ */
+static void txAckIsrTimeout(uint8 event)
+{
+  (void)event;
+  
+  if ( macRxOutgoingAckFlag == MAC_RX_FLAG_ACK_REQUEST )
+  {
+    MAC_RADIO_CANCEL_ACK_TX_DONE_CALLBACK();
+    macRxOutgoingAckFlag = 0;
+  
+    if ( macTxActive == MAC_TX_ACTIVE_QUEUED && !macRxActive )
+    {
+      macTxStartQueuedFrame();
+    }
+  }
+
+  macTimerCancel(&macTxAckIsrTimer);
+}
 
 /*=================================================================================================
  * @fn          txComplete
@@ -666,6 +727,14 @@ static void txComplete(uint8 status)
 
   /* update tx state; turn off receiver if nothing is keeping it on */
   macTxActive = MAC_TX_ACTIVE_NO_ACTIVITY;
+  
+  /* If no ACK is pending go to sleep sooner than wait for high level mac
+   * to clear MAC_RX_POLL bit and then go to sleep 
+   */
+  if (status != MAC_ACK_PENDING)
+  {
+    macRxEnableFlags &= ~MAC_RX_POLL;
+  }
 
   /* turn off receive if allowed */
   macRxOffRequest();

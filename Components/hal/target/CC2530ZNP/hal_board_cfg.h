@@ -1,7 +1,7 @@
 /**************************************************************************************************
   Filename:       hal_board_cfg.h
-  Revised:        $Date: 2014-07-10 18:43:27 -0700 (Thu, 10 Jul 2014) $
-  Revision:       $Revision: 39394 $
+  Revised:        $Date: 2014-11-19 13:29:24 -0800 (Wed, 19 Nov 2014) $
+  Revision:       $Revision: 41175 $
 
   Description:    Declarations for the CC2530EM used as a ZNP replacement for
                   the CC2520 on MSP platforms (and possibly others.)
@@ -91,7 +91,7 @@
 #define ZNP_CFG0_32K_OSC         0         /* 32kHz crystal not installed; internal osc. used */
 #define ZNP_CFG1_SPI             1         /* use SPI transport */
 #define ZNP_CFG1_UART            0         /* use UART transport */
-#define ZNP_CFG1_UART_USB	 2         /* definition required for CC2531 compatibility. will never be set for CC2530 */
+#define ZNP_CFG1_UART_USB        2         /* definition required for CC2531 compatibility */
 extern unsigned char znpCfg1;
 extern unsigned char znpCfg0;
 
@@ -213,15 +213,15 @@ extern unsigned char znpCfg0;
                                                     break; } )
 
 #define MCU_IO_OUTPUT_PREP(port, pin, val)  st( P##port##SEL &= ~BV(pin); \
-                                                P##port##_##pin## = val; \
+                                                P##port##_##pin = val; \
                                                 P##port##DIR |= BV(pin); )
 
-#define MCU_IO_SET_HIGH_PREP(port, pin)     st( P##port##_##pin## = 1; )
-#define MCU_IO_SET_LOW_PREP(port, pin)      st( P##port##_##pin## = 0; )
+#define MCU_IO_SET_HIGH_PREP(port, pin)     st( P##port##_##pin = 1; )
+#define MCU_IO_SET_LOW_PREP(port, pin)      st( P##port##_##pin = 0; )
 
-#define MCU_IO_SET_PREP(port, pin, val)     st( P##port##_##pin## = val; )
-#define MCU_IO_TGL_PREP(port, pin)          st( P##port##_##pin## ^= 1; )
-#define MCU_IO_GET_PREP(port, pin)          (P##port## & BV(pin))
+#define MCU_IO_SET_PREP(port, pin, val)     st( P##port##_##pin = val; )
+#define MCU_IO_TGL_PREP(port, pin)          st( P##port##_##pin ^= 1; )
+#define MCU_IO_GET_PREP(port, pin)          (P##port & BV(pin))
 
 #define MCU_IO_DIR_INPUT_PREP(port, pin)    st( P##port##DIR &= ~BV(pin); )
 #define MCU_IO_DIR_OUTPUT_PREP(port, pin)   st( P##port##DIR |= BV(pin); )

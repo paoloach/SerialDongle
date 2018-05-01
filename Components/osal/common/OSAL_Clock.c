@@ -1,11 +1,11 @@
 /******************************************************************************
   Filename:       OSAL_Clock.c
-  Revised:        $Date: 2012-02-26 13:15:18 -0800 (Sun, 26 Feb 2012) $
-  Revision:       $Revision: 29523 $
+  Revised:        $Date: 2014-06-30 16:38:56 -0700 (Mon, 30 Jun 2014) $
+  Revision:       $Revision: 39297 $
 
   Description:    OSAL Clock definition and manipulation functions.
 
-  Copyright 2008-2012 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2008-2014 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -147,8 +147,11 @@ extern uint32 macMcuPrecisionCount(void);
 /*********************************************************************
  * LOCAL VARIABLES
  */
-static uint32 previousMacTimerTick = 0;
-static uint16 remUsTicks = 0;
+#ifndef USE_ICALL
+  static uint32 previousMacTimerTick = 0;
+  static uint16 remUsTicks = 0;
+#endif /* !USE_ICALL */
+  
 static uint32 timeMSec = 0;
 
 // number of seconds since 0 hrs, 0 minutes, 0 seconds, on the
@@ -182,6 +185,9 @@ static void osalClockUpdate( uint32 elapsedMSec );
  */
 void osalTimeUpdate( void )
 {
+#ifndef USE_ICALL
+  /* Note that when ICall is in use the OSAL tick is not updated
+   * in this fashion but rather through real OS timer tick. */
   halIntState_t intState;
   uint32 tmp;
   uint32 ticks320us;
@@ -226,6 +232,7 @@ void osalTimeUpdate( void )
       osalTimerUpdate( elapsedMSec );
     }
   }
+#endif /* USE_ICALL */
 }
 
 /*********************************************************************
@@ -255,7 +262,7 @@ static void osalClockUpdate( uint32 elapsedMSec )
   HAL_EXIT_CRITICAL_SECTION(intState);
 }
 
-#ifdef HAL_BOARD_CC2538
+#if defined HAL_BOARD_CC2538 || defined USE_ICALL
 /*********************************************************************
  * @fn      osalAdjustTimer
  *
@@ -276,7 +283,7 @@ void osalAdjustTimer(uint32 Msec )
   /* Enable SysTick interrupts */ 
   SysTickIntEnable(); 
 }
-#endif /* HAL_BOARD_CC2538 */
+#endif /* HAL_BOARD_CC2538 || USE_ICALL */
 
 /*********************************************************************
  * @fn      osal_setClock

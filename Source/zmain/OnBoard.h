@@ -199,7 +199,7 @@ extern uint8 aExtendedAddress[8];
 /* The following Heap sizes are setup for typical TI sample applications,
  * and should be adjusted to your systems requirements.
  */
-#define MAXMEMHEAP 3300
+#define MAXMEMHEAP 3400
 
 #define KEY_CHANGE_SHIFT_IDX 1
 #define KEY_CHANGE_KEYS_IDX  2

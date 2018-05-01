@@ -365,7 +365,7 @@ MAC_INTERNAL_API void macRadioSetChannel(uint8 channel)
 {
   halIntState_t  s;
 
-  MAC_ASSERT((channel >= 11) && (channel <= 28));  /* illegal channel */
+  MAC_ASSERT((channel >= 11) && (channel <= 29));  /* illegal channel */
 
   /* critical section to make sure transmit does not start while updating channel */
   HAL_ENTER_CRITICAL_SECTION(s);
@@ -483,7 +483,7 @@ MAC_INTERNAL_API void macRadioStopScan(void)
   macRxFilter = RX_FILTER_OFF;
 
   /* restore the pan ID (passive and active scans set pan ID to 0xFFFF) */
-  MAC_RADIO_SET_PAN_ID(macPib.panId);
+  MAC_RADIO_SET_PAN_ID(pMacPib->panId);
 }
 
 

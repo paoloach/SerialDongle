@@ -1,12 +1,12 @@
 /**************************************************************************************************
   Filename:       mac_mcu.c
-  Revised:        $Date: 2014-07-11 13:41:40 -0700 (Fri, 11 Jul 2014) $
-  Revision:       $Revision: 39397 $
+  Revised:        $Date: 2015-02-17 14:17:44 -0800 (Tue, 17 Feb 2015) $
+  Revision:       $Revision: 42683 $
 
   Description:    Describe the purpose and contents of the file.
 
 
-  Copyright 2006-2014 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2006-2015 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -83,6 +83,11 @@
 #endif
 
 /* ------------------------------------------------------------------------------------------------
+*                                        Global Functions
+* ------------------------------------------------------------------------------------------------
+*/
+
+/* ------------------------------------------------------------------------------------------------
  *                                        Local Variables
  * ------------------------------------------------------------------------------------------------
  */
@@ -109,6 +114,7 @@ static macRNGFcn_t pRandomSeedCB = NULL;
 static void mcuRecordMaxRssiIsr(void);
 static uint32 macMcuOverflowGetCompare(void);
 void MAC_SetRandomSeedCB(macRNGFcn_t pCBFcn);
+
 
 /**************************************************************************************************
  * @fn          MAC_SetRandomSeedCB
@@ -300,25 +306,27 @@ MAC_INTERNAL_API void macMcuInit(void)
     RNDL = rndSeed >> 8;
   }
 
-  /* Read MAC_RANDOM_SEED_LEN X 8 random bits and store them in the proprietary PIB array
-   * for future use in random key generation for CBKE key establishment.
+  /* Read MAC_RANDOM_SEED_LEN*8 random bits and store them in flash for
+   * future use in random key generation for CBKE key establishment
    */
-  for (uint8 i = 0; i < MAC_RANDOM_SEED_LEN; i++)
+  if( pRandomSeedCB )
   {
-    uint8 rndByte = 0;
+    uint8 randomSeed[MAC_RANDOM_SEED_LEN];
+    uint8 i,j;
 
-    for (uint8 j = 0; j < 8; j++)
+    for(i = 0; i < MAC_RANDOM_SEED_LEN; i++)
     {
-      /* use most random bit of analog to digital receive conversion to populate the random seed */
-      rndByte = (rndByte << 1) | (RFRND & 0x01);
+      uint8 rndByte = 0;
+      for(j = 0; j < 8; j++)
+      {
+        /* use most random bit of analog to digital receive conversion to
+           populate the random seed */
+        rndByte = (rndByte << 1) | (RFRND & 0x01);
+      }
+      randomSeed[i] = rndByte;
+
     }
-
-    pMacPib->randomSeed[i] = rndByte;
-  }
-
-  if (pRandomSeedCB)
-  {
-    pRandomSeedCB(pMacPib->randomSeed);
+    pRandomSeedCB( randomSeed );
   }
 
   /* turn off the receiver */
@@ -972,6 +980,7 @@ static void mcuRecordMaxRssiIsr(void)
     maxRssi = rssi;
   }
 }
+
 
 /**************************************************************************************************
  * @fn          macMcuAccumulatedOverFlow

@@ -74,6 +74,18 @@
 #include "mac_assert.h"
 
 
+typedef struct macTimer_s
+{
+  struct macTimer_s     *pNext;                     /* next timer in queue */
+  int32                 backoff;                    /* timer expiration count */
+  void                  (*pFunc)(uint8 parameter);  /* timer callback function */
+  uint8                 parameter;                  /* callback function parameter */
+} macTimer_t;
+
+extern macTimer_t macTxAckIsrTimer;
+extern void macTimerCancel(macTimer_t *pTimer);
+
+
 /* ------------------------------------------------------------------------------------------------
  *                                            Defines
  * ------------------------------------------------------------------------------------------------
@@ -408,7 +420,7 @@ static void rxStartIsr(void)
   uint8  dstAddrMode;
   uint8  srcAddrMode;
   uint8  mhrLen = 0;
-
+  
   MAC_ASSERT(!macRxActive); /* receive on top of receive */
 
   /* indicate rx is active */
@@ -767,7 +779,7 @@ static void rxStartIsr(void)
   pRxBuf->mac.dstAddr.addrMode  = dstAddrMode;
   pRxBuf->mac.timestamp         = MAC_RADIO_BACKOFF_CAPTURE();
   pRxBuf->mac.timestamp2        = MAC_RADIO_TIMER_CAPTURE();
-
+    
   /* Special Case for Enhanced Beacon Request which has a different
    * frame version
    */
@@ -1209,7 +1221,10 @@ static void rxDone(void)
  */
 void macRxAckTxDoneCallback(void)
 {
+
   macRxOutgoingAckFlag = 0;
+
+  macTimerCancel(&macTxAckIsrTimer);
 
   /*
    *  With certain interrupt priorities and timing conditions, it is possible this callback

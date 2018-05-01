@@ -1,7 +1,7 @@
 /**************************************************************************************************
   Filename:       hal_board_cfg.h
-  Revised:        $Date: 2013-11-12 16:45:07 -0800 (Tue, 12 Nov 2013) $
-  Revision:       $Revision: 36060 $
+  Revised:        $Date: 2014-06-25 18:46:09 -0700 (Wed, 25 Jun 2014) $
+  Revision:       $Revision: 39225 $
 
   Description:    Platform-specific definitions for the SRF06EB+CC2538EM
 
@@ -239,6 +239,18 @@ extern unsigned char znpCfg0;
 // NOTE: these addresses MUST match those defined in the associated linker 
 // control file (.icf)
 // NOTE: Commissioning items are aligned and padded to HAL_FLASH_WORD_SIZE
+
+// 74-byte Implicit Certificate (for binary 283 Key Establishment)
+#define HAL_FLASH_IMPLICIT_CERT_283_ADDR  ( 0x0027FED4 )
+#define HAL_FLASH_IMPLICIT_CERT_283_SIZE  ( 74 + 2 ) // 2-bytes of pad
+
+// 37-byte CA Public Key (for binary 283 Key Establishment)
+#define HAL_FLASH_CA_PUBLIC_KEY_283_ADDR  ( 0x0027FF20 )
+#define HAL_FLASH_CA_PUBLIC_KEY_283_SIZE  ( 37 + 3 )  // 3-bytes of pad
+
+// 36-byte Device Private Key (for binary 283 Key Establishment)
+#define HAL_FLASH_DEV_PRIVATE_KEY_283_ADDR  ( 0x0027FF48 )
+#define HAL_FLASH_DEV_PRIVATE_KEY_283_SIZE  ( 36 )
 
 // 48-byte Implicit Certificate (for Key Establishment)
 #define HAL_FLASH_IMPLICIT_CERT_ADDR  ( 0x0027FF6C )

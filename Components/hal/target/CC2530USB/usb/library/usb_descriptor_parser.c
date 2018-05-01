@@ -31,27 +31,25 @@ static const uint8 languageId[4] = {
 };
 
 // Manufacturer.
-static const uint8 manufacturer[40] = {
-  40,
+static const uint8 manufacturer[36] = {
+  36,
   DESC_TYPE_STRING,
-  'A', 0,
-  'c', 0,
-  'h', 0,
-  'd', 0,
-  'j', 0,
-  'i', 0,
+  'T', 0,
+  'e', 0,
+  'x', 0,
   'a', 0,
-  'n', 0,
+  's', 0,
   ' ', 0,
-  'e', 0,
-  'l', 0,
-  'e', 0,
-  'c', 0,
+  'I', 0,
+  'n', 0,
+  's', 0,
   't', 0,
   'r', 0,
-  'o', 0,
+  'u', 0,
+  'm', 0,
+  'e', 0,
   'n', 0,
-  'i', 0,
+  't', 0,
   's', 0
 };
 
@@ -59,23 +57,23 @@ static const uint8 manufacturer[40] = {
 static const uint8 product[36] = {
   36,
   DESC_TYPE_STRING,
-  'A', 0,
+  'T', 0,
+  'I', 0,
+  ' ', 0,
   'C', 0,
-  'H', 0,
+  'C', 0,
+  '2', 0,
+  '5', 0,
+  '3', 0,
+  '1', 0,
   ' ', 0,
   'U', 0,
   'S', 0,
   'B', 0,
   ' ', 0,
-  'Z', 0,
-  'B', 0,
-  'A', 0,
+  'C', 0,
   'D', 0,
-  'A', 0,
-  'P', 0,
-  'T', 0,
-  'O', 0,
-  'R', 0
+  'C', 0
 };
 
 // Serial Number.

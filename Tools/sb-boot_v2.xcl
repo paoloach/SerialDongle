@@ -1,13 +1,13 @@
 /**************************************************************************************************
   Filename:       sb-boot.xcl
-  Revised:        $Date: 2014-06-24 16:10:59 -0700 (Tue, 24 Jun 2014) $
-  Revision:       $Revision: 39186 $
+  Revised:        $Date: 2014-11-19 13:29:24 -0800 (Wed, 19 Nov 2014) $
+  Revision:       $Revision: 41175 $
 
   Description:    This is a linker command line file for the IAR XLINK tool for the
                   CC2530/31 SoC. This mapping is to build serial boot loader code.
 
 
-  Copyright 2013 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2014 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user

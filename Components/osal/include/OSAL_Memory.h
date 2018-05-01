@@ -85,44 +85,21 @@ extern "C"
   * Setup efficient search for the first free block of heap.
   */
   void osal_mem_kick( void );
-  void prindDebugInfo(void);
-#ifdef __DEBUG__
-    void *osal_mem_alloc_dbg( uint16 size, const char *fname, unsigned lnum );
-   #define osal_mem_alloc(_size ) osal_mem_alloc_dbg(_size, __FILE__, __LINE__)
-  struct HeapData {
-	  uint16 memUsed;
-	  uint16 blockAllocated;
-  };
-  
-  struct BlockName {
-	  char * fileName;
-	  uint16 lineNum;
-	  uint16 id;
-  };
-  
-  struct HeapData osal_heap_info(void);
-  struct BlockName  getNextNewBlockName(void);
-  uint16 * getAllocated(void);
-  uint8 memCheck(void);
-  
-#endif  
+
  /*
   * Allocate a block of memory.
   */
 #ifdef DPRINTF_OSALHEAPTRACE
   void *osal_mem_alloc_dbg( uint16 size, const char *fname, unsigned lnum );
-
 #define osal_mem_alloc(_size ) osal_mem_alloc_dbg(_size, __FILE__, __LINE__)
 #else /* DPRINTF_OSALHEAPTRACE */
-#ifndef  __DEBUG__
   void *osal_mem_alloc( uint16 size );
-#endif
 #endif /* DPRINTF_OSALHEAPTRACE */
 
  /*
   * Free a block of memory.
   */
-#ifdef DPRINTF_OSALHEAPTRACE__
+#ifdef DPRINTF_OSALHEAPTRACE
   void osal_mem_free_dbg( void *ptr, const char *fname, unsigned lnum );
 #define osal_mem_free(_ptr ) osal_mem_free_dbg(_ptr, __FILE__, __LINE__)
 #else /* DPRINTF_OSALHEAPTRACE */

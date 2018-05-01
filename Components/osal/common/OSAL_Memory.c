@@ -1,7 +1,7 @@
 /**************************************************************************************************
   Filename:       OSAL_Memory.c
-  Revised:        $Date: 2013-03-14 17:58:51 -0700 (Thu, 14 Mar 2013) $
-  Revision:       $Revision: 33490 $
+  Revised:        $Date: 2014-11-24 18:26:24 -0800 (Mon, 24 Nov 2014) $
+  Revision:       $Revision: 41234 $
 
   Description:    OSAL Heap Memory management functions. There is an Application Note that
                   should be read before studying and/or modifying this module:
@@ -42,6 +42,8 @@
  *                                          Includes
  * ------------------------------------------------------------------------------------------------
  */
+
+#include <stdlib.h>
 
 #include "comdef.h"
 #include "OSAL.h"
@@ -89,7 +91,7 @@
  * Adjust this size accordingly to accomodate application-specific changes including changing the
  * size of long-lived objects profiled by sample apps and long-lived objects added by application.
  */
-#if defined ZCL_KEY_ESTABLISH     // Attempt to capture worst-case for SE sample apps.
+#if defined ZCL_KEY_ESTABLISH_OLD // CBKE no longer uses long lived memory allocations.
 #define OSALMEM_LL_BLKSZ          (OSALMEM_ROUND(526) + (32 * OSALMEM_HDRSZ))
 #elif defined TC_LINKKEY_JOIN
 #define OSALMEM_LL_BLKSZ          (OSALMEM_ROUND(454) + (21 * OSALMEM_HDRSZ))
@@ -173,7 +175,7 @@ typedef union {
  * ------------------------------------------------------------------------------------------------
  */
 
-#if !defined ( ZBIT )
+#if !defined ( ZBIT ) && defined ewarm
 static __no_init osalMemHdr_t theHeap[MAXMEMHEAP / OSALMEM_HDRSZ];
 static __no_init osalMemHdr_t *ff1;  // First free block in the small-block bucket.
 #else
@@ -219,35 +221,45 @@ extern int dprintf(const char *fmt, ...);
  *
  * @brief       This function is the OSAL heap memory management initialization callback.
  *
+ * input parameters
+ *
+ * None.
+ *
+ * output parameters
+ *
+ * None.
+ *
+ * @return      None.
  */
-void osal_mem_init(void){
-	HAL_ASSERT(((OSALMEM_MIN_BLKSZ % OSALMEM_HDRSZ) == 0));
-	HAL_ASSERT(((OSALMEM_LL_BLKSZ % OSALMEM_HDRSZ) == 0));
-	HAL_ASSERT(((OSALMEM_SMALL_BLKSZ % OSALMEM_HDRSZ) == 0));
+void osal_mem_init(void)
+{
+  HAL_ASSERT(((OSALMEM_MIN_BLKSZ % OSALMEM_HDRSZ) == 0));
+  HAL_ASSERT(((OSALMEM_LL_BLKSZ % OSALMEM_HDRSZ) == 0));
+  HAL_ASSERT(((OSALMEM_SMALL_BLKSZ % OSALMEM_HDRSZ) == 0));
 
-	#if OSALMEM_PROFILER
-		(void)osal_memset(theHeap, OSALMEM_INIT, MAXMEMHEAP);
-	#endif
+#if OSALMEM_PROFILER
+  (void)osal_memset(theHeap, OSALMEM_INIT, MAXMEMHEAP);
+#endif
 
-	// Setup a NULL block at the end of the heap for fast comparisons with zero.
-	theHeap[OSALMEM_LASTBLK_IDX].val = 0;
+  // Setup a NULL block at the end of the heap for fast comparisons with zero.
+  theHeap[OSALMEM_LASTBLK_IDX].val = 0;
 
-	// Setup the small-block bucket.
-	ff1 = theHeap;
-	ff1->val = OSALMEM_SMALLBLK_BUCKET;                   // Set 'len' & clear 'inUse' field.
-	// Set 'len' & 'inUse' fields - this is a 'zero data bytes' lifetime allocation to block the
-	// small-block bucket from ever being coalesced with the wilderness.
-	theHeap[OSALMEM_SMALLBLK_HDRCNT].val = (OSALMEM_HDRSZ | OSALMEM_IN_USE);
+  // Setup the small-block bucket.
+  ff1 = theHeap;
+  ff1->val = OSALMEM_SMALLBLK_BUCKET;                   // Set 'len' & clear 'inUse' field.
+  // Set 'len' & 'inUse' fields - this is a 'zero data bytes' lifetime allocation to block the
+  // small-block bucket from ever being coalesced with the wilderness.
+  theHeap[OSALMEM_SMALLBLK_HDRCNT].val = (OSALMEM_HDRSZ | OSALMEM_IN_USE);
 
-	// Setup the wilderness.
-	theHeap[OSALMEM_BIGBLK_IDX].val = OSALMEM_BIGBLK_SZ;  // Set 'len' & clear 'inUse' field.
+  // Setup the wilderness.
+  theHeap[OSALMEM_BIGBLK_IDX].val = OSALMEM_BIGBLK_SZ;  // Set 'len' & clear 'inUse' field.
 
-	#if ( OSALMEM_METRICS )
-	/* Start with the small-block bucket and the wilderness - don't count the
-	* end-of-heap NULL block nor the end-of-small-block NULL block.
-	*/
-	blkCnt = blkFree = 2;
-	#endif
+#if ( OSALMEM_METRICS )
+  /* Start with the small-block bucket and the wilderness - don't count the
+   * end-of-heap NULL block nor the end-of-small-block NULL block.
+   */
+  blkCnt = blkFree = 2;
+#endif
 }
 
 /**************************************************************************************************
@@ -257,22 +269,34 @@ void osal_mem_init(void){
  * @brief       Kick the ff1 pointer out past the long-lived OSAL Task blocks.
  *              Invoke this once after all long-lived blocks have been allocated -
  *              presently at the end of osal_init_system().
+ *
+ * input parameters
+ *
+ * None.
+ *
+ * output parameters
+ *
+ * None.
+ *
+ * @return      None.
  */
-void osal_mem_kick(void){
-	halIntState_t intState;
-	osalMemHdr_t *tmp = osal_mem_alloc(1);
+void osal_mem_kick(void)
+{
+  halIntState_t intState;
+  osalMemHdr_t *tmp = osal_mem_alloc(1);
 
-	HAL_ASSERT((tmp != NULL));
-	HAL_ENTER_CRITICAL_SECTION(intState);  // Hold off interrupts.
+  HAL_ASSERT((tmp != NULL));
+  HAL_ENTER_CRITICAL_SECTION(intState);  // Hold off interrupts.
 
-	/* All long-lived allocations have filled the LL block reserved in the small-block bucket.
-	* Set 'osalMemStat' so searching for memory in this bucket from here onward will only be done for sizes meeting the OSALMEM_SMALL_BLKSZ criteria.
-	*/
-	ff1 = tmp - 1;       // Set 'ff1' to point to the first available memory after the LL block.
-	osal_mem_free(tmp);
-	osalMemStat = 0x01;  // Set 'osalMemStat' after the free because it enables memory profiling.
+  /* All long-lived allocations have filled the LL block reserved in the small-block bucket.
+   * Set 'osalMemStat' so searching for memory in this bucket from here onward will only be done
+   * for sizes meeting the OSALMEM_SMALL_BLKSZ criteria.
+   */
+  ff1 = tmp - 1;       // Set 'ff1' to point to the first available memory after the LL block.
+  osal_mem_free(tmp);
+  osalMemStat = 0x01;  // Set 'osalMemStat' after the free because it enables memory profiling.
 
-	HAL_EXIT_CRITICAL_SECTION(intState);  // Re-enable interrupts.
+  HAL_EXIT_CRITICAL_SECTION(intState);  // Re-enable interrupts.
 }
 
 /**************************************************************************************************
@@ -296,182 +320,177 @@ void *osal_mem_alloc_dbg( uint16 size, const char *fname, unsigned lnum )
 void *osal_mem_alloc( uint16 size )
 #endif /* DPRINTF_OSALHEAPTRACE */
 {
-	osalMemHdr_t *prev = NULL;
-	osalMemHdr_t *hdr;
-	halIntState_t intState;
-	uint8 coal = 0;
+  osalMemHdr_t *prev = NULL;
+  osalMemHdr_t *hdr;
+  halIntState_t intState;
+  uint8 coal = 0;
 
-	size += OSALMEM_HDRSZ;
+  size += OSALMEM_HDRSZ;
 
-	HAL_ENTER_CRITICAL_SECTION( intState );  // Hold off interrupts.
+  // Calculate required bytes to add to 'size' to align to halDataAlign_t.
+  if ( sizeof( halDataAlign_t ) == 2 )
+  {
+    size += (size & 0x01);
+  }
+  else if ( sizeof( halDataAlign_t ) != 1 )
+  {
+    const uint8 mod = size % sizeof( halDataAlign_t );
 
-  // Smaller allocations are first attempted in the small-block bucket, and all long-lived allocations are channeled into the LL block reserved within this bucket.
-	if ((osalMemStat == 0) || (size <= OSALMEM_SMALL_BLKSZ)) {
-		hdr = ff1;
-	} else {
-		hdr = (theHeap + OSALMEM_BIGBLK_IDX);
-	}
-	prev = hdr;
-	
-	
-	while(1){
-		if (hdr->hdr.inUse == 0 && hdr->hdr.len==size){
-			break;
-		}
-		hdr = (osalMemHdr_t *)((uint8 *)hdr + hdr->hdr.len);
+    if ( mod != 0 )
+    {
+      size += (sizeof( halDataAlign_t ) - mod);
+    }
+  }
 
-    	if ( hdr->val == 0 ) {
-      		hdr = NULL;
-      		break;
-    	}
-	}
-	
-	if (hdr == NULL){
-		hdr = prev;
- 		while(1){
-			if ( hdr->hdr.inUse ){
-				coal = 0;
-			} else {
-				if ( coal != 0 ) {
-	#if ( OSALMEM_METRICS )
-					blkCnt--;
-					blkFree--;
-	#endif
-					prev->hdr.len += hdr->hdr.len;
+  HAL_ENTER_CRITICAL_SECTION( intState );  // Hold off interrupts.
 
-					if ( prev->hdr.len >= size ) {
-						hdr = prev;
-						break;
-					}
-				} else {
-					if ( hdr->hdr.len >= size ) {
-						break;
-					}
-					coal = 1;
-					prev = hdr;
-				}
-			}
+  // Smaller allocations are first attempted in the small-block bucket, and all long-lived
+  // allocations are channeled into the LL block reserved within this bucket.
+  if ((osalMemStat == 0) || (size <= OSALMEM_SMALL_BLKSZ))
+  {
+    hdr = ff1;
+  }
+  else
+  {
+    hdr = (theHeap + OSALMEM_BIGBLK_IDX);
+  }
 
-			hdr = (osalMemHdr_t *)((uint8 *)hdr + hdr->hdr.len);
+  do
+  {
+    if ( hdr->hdr.inUse )
+    {
+      coal = 0;
+    }
+    else
+    {
+      if ( coal != 0 )
+      {
+#if ( OSALMEM_METRICS )
+        blkCnt--;
+        blkFree--;
+#endif
 
-			if ( hdr->val == 0 ) {
-				hdr = NULL;
-				break;
-			}
-		};
-	}
+        prev->hdr.len += hdr->hdr.len;
 
-	if ( hdr != NULL ){
-   		uint16 tmp = hdr->hdr.len - size;
+        if ( prev->hdr.len >= size )
+        {
+          hdr = prev;
+          break;
+        }
+      }
+      else
+      {
+        if ( hdr->hdr.len >= size )
+        {
+          break;
+        }
 
-    	// Determine whether the threshold for splitting is met.
-    	if ( tmp >= OSALMEM_MIN_BLKSZ ) {
-      		// Split the block before allocating it.
-      		osalMemHdr_t *next = (osalMemHdr_t *)((uint8 *)hdr + size);
-      		next->val = tmp;                     // Set 'len' & clear 'inUse' field.
-      		hdr->val = (size | OSALMEM_IN_USE);  // Set 'len' & 'inUse' field.
+        coal = 1;
+        prev = hdr;
+      }
+    }
 
-			#if ( OSALMEM_METRICS )
-			 blkCnt++;
-			 if ( blkMax < blkCnt ){
-				blkMax = blkCnt;
-			 }
-			 memAlo += size;
-			#endif
-		} else {
-			#if ( OSALMEM_METRICS )
-			  memAlo += hdr->hdr.len;
-			  blkFree--;
-			#endif
+    hdr = (osalMemHdr_t *)((uint8 *)hdr + hdr->hdr.len);
 
-			hdr->hdr.inUse = TRUE;
-		}
+    if ( hdr->val == 0 )
+    {
+      hdr = NULL;
+      break;
+    }
+  } while (1);
+
+  if ( hdr != NULL )
+  {
+    uint16 tmp = hdr->hdr.len - size;
+
+    // Determine whether the threshold for splitting is met.
+    if ( tmp >= OSALMEM_MIN_BLKSZ )
+    {
+      // Split the block before allocating it.
+      osalMemHdr_t *next = (osalMemHdr_t *)((uint8 *)hdr + size);
+      next->val = tmp;                     // Set 'len' & clear 'inUse' field.
+      hdr->val = (size | OSALMEM_IN_USE);  // Set 'len' & 'inUse' field.
 
 #if ( OSALMEM_METRICS )
-		if ( memMax < memAlo ){
-			memMax = memAlo;
-		}
+      blkCnt++;
+      if ( blkMax < blkCnt )
+      {
+        blkMax = blkCnt;
+      }
+      memAlo += size;
+#endif
+    }
+    else
+    {
+#if ( OSALMEM_METRICS )
+      memAlo += hdr->hdr.len;
+      blkFree--;
+#endif
+
+      hdr->hdr.inUse = TRUE;
+    }
+
+#if ( OSALMEM_METRICS )
+    if ( memMax < memAlo )
+    {
+      memMax = memAlo;
+    }
 #endif
 
 #if ( OSALMEM_PROFILER )
 #if !OSALMEM_PROFILER_LL
-    	if (osalMemStat != 0)  // Don't profile until after the LL block is filled.
+    if (osalMemStat != 0)  // Don't profile until after the LL block is filled.
 #endif
- 		{
-			uint8 idx;
+    {
+      uint8 idx;
 
-			for ( idx = 0; idx < OSALMEM_PROMAX; idx++ ){
-				if ( hdr->hdr.len <= proCnt[idx] ) {
-					break;
-				}
-			}
-			proCur[idx]++;
-			if ( proMax[idx] < proCur[idx] ) {
-				proMax[idx] = proCur[idx];
-			}
-			proTot[idx]++;
+      for ( idx = 0; idx < OSALMEM_PROMAX; idx++ )
+      {
+        if ( hdr->hdr.len <= proCnt[idx] )
+        {
+          break;
+        }
+      }
+      proCur[idx]++;
+      if ( proMax[idx] < proCur[idx] )
+      {
+        proMax[idx] = proCur[idx];
+      }
+      proTot[idx]++;
 
-		  /* A small-block could not be allocated in the small-block bucket.
-		   * When this occurs significantly frequently, increase the size of the bucket in order to restore better worst case run times. Set the first
-		   * profiling bucket size in proCnt[] to the small-block bucket size and divide proSmallBlkMiss by the corresponding proTot[] size to get % miss.
-		   * Best worst case time on TrasmitApp was achieved at a 0-15% miss rate during steady state Tx load, 0% during idle and steady state Rx load.
-		   */
-			if ((hdr->hdr.len <= OSALMEM_SMALL_BLKSZ) && (hdr >= (theHeap + OSALMEM_BIGBLK_IDX))) {
-				proSmallBlkMiss++;
-			}
-		}
+      /* A small-block could not be allocated in the small-block bucket.
+       * When this occurs significantly frequently, increase the size of the
+       * bucket in order to restore better worst case run times. Set the first
+       * profiling bucket size in proCnt[] to the small-block bucket size and
+       * divide proSmallBlkMiss by the corresponding proTot[] size to get % miss.
+       * Best worst case time on TrasmitApp was achieved at a 0-15% miss rate
+       * during steady state Tx load, 0% during idle and steady state Rx load.
+       */
+      if ((hdr->hdr.len <= OSALMEM_SMALL_BLKSZ) && (hdr >= (theHeap + OSALMEM_BIGBLK_IDX)))
+      {
+        proSmallBlkMiss++;
+      }
+    }
 
-		(void)osal_memset((uint8 *)(hdr+1), OSALMEM_ALOC, (hdr->hdr.len - OSALMEM_HDRSZ));
+    (void)osal_memset((uint8 *)(hdr+1), OSALMEM_ALOC, (hdr->hdr.len - OSALMEM_HDRSZ));
 #endif
-		if ((osalMemStat != 0) && (ff1 == hdr)){
-			ff1 = (osalMemHdr_t *)((uint8 *)hdr + hdr->hdr.len);
-		}
 
-		hdr++;
-	}
+    if ((osalMemStat != 0) && (ff1 == hdr))
+    {
+      ff1 = (osalMemHdr_t *)((uint8 *)hdr + hdr->hdr.len);
+    }
 
- 	HAL_EXIT_CRITICAL_SECTION( intState );  // Re-enable interrupts.
+    hdr++;
+  }
 
-#if !defined ( ZBIT )
-#pragma diag_suppress=Pe767
-	HAL_ASSERT(((halDataAlign_t)hdr % sizeof(halDataAlign_t)) == 0);
-#pragma diag_default=Pe767
-#else
- 	HAL_ASSERT(((halDataAlign_t)hdr % sizeof(halDataAlign_t)) == 0);
-#endif
+  HAL_EXIT_CRITICAL_SECTION( intState );  // Re-enable interrupts.
+
+  HAL_ASSERT(((size_t)hdr % sizeof(halDataAlign_t)) == 0);
+
 #ifdef DPRINTF_OSALHEAPTRACE
   dprintf("osal_mem_alloc(%u)->%lx:%s:%u\n", size, (unsigned) hdr, fname, lnum);
 #endif /* DPRINTF_OSALHEAPTRACE */
-	if (hdr == NULL){
-		prindDebugInfo();
-	}
-	return (void *)hdr;
-}
-
-void prindDebugInfo(void){
-	uint16 sizeAllocated=0;
-	uint16 sizeFree=0;
-	uint16 blockFree=0;
-	uint16 maxFreeBlock=0;
-	osalMemHdr_t *tmp = (theHeap + OSALMEM_BIGBLK_IDX);
-
-	while(true){
-	if ( tmp->hdr.inUse ){
-		sizeAllocated += tmp->hdr.len;
-	}  else {
-		if (maxFreeBlock < tmp->hdr.len){
-			maxFreeBlock = tmp->hdr.len;
-		}
-		sizeFree += tmp->hdr.len;
-		blockFree++;
-	}
-	tmp = (osalMemHdr_t *)((uint8 *)tmp + tmp->hdr.len);
-
-	if ( tmp->val == 0 ) {
-		break;
-	}
-	}
-	
+  return (void *)hdr;
 }
 
 /**************************************************************************************************
@@ -495,25 +514,23 @@ void osal_mem_free_dbg(void *ptr, const char *fname, unsigned lnum)
 void osal_mem_free(void *ptr)
 #endif /* DPRINTF_OSALHEAPTRACE */
 {
-	if (ptr == NULL){
-		return;
-	}
-	osalMemHdr_t *hdr = (osalMemHdr_t *)ptr - 1;
-	halIntState_t intState;
+  osalMemHdr_t *hdr = (osalMemHdr_t *)ptr - 1;
+  halIntState_t intState;
 
 #ifdef DPRINTF_OSALHEAPTRACE
-	dprintf("osal_mem_free(%lx):%s:%u\n", (unsigned) ptr, fname, lnum);
+  dprintf("osal_mem_free(%lx):%s:%u\n", (unsigned) ptr, fname, lnum);
 #endif /* DPRINTF_OSALHEAPTRACE */
 
-	HAL_ASSERT(((uint8 *)ptr >= (uint8 *)theHeap) && ((uint8 *)ptr < (uint8 *)theHeap+MAXMEMHEAP));
-	HAL_ASSERT(hdr->hdr.inUse);
+  HAL_ASSERT(((uint8 *)ptr >= (uint8 *)theHeap) && ((uint8 *)ptr < (uint8 *)theHeap+MAXMEMHEAP));
+  HAL_ASSERT(hdr->hdr.inUse);
 
-	HAL_ENTER_CRITICAL_SECTION( intState );  // Hold off interrupts.
-	hdr->hdr.inUse = FALSE;
+  HAL_ENTER_CRITICAL_SECTION( intState );  // Hold off interrupts.
+  hdr->hdr.inUse = FALSE;
 
-	if (ff1 > hdr){
-		ff1 = hdr;
-	}
+  if (ff1 > hdr)
+  {
+    ff1 = hdr;
+  }
 
 #if OSALMEM_PROFILER
 #if !OSALMEM_PROFILER_LL
@@ -536,11 +553,11 @@ void osal_mem_free(void *ptr)
   (void)osal_memset((uint8 *)(hdr+1), OSALMEM_REIN, (hdr->hdr.len - OSALMEM_HDRSZ) );
 #endif
 #if OSALMEM_METRICS
-	memAlo -= hdr->hdr.len;
-	blkFree++;
+  memAlo -= hdr->hdr.len;
+  blkFree++;
 #endif
 
-	HAL_EXIT_CRITICAL_SECTION( intState );  // Re-enable interrupts.
+  HAL_EXIT_CRITICAL_SECTION( intState );  // Re-enable interrupts.
 }
 
 #if OSALMEM_METRICS

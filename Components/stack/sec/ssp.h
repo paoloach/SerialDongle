@@ -1,12 +1,12 @@
 /**************************************************************************************************
   Filename:       ssp.h
-  Revised:        $Date: 2013-09-26 15:41:00 -0700 (Thu, 26 Sep 2013) $
-  Revision:       $Revision: 35469 $
+  Revised:        $Date: 2014-11-18 02:32:26 -0800 (Tue, 18 Nov 2014) $
+  Revision:       $Revision: 41160 $
 
   Description:    Security Service Provider (SSP) interface
 
 
-  Copyright 2004-2013 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2004-2014 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -57,13 +57,20 @@ extern "C"
 /*********************************************************************
  * CONSTANTS
  */
-#define SSP_APPLY  0
-#define SSP_REMOVE 1
+#define SSP_APPLY         0
+#define SSP_REMOVE        1
+#define SSP_REMOVE_RETRY  2
 
 // Auxiliary header field lengths
 #define FRAME_COUNTER_LEN 4
-
+//Threshold after which the frame counter will be reset if a valid APSME-SWITCH-KEY is processed.
+#define NWK_FRAME_COUNTER_RESET_THRESHOLD  0x80000000
+  
 #define SEC_KEY_LEN  16  // 128/8 octets (128-bit key is standard for ZigBee)
+#define INSTALL_CODE_LEN      16
+#define INSTALL_CODE_CRC_LEN  2  
+#define BITS_PER_BYTE         8
+#define APS_MIC_LEN           4
 
 // Security Key Indentifiers
 #define SEC_KEYID_LINK      0x00
@@ -116,6 +123,7 @@ extern "C"
 // Error value used when security key NV ID is not available
 #define SEC_NO_KEY_NV_ID        0
 
+ 
 /*********************************************************************
  * TYPEDEFS
  */
@@ -172,13 +180,17 @@ typedef struct
   uint32 frmCntr;
   uint8  auxLen;
   uint8  micLen;
+  uint8  dstExtAddr[Z_EXTADDR_LEN];
+  bool   distributedKeyTry;  //Attempting to validate if TransportKey uses distributed key
+  bool   defaultKeyTry;      //Attempting to validate if TransportKey uses default key when install code is in use
+  uint8  seedShift;
 } SSP_Info_t;
 
 /*********************************************************************
  * GLOBAL VARIABLES
  */
 extern uint32 nwkFrameCounter;
-
+extern uint32 distributedFrameCounter;
 extern uint16 nwkFrameCounterChanges;
 
 /*********************************************************************
@@ -249,6 +261,11 @@ extern void SSP_SwitchNwkKey( uint8 seqNum );
 extern void SSP_BuildNonce( uint8 *addr, uint32 frameCntr, uint8 secCtrl, uint8 *nonce );
 
 extern uint8 SSP_GetMicLen( uint8 securityLevel );
+
+/*
+ * Duplicate osal_memcpy functionality, but reverse copy
+ */
+extern uint8* SSP_MemCpyReverse( uint8* dst, uint8* src, unsigned int len );
 
 /*********************************************************************
 *********************************************************************/

@@ -1,12 +1,12 @@
 /**************************************************************************************************
   Filename:       mac_mcu.h
-  Revised:        $Date: 2013-05-17 11:25:11 -0700 (Fri, 17 May 2013) $
-  Revision:       $Revision: 34355 $
+  Revised:        $Date: 2014-09-15 17:04:05 -0700 (Mon, 15 Sep 2014) $
+  Revision:       $Revision: 40157 $
 
   Description:    Describe the purpose and contents of the file.
 
 
-  Copyright 2006-2012 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2006-2014 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -107,7 +107,9 @@
 #define TXACK           BV(0)
 
 /* RFERRM and RFERRF */
+#define RFERR_NLOCK     BV(0)
 #define RFERR_RXOVERF   BV(2)
+#define RFERR_STROBEERR BV(6)
 
 
 /* ------------------------------------------------------------------------------------------------
@@ -139,8 +141,8 @@
 #define MAC_MCU_CSP_INT_CLEAR_INTERRUPT()             MAC_MCU_WRITE_RFIRQF1(~IRQ_CSP_MANINT)
 #define MAC_MCU_CSP_INT_INTERRUPT_IS_ENABLED()        (RFIRQM1 & IM_CSP_MANINT)
 
-#define MAC_MCU_RFERR_ENABLE_INTERRUPT()              st( RFERRM |=  RFERR_RXOVERF; )
-#define MAC_MCU_RFERR_DISABLE_INTERRUPT()             st( RFERRM &= ~RFERR_RXOVERF; )
+#define MAC_MCU_RFERR_ENABLE_INTERRUPT()              st( RFERRM |=  (RFERR_RXOVERF | RFERR_NLOCK | RFERR_STROBEERR); )
+#define MAC_MCU_RFERR_DISABLE_INTERRUPT()             st( RFERRM &= ~(RFERR_RXOVERF | RFERR_NLOCK | RFERR_STROBEERR); )   
 
 
 /* ------------------------------------------------------------------------------------------------
@@ -196,8 +198,10 @@ MAC_INTERNAL_API uint8 macMcuRandomByte(void);
 MAC_INTERNAL_API uint16 macMcuRandomWord(void);
 MAC_INTERNAL_API void macMcuTimerForceDelay(uint16 count);
 MAC_INTERNAL_API uint16 macMcuTimerCapture(void);
+MAC_INTERNAL_API uint16 macMcuTimerCaptureCurrent(void);
 MAC_INTERNAL_API uint32 macMcuOverflowCount(void);
 MAC_INTERNAL_API uint32 macMcuOverflowCapture(void);
+MAC_INTERNAL_API uint32 macMcuOverflowCaptureCurrent(void);
 MAC_INTERNAL_API void macMcuOverflowSetCount(uint32 count);
 MAC_INTERNAL_API void macMcuOverflowSetCompare(uint32 count);
 MAC_INTERNAL_API void macMcuOverflowSetPeriod(uint32 count);

@@ -1,7 +1,7 @@
 /**************************************************************************************************
   Filename:       AF.c
-  Revised:        $Date: 2014-06-30 16:29:17 -0700 (Mon, 30 Jun 2014) $
-  Revision:       $Revision: 39295 $
+  Revised:        $Date: 2014-11-04 10:53:36 -0800 (Tue, 04 Nov 2014) $
+  Revision:       $Revision: 40974 $
 
   Description:    Application Framework - Device Description helper functions
 
@@ -41,7 +41,6 @@
  * INCLUDES
  */
 
-#include "hal_board_cfg.h"
 #include "OSAL.h"
 #include "AF.h"
 #include "nwk_globals.h"
@@ -57,6 +56,11 @@
 
 #if defined ( INTER_PAN )
   #include "stub_aps.h"
+#endif
+
+#include "bdb.h" 
+#if (BDB_TOUCHLINK_CAPABILITY_ENABLED==1)
+  #include "bdb_tlCommissioning.h"
 #endif
 
 /*********************************************************************
@@ -151,8 +155,36 @@ epList_t *afRegisterExtended( endPointDesc_t *epDesc, pDescCB descFn, pApplCB ap
     ep->apsfCfg.windowSize = APSF_DEFAULT_WINDOW_SIZE;
     ep->flags = eEP_AllowMatch;  // Default to allow Match Descriptor.
     ep->pfnApplCB = applFn;
-  }
+    
+  #if (BDB_FINDING_BINDING_CAPABILITY_ENABLED==1) 
+    //Make sure we add at least one application endpoint
+    if ((epDesc->endPoint != 0)  || (epDesc->endPoint < BDB_ZIGBEE_RESERVED_ENDPOINTS_START))
+    {
+      bdb_HeadEpDescriptorList = epList;
+      ep->epDesc->epType = bdb_zclFindingBindingEpType(ep->epDesc);
+    }
 
+  #endif
+#if defined ( BDB_TL_INITIATOR ) || defined ( BDB_TL_TARGET )
+    // find the first empty entry in the device info table
+    for ( uint8 i = 0; i < 5; i++ )
+    {
+      if ( touchLinkSubDevicesTbl[i] == NULL )
+      {
+        touchLinkSubDevicesTbl[i] = osal_mem_alloc(sizeof(bdbTLDeviceInfo_t));
+        if ( touchLinkSubDevicesTbl[i] != NULL )
+        {
+          touchLinkSubDevicesTbl[i]->deviceID = epDesc->simpleDesc->AppDeviceId;
+          touchLinkSubDevicesTbl[i]->endpoint = epDesc->simpleDesc->EndPoint;
+          touchLinkSubDevicesTbl[i]->profileID = epDesc->simpleDesc->AppProfId;
+          touchLinkSubDevicesTbl[i]->version = epDesc->simpleDesc->AppDevVer;
+          break;
+        }
+      }
+    }
+#endif  // BDB_TL_INITIATOR || BDB_TL_TARGET
+  }
+ 
   return ep;
 }
 
@@ -292,21 +324,23 @@ void afDataConfirm( uint8 endPoint, uint8 transID, ZStatus_t status )
  * @brief       This function will generate the Reflect Error message to
  *              the application.
  *
+ * @param       srcEP - Source Endpoint
  * @param       dstAddrMode - mode of dstAdd - 0 - normal short addr, 1 - group Address
  * @param       dstAddr - intended destination
- * @param       endPoint - confirm end point
+ * @param       dstEP - Destination Endpoint
  * @param       transID - transaction ID from APSDE_DATA_REQUEST
  * @param       status - status of APSDE_DATA_REQUEST
  *
  * @return      none
  */
-void afReflectError( uint8 dstAddrMode, uint16 dstAddr, uint8 endPoint, uint8 transID, ZStatus_t status )
+void afReflectError( uint8 srcEP, uint8 dstAddrMode, uint16 dstAddr, uint8 dstEP,
+                     uint8 transID, ZStatus_t status )
 {
   endPointDesc_t *epDesc;
   afReflectError_t *msgPtr;
 
   // Find the endpoint description
-  epDesc = afFindEndPointDesc( endPoint );
+  epDesc = afFindEndPointDesc( srcEP );
   if ( epDesc == NULL )
     return;
 
@@ -317,7 +351,7 @@ void afReflectError( uint8 dstAddrMode, uint16 dstAddr, uint8 endPoint, uint8 tr
     // Build the Data Confirm message
     msgPtr->hdr.event = AF_REFLECT_ERROR_CMD;
     msgPtr->hdr.status = status;
-    msgPtr->endpoint = endPoint;
+    msgPtr->endpoint = dstEP;
     msgPtr->transID = transID;
     msgPtr->dstAddrMode = dstAddrMode;
     msgPtr->dstAddr = dstAddr;
@@ -356,88 +390,114 @@ void afReflectError( uint8 dstAddrMode, uint16 dstAddr, uint8 endPoint, uint8 tr
  *
  * @return      none
  */
-void afIncomingData( aps_FrameFormat_t *aff, zAddrType_t *SrcAddress, uint16 SrcPanId, NLDE_Signal_t *sig, uint8 nwkSeqNum, uint8 SecurityUse, uint32 timestamp, uint8 radius ){
-	endPointDesc_t *epDesc = NULL;
-	epList_t *pList = epList;
-	#if !defined ( APS_NO_GROUPS )
- 	  uint8 grpEp = APS_GROUPS_EP_NOT_FOUND;
-	#endif
- 
- 	if ( ((aff->FrmCtrl & APS_DELIVERYMODE_MASK) == APS_FC_DM_GROUP) )  {
-		#if !defined ( APS_NO_GROUPS )
-		// Find the first endpoint for this group
-		  grpEp = aps_FindGroupForEndpoint( aff->GroupID, APS_GROUPS_FIND_FIRST );
-		  if ( grpEp == APS_GROUPS_EP_NOT_FOUND )
-		  	return;   // No endpoint found
+void afIncomingData( aps_FrameFormat_t *aff, zAddrType_t *SrcAddress, uint16 SrcPanId,
+                     NLDE_Signal_t *sig, uint8 nwkSeqNum, uint8 SecurityUse,
+                     uint32 timestamp, uint8 radius )
+{
+  endPointDesc_t *epDesc = NULL;
+  epList_t *pList = epList;
+#if !defined ( APS_NO_GROUPS )
+  uint8 grpEp = APS_GROUPS_EP_NOT_FOUND;
+#endif
 
-		  epDesc = afFindEndPointDesc( grpEp );
-		  if ( epDesc == NULL )
-			return;   // Endpoint descriptor not found
+  if ( ((aff->FrmCtrl & APS_DELIVERYMODE_MASK) == APS_FC_DM_GROUP) )
+  {
+#if !defined ( APS_NO_GROUPS )
+    // Find the first endpoint for this group
+    grpEp = aps_FindGroupForEndpoint( aff->GroupID, APS_GROUPS_FIND_FIRST );
+    if ( grpEp == APS_GROUPS_EP_NOT_FOUND )
+      return;   // No endpoint found
 
-		  pList = afFindEndPointDescList( epDesc->endPoint );
-		#else
-		  return; // Not supported
-		#endif
-	} else if ( aff->DstEndPoint == AF_BROADCAST_ENDPOINT ) {
-		// Set the list
-		if ( pList != NULL ){
-			epDesc = pList->epDesc;
-		}
-	} else if ( (epDesc = afFindEndPointDesc( aff->DstEndPoint )) ) {
-    	pList = afFindEndPointDescList( epDesc->endPoint );
-	}
+    epDesc = afFindEndPointDesc( grpEp );
+    if ( epDesc == NULL )
+      return;   // Endpoint descriptor not found
 
-	while ( epDesc ) {
- 		uint16 epProfileID = 0xFFFE;  // Invalid Profile ID
-
-		if ( pList->pfnDescCB ){
-			uint16 *pID = (uint16 *)(pList->pfnDescCB(AF_DESCRIPTOR_PROFILE_ID, epDesc->endPoint ));
-			if ( pID ){
-				epProfileID = *pID;
-				osal_mem_free( pID );
-			}
-		} else if ( epDesc->simpleDesc ){
-			epProfileID = epDesc->simpleDesc->AppProfId;
-		}
-
-		// First part of verification is to make sure that:
-		// the local Endpoint ProfileID matches the received ProfileID OR
-		// the message is specifically send to ZDO (this excludes the broadcast endpoint) OR
-		// if the Wildcard ProfileID is received the message should not be sent to ZDO endpoint
-		if ( (aff->ProfileID == epProfileID) || ((epDesc->endPoint == ZDO_EP) && (aff->ProfileID == ZDO_PROFILE_ID)) || ((epDesc->endPoint != ZDO_EP) && ( aff->ProfileID == ZDO_WILDCARD_PROFILE_ID )) ) {
-			// Save original endpoint
-			uint8 endpoint = aff->DstEndPoint;
-			// overwrite with descriptor's endpoint
-			aff->DstEndPoint = epDesc->endPoint;
-			afBuildMSGIncoming( aff, epDesc, SrcAddress, SrcPanId, sig, nwkSeqNum, SecurityUse, timestamp, radius );
-			// Restore with original endpoint
-			aff->DstEndPoint = endpoint;
-		}
-
-		if ( ((aff->FrmCtrl & APS_DELIVERYMODE_MASK) == APS_FC_DM_GROUP) )  {
-		#if !defined ( APS_NO_GROUPS )
-		  // Find the next endpoint for this group
-			grpEp = aps_FindGroupForEndpoint( aff->GroupID, grpEp );
-			if ( grpEp == APS_GROUPS_EP_NOT_FOUND )
-				return;   // No endpoint found
-
-			epDesc = afFindEndPointDesc( grpEp );
-			if ( epDesc == NULL )
-				return;   // Endpoint descriptor not found
-
-			 pList = afFindEndPointDescList( epDesc->endPoint );
-		#else
-			 return;
-		#endif
-		} else if ( aff->DstEndPoint == AF_BROADCAST_ENDPOINT ) {
-			pList = pList->nextDesc;
-			if ( pList )
-				epDesc = pList->epDesc;
-			else
-				epDesc = NULL;
-		} else
-		  epDesc = NULL;
+    pList = afFindEndPointDescList( epDesc->endPoint );
+#else
+    return; // Not supported
+#endif
+  }
+  else if ( aff->DstEndPoint == AF_BROADCAST_ENDPOINT )
+  {
+    // Set the list
+    if ( pList != NULL )
+    {
+      epDesc = pList->epDesc;
     }
+  }
+  else if ( (epDesc = afFindEndPointDesc( aff->DstEndPoint )) )
+  {
+    pList = afFindEndPointDescList( epDesc->endPoint );
+  }
+
+  while ( epDesc )
+  {
+    uint16 epProfileID = 0xFFFE;  // Invalid Profile ID
+
+    if ( pList->pfnDescCB )
+    {
+      uint16 *pID = (uint16 *)(pList->pfnDescCB(
+                                 AF_DESCRIPTOR_PROFILE_ID, epDesc->endPoint ));
+      if ( pID )
+      {
+        epProfileID = *pID;
+        osal_mem_free( pID );
+      }
+    }
+    else if ( epDesc->simpleDesc )
+    {
+      epProfileID = epDesc->simpleDesc->AppProfId;
+    }
+
+    // First part of verification is to make sure that:
+    // the local Endpoint ProfileID matches the received ProfileID OR
+    // the message is specifically send to ZDO (this excludes the broadcast endpoint) OR
+    // if the Wildcard ProfileID is received the message should not be sent to ZDO endpoint
+    if ( (aff->ProfileID == epProfileID) ||
+         ((epDesc->endPoint == ZDO_EP) && (aff->ProfileID == ZDO_PROFILE_ID)) ||
+         ((epDesc->endPoint != ZDO_EP) && ( aff->ProfileID == ZDO_WILDCARD_PROFILE_ID )) )
+    {
+      // Save original endpoint
+      uint8 endpoint = aff->DstEndPoint;
+
+      // overwrite with descriptor's endpoint
+      aff->DstEndPoint = epDesc->endPoint;
+
+      afBuildMSGIncoming( aff, epDesc, SrcAddress, SrcPanId, sig,
+                         nwkSeqNum, SecurityUse, timestamp, radius );
+
+      // Restore with original endpoint
+      aff->DstEndPoint = endpoint;
+    }
+
+    if ( ((aff->FrmCtrl & APS_DELIVERYMODE_MASK) == APS_FC_DM_GROUP) )
+    {
+#if !defined ( APS_NO_GROUPS )
+      // Find the next endpoint for this group
+      grpEp = aps_FindGroupForEndpoint( aff->GroupID, grpEp );
+      if ( grpEp == APS_GROUPS_EP_NOT_FOUND )
+        return;   // No endpoint found
+
+      epDesc = afFindEndPointDesc( grpEp );
+      if ( epDesc == NULL )
+        return;   // Endpoint descriptor not found
+
+      pList = afFindEndPointDescList( epDesc->endPoint );
+#else
+      return;
+#endif
+    }
+    else if ( aff->DstEndPoint == AF_BROADCAST_ENDPOINT )
+    {
+      pList = pList->nextDesc;
+      if ( pList )
+        epDesc = pList->epDesc;
+      else
+        epDesc = NULL;
+    }
+    else
+      epDesc = NULL;
+  }
 }
 
 /*********************************************************************
@@ -543,8 +603,6 @@ afStatus_t AF_DataRequest( afAddrType_t *dstAddr, endPointDesc_t *srcEP,
   APSDE_DataReq_t req;
   afDataReqMTU_t mtu;
   epList_t *pList;
-  
-
 
   // Verify source end point
   if ( srcEP == NULL )
@@ -558,6 +616,9 @@ afStatus_t AF_DataRequest( afAddrType_t *dstAddr, endPointDesc_t *srcEP,
     return afStatus_INVALID_PARAMETER;
   }
 #endif
+  
+  // copy the addressing mode, to get the length of the packet
+  mtu.aps.addressingMode = dstAddr->addrMode; 
 
   // Check if route is available before sending data
   if ( options & AF_LIMIT_CONCENTRATOR  )
@@ -726,8 +787,8 @@ afStatus_t AF_DataRequest( afAddrType_t *dstAddr, endPointDesc_t *srcEP,
     }
     else
     {
-	  stat = APSDE_DataReq( &req );
-	}
+      stat = APSDE_DataReq( &req );
+    }
   }
 
   /*
@@ -753,7 +814,7 @@ afStatus_t AF_DataRequest( afAddrType_t *dstAddr, endPointDesc_t *srcEP,
   return (afStatus_t)stat;
 }
 
-#if defined ( ZIGBEE_SOURCE_ROUTING )
+#if defined ( ZIGBEEPRO )
 /*********************************************************************
  * @fn      AF_DataRequestSrcRtg
  *
@@ -809,7 +870,7 @@ afStatus_t AF_DataRequestSrcRtg( afAddrType_t *dstAddr, endPointDesc_t *srcEP,
   return status;
 }
 
-#endif
+#endif // ZIGBEEPRO
 
 /*********************************************************************
  * @fn      afFindEndPointDescList

@@ -12,4 +12,5 @@ void requestActiveEndpoints(uint8 * data) {
 	if (ret != ZSuccess){
 		serialSendActiveEPError(destAddr.addr.shortAddr, ret);
 	}
+	
 }

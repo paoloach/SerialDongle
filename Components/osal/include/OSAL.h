@@ -1,7 +1,7 @@
 /******************************************************************************
   Filename:     OSAL.h
-  Revised:      $Date: 2014-05-06 09:41:18 -0700 (Tue, 06 May 2014) $
-  Revision:     $Revision: 38415 $
+  Revised:      $Date: 2014-06-30 16:38:56 -0700 (Mon, 30 Jun 2014) $
+  Revision:     $Revision: 39297 $
 
   Description:  This API allows the software components in the Z-Stack to be
                 written independently of the specifics of the operating system,
@@ -58,6 +58,10 @@ extern "C"
 #include "OSAL_Memory.h"
 #include "OSAL_Timers.h"
 
+#ifdef USE_ICALL
+#include <ICall.h>
+#endif /* USE_ICALL */
+
 /*********************************************************************
  * MACROS
  */
@@ -89,12 +93,21 @@ extern "C"
 /*********************************************************************
  * TYPEDEFS
  */
+#ifdef USE_ICALL
+typedef ICall_MsgHdr osal_msg_hdr_t;
+#else /* USE_ICALL */
 typedef struct
 {
   void   *next;
+#ifdef OSAL_PORT2TIRTOS
+  /* Limited OSAL port to TI-RTOS requires compatibility with ROM
+   * code compiled with USE_ICALL compile flag.  */
+  uint32 reserved;
+#endif /* OSAL_PORT2TIRTOS */
   uint16 len;
   uint8  dest_id;
 } osal_msg_hdr_t;
+#endif /* USE_ICALL */
 
 typedef struct
 {
@@ -104,9 +117,21 @@ typedef struct
 
 typedef void * osal_msg_q_t;
 
+#ifdef USE_ICALL
+/* High resolution timer callback function type */
+typedef void (*osal_highres_timer_cback_t)(void *arg);
+#endif /* USE_ICALL */
+
 /*********************************************************************
  * GLOBAL VARIABLES
  */
+#ifdef USE_ICALL
+extern ICall_Semaphore osal_semaphore;
+extern ICall_EntityID osal_entity;
+extern uint_least32_t osal_tickperiod;
+extern void (*osal_eventloop_hook)(void);
+#endif /* USE_ICALL */
+
 
 /*********************************************************************
  * FUNCTIONS
@@ -117,12 +142,7 @@ typedef void * osal_msg_q_t;
   /*
    * Task Message Allocation
    */
-#ifdef __DEBUG__
-  extern uint8 * osal_msg_allocate_dbg(uint16 len , const char * , uint16 linenum);
-#define osal_msg_allocate( len ) osal_msg_allocate_dbg(len, __FILE__,__LINE__)
-#else  
   extern uint8 * osal_msg_allocate(uint16 len );
-#endif
 
   /*
    * Task Message Deallocation
@@ -179,6 +199,10 @@ typedef void * osal_msg_q_t;
    */
   extern void osal_msg_extract( osal_msg_q_t *q_ptr, void *msg_ptr, void *prev_ptr );
 
+#ifdef USE_ICALL
+  extern ICall_Errno osal_service_entry(ICall_FuncArgsHdr *args);
+#endif /* USE_ICALL */
+
 
 /*** Task Synchronization  ***/
 
@@ -213,6 +237,25 @@ typedef void * osal_msg_q_t;
 
 
 /*** Task Management  ***/
+
+#ifdef USE_ICALL
+  /*
+   * Enroll dispatcher registered entity ID
+   */
+  extern void osal_enroll_dispatchid(uint8 taskid,
+                                     ICall_EntityID dispatchid);
+
+  /*
+   * Enroll an OSAL task to use another OSAL task's enrolled entity ID
+   * when sending a message.
+   */
+  extern void osal_enroll_senderid(uint8 taskid, ICall_EntityID dispatchid);
+
+  /*
+   * Enroll entity ID to be used as sender entity ID for non OSAL task
+   */
+  extern void osal_enroll_notasksender(ICall_EntityID dispatchid);
+#endif /* USE_ICALL */
 
   /*
    * Initialize the Task System

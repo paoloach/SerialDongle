@@ -22,15 +22,11 @@ extern uint16 rxDataOutOfBuffer;
 extern uint16 rxDataError;
 extern uint8 errorData[20];
 extern uint8 errorDataIndex;
-extern uint8 sizeData[10];
-extern uint8 sizeDataIndex;
 
 extern uint8 allocation;
 extern uint8 deallocation;
 extern uint16 bufferMap;
 
-extern uint8 cmdData[10];
-extern uint8 cmdDataIndex;
 extern uint16 rxDataUsed;
 extern uint16 rxDataUsedMax;
 
@@ -43,15 +39,11 @@ void sendAliveMsg(void) {
 	uint8 * iter ;
 	struct DataSend * dataSend;
 	
-	if (19+errorDataIndex+sizeDataIndex+cmdDataIndex + 5 > SEND_ALIVE_DATA){
-		cmdDataIndex=0;
-		sizeDataIndex=0;
-		if (19+errorDataIndex+ 5 > SEND_ALIVE_DATA){
-			errorDataIndex=0;
-		}
+	if (19+errorDataIndex + 5 > SEND_ALIVE_DATA){
+		errorDataIndex=0;
 	}
 
-	uint16 size = 19+errorDataIndex+sizeDataIndex+cmdDataIndex;
+	uint16 size = 19+errorDataIndex;
 	dataSend = getPrivateSendBuffer(data, size);
 	if (dataSend == NULL)
 		return;
@@ -74,22 +66,12 @@ void sendAliveMsg(void) {
 		*iter = errorData[i];
 		iter++;
 	}
-	*iter = sizeDataIndex;
+	*iter = 0;
 	iter++;
-	for(uint8 i=0; i< sizeDataIndex; i++){
-		*iter = sizeData[i];
-		iter++;
-	}
-	*iter = cmdDataIndex;
+	*iter = 0;
 	iter++;
-	for(uint8 i=0; i< cmdDataIndex; i++){
-		*iter = cmdData[i];
-		iter++;
-	}	
 	
 	send(MSG_ALIVE, dataSend);
 	
 	errorDataIndex=0;
-	sizeDataIndex=0;
-	cmdDataIndex=0;
 }

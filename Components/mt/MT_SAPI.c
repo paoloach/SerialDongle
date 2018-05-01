@@ -1,12 +1,11 @@
 /**************************************************************************************************
   Filename:       MT_SAPI.c
-  Revised:        $Date: 2012-11-21 06:19:37 -0800 (Wed, 21 Nov 2012) $
-  Revision:       $Revision: 32270 $
+  Revised:        $Date: 2015-02-05 17:15:13 -0800 (Thu, 05 Feb 2015) $
+  Revision:       $Revision: 42371 $
 
   Description:    MonitorTest functions for the Simple API.
 
-
-  Copyright 2007-2012 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2007-2015 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -57,22 +56,22 @@
 uint16 _sapiCallbackSub;
 #endif
 
+#if defined ( MT_SAPI_FUNC )
 /***************************************************************************************************
  * LOCAL FUNCTIONS
  ***************************************************************************************************/
-void MT_SapiSystemReset(uint8 *pBuf);
-void MT_SapiStart(uint8* pBuf);
-void MT_SapiBindDevice(uint8 *pBuf);
-void MT_SapiAllowBind(uint8 *pBuf);
-void MT_SapiSendData(uint8 *pBuf);
-void MT_SapiReadCfg(uint8 *pBuf);
-void MT_SapiWriteCfg(uint8 *pBuf);
-void MT_SapiGetDevInfo(uint8 *pBuf);
-void MT_SapiFindDev(uint8 *pBuf);
-void MT_SapiPermitJoin(uint8 *pBuf);
-void MT_SapiAppRegister(uint8 *pBuf);
+static void MT_SapiSystemReset(uint8 *pBuf);
+static void MT_SapiStart(uint8* pBuf);
+static void MT_SapiBindDevice(uint8 *pBuf);
+static void MT_SapiAllowBind(uint8 *pBuf);
+static void MT_SapiSendData(uint8 *pBuf);
+static void MT_SapiReadCfg(uint8 *pBuf);
+static void MT_SapiWriteCfg(uint8 *pBuf);
+static void MT_SapiGetDevInfo(uint8 *pBuf);
+static void MT_SapiFindDev(uint8 *pBuf);
+static void MT_SapiPermitJoin(uint8 *pBuf);
+static void MT_SapiAppRegister(uint8 *pBuf);
 
-#if defined ( MT_SAPI_FUNC )
 /***************************************************************************************************
  * @fn      MT_sapiCommandProcessing
  *
@@ -149,7 +148,7 @@ uint8 MT_SapiCommandProcessing(uint8 *pBuf)
  *
  * @return      none
  ***************************************************************************************************/
-void MT_SapiSystemReset(uint8 *pBuf)
+static void MT_SapiSystemReset(uint8 *pBuf)
 {
   zb_SystemReset();
 }
@@ -163,7 +162,7 @@ void MT_SapiSystemReset(uint8 *pBuf)
  *
  * @return      none
  ***************************************************************************************************/
-void MT_SapiStart(uint8 *pBuf)
+static void MT_SapiStart(uint8 *pBuf)
 {
   zb_StartRequest();
 
@@ -179,7 +178,7 @@ void MT_SapiStart(uint8 *pBuf)
  *
  * @return      none
  ***************************************************************************************************/
-void MT_SapiAppRegister(uint8 *pBuf)
+static void MT_SapiAppRegister(uint8 *pBuf)
 {
   uint8 ret = ZApsIllegalRequest;
 
@@ -213,7 +212,7 @@ void MT_SapiAppRegister(uint8 *pBuf)
  *
  * @return      none
  ***************************************************************************************************/
-void MT_SapiBindDevice(uint8 *pBuf)
+static void MT_SapiBindDevice(uint8 *pBuf)
 {
   uint8 cmdId;
 
@@ -223,11 +222,11 @@ void MT_SapiBindDevice(uint8 *pBuf)
 
   if (AddrMgrExtAddrValid(pBuf+3))
   {
-    zb_BindDevice(pBuf[0], BUILD_UINT16(pBuf[1], pBuf[2]), &pBuf[3]);
+    zb_BindDevice(pBuf[0], osal_build_uint16( &pBuf[1] ), &pBuf[3]);
   }
   else
   {
-    zb_BindDevice(pBuf[0], BUILD_UINT16(pBuf[1], pBuf[2]), (uint8 *)NULL);
+    zb_BindDevice(pBuf[0], osal_build_uint16( &pBuf[1] ), (uint8 *)NULL);
   }
 
   /* Build and send back the response */
@@ -243,7 +242,7 @@ void MT_SapiBindDevice(uint8 *pBuf)
  *
  * @return      none
  ***************************************************************************************************/
-void MT_SapiAllowBind(uint8 *pBuf)
+static void MT_SapiAllowBind(uint8 *pBuf)
 {
   uint8 cmdId;
 
@@ -266,7 +265,7 @@ void MT_SapiAllowBind(uint8 *pBuf)
  *
  * @return      none
  ***************************************************************************************************/
-void MT_SapiSendData(uint8 *pBuf)
+static void MT_SapiSendData(uint8 *pBuf)
 {
   uint8 cmdId;
   uint16 destination, command;
@@ -277,9 +276,9 @@ void MT_SapiSendData(uint8 *pBuf)
   pBuf += MT_RPC_FRAME_HDR_SZ;
 
   /* Destination */
-  destination = BUILD_UINT16(pBuf[0], pBuf[1]);
+  destination = osal_build_uint16( &pBuf[0] );
   /* Command */
-  command = BUILD_UINT16(pBuf[2], pBuf[3]);
+  command = osal_build_uint16( &pBuf[2] );
   /* Handle */
   handle = pBuf[4];
   /* txOption */
@@ -304,7 +303,7 @@ void MT_SapiSendData(uint8 *pBuf)
  *
  * @return      none
  ***************************************************************************************************/
-void MT_SapiReadCfg(uint8 *pBuf)
+static void MT_SapiReadCfg(uint8 *pBuf)
 {
   uint8 len, retStatus;
   uint8 cfgId, cmdId;
@@ -366,7 +365,7 @@ void MT_SapiReadCfg(uint8 *pBuf)
  *
  * @return      none
  ***************************************************************************************************/
-void MT_SapiWriteCfg(uint8 *pBuf)
+static void MT_SapiWriteCfg(uint8 *pBuf)
 {
   uint8 retValue, cmdId;
 
@@ -404,7 +403,7 @@ void MT_SapiWriteCfg(uint8 *pBuf)
  *
  * @return      none
  ***************************************************************************************************/
-void MT_SapiGetDevInfo(uint8 *pBuf)
+static void MT_SapiGetDevInfo(uint8 *pBuf)
 {
   uint8 *pRetBuf;
   uint8 cmdId;
@@ -435,7 +434,7 @@ void MT_SapiGetDevInfo(uint8 *pBuf)
  *
  * @return      none
  ***************************************************************************************************/
-void MT_SapiFindDev(uint8 *pBuf)
+static void MT_SapiFindDev(uint8 *pBuf)
 {
   uint8 cmdId;
 
@@ -459,7 +458,7 @@ void MT_SapiFindDev(uint8 *pBuf)
  *
  * @return      none
  ***************************************************************************************************/
-void MT_SapiPermitJoin(uint8 *pBuf)
+static void MT_SapiPermitJoin(uint8 *pBuf)
 {
   uint8 retValue, cmdId;
 
@@ -467,7 +466,7 @@ void MT_SapiPermitJoin(uint8 *pBuf)
   cmdId = pBuf[MT_RPC_POS_CMD1];
   pBuf += MT_RPC_FRAME_HDR_SZ;
 
-  retValue = (zb_PermitJoiningRequest(BUILD_UINT16(pBuf[0], pBuf[1]), pBuf[2]));
+  retValue = (zb_PermitJoiningRequest(osal_build_uint16( pBuf ), pBuf[2]));
 
   /* Build and send back the response */
   MT_BuildAndSendZToolResponse(((uint8)MT_RPC_CMD_SRSP | (uint8)MT_RPC_SYS_SAPI), cmdId, 1, &retValue );

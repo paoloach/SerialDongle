@@ -57,9 +57,6 @@ void usbsuspEnter(void)
     if (pFnSuspendExitHook!=NULL)
         pFnSuspendExitHook();
 } // usbsuspEnter
-#else 
-void usbsuspEnter(void){}
-
 #endif
 
 

@@ -1,7 +1,7 @@
 /**************************************************************************************************
   Filename:       BindingTable.h
-  Revised:        $Date: 2013-09-20 13:56:39 -0700 (Fri, 20 Sep 2013) $
-  Revision:       $Revision: 35406 $
+  Revised:        $Date: 2014-07-16 11:03:22 -0700 (Wed, 16 Jul 2014) $
+  Revision:       $Revision: 39430 $
 
   Description:    Device binding table.
 
@@ -135,12 +135,6 @@ extern byte bindAddClusterIdToList( BindingEntry_t *entry, uint16 clusterId );
  */
 extern BindingEntry_t *bindFindExisting( byte srcEpInt,
                                      zAddrType_t *dstShortAddr, byte dstEpInt );
-
-/*
- *  Remove binds(s) associated to Source address, endpoint and cluster.
- */
-extern void nwk_remove_bindSrc( zAddrType_t *srcAddr, byte epInt,
-                         byte numClusterIds, uint16 *clusterIds );
 
 /*
  *  Remove bind(s) associated to a address (source or destination)

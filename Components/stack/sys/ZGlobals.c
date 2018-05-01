@@ -1,12 +1,12 @@
 /**************************************************************************************************
   Filename:       ZGlobals.c
-  Revised:        $Date: 2014-03-13 10:55:58 -0700 (Thu, 13 Mar 2014) $
-  Revision:       $Revision: 37665 $
+  Revised:        $Date: 2015-10-05 14:56:09 -0700 (Mon, 05 Oct 2015) $
+  Revision:       $Revision: 44517 $
 
   Description:    User definable Z-Stack parameters.
 
 
-  Copyright 2007-2014 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2007-2015 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -48,6 +48,7 @@
 #include "ZDNwkMgr.h"
 #include "OnBoard.h"
 #include "ZDSecMgr.h"
+#include "bdb.h"
 
 /*********************************************************************
  * MACROS
@@ -73,20 +74,24 @@ typedef struct zgItem
  */
 
 // Polling values
-uint16 zgPollRate = POLL_RATE;
+uint32 zgPollRate = POLL_RATE;
+uint32 zgSavedPollRate = POLL_RATE;
 uint16 zgQueuedPollRate = QUEUED_POLL_RATE;
 uint16 zgResponsePollRate = RESPONSE_POLL_RATE;
 uint16 zgRejoinPollRate = REJOIN_POLL_RATE;
+
+// Rejoin backoff (silent period ) duration
+uint32 zgDefaultRejoinBackoff = REJOIN_BACKOFF;
+
+// Rejoin scan duration
+uint32 zgDefaultRejoinScan = REJOIN_SCAN ;
 
 // Transmission retries numbers
 uint8 zgMaxDataRetries = NWK_MAX_DATA_RETRIES;
 uint8 zgMaxPollFailureRetries = MAX_POLL_FAILURE_RETRIES;
 
 // Default channel list
-uint32 zgDefaultChannelList = DEFAULT_CHANLIST;
-
-// Default starting scan duration
-uint8 zgDefaultStartingScanDuration = STARTING_SCAN_DURATION;
+uint32 zgDefaultChannelList = 0;
 
 // Stack profile Id
 uint8 zgStackProfile = STACK_PROFILE_ID;
@@ -100,8 +105,22 @@ uint8 zgSecurityMode = ZG_SECURITY_MODE;
 // Secure permit join
 uint8 zgSecurePermitJoin = TRUE;
 
+// trustcenter allows rejoins using well known or default keys 
+uint8 zgAllowRejoins = FALSE;   // FALSE by default
+
+//allowInstallCodes
+uint8 zgAllowInstallCodes = ZG_IC_SUPPORTED_NOT_REQUIRED;
+//Allow other devices in the network to change the TC permit joining policy
+uint8 zgAllowRemoteTCPolicyChange = TRUE;
+
+//Change these policies to FALSE is not supported
+//uint8 zgAllowTrustCenterLinkKeyRequest = TRUE;
+//uint8 zgAllowApplicationKeyRequests = TRUE;
+
+
 // Trust center address
 uint8 zgApsTrustCenterAddr[Z_EXTADDR_LEN] = { 0 };
+
 
 // Route Discovery Time - amount of time that a route request lasts
 uint8 zgRouteDiscoveryTime = ROUTE_DISCOVERY_TIME;
@@ -134,9 +153,58 @@ uint8 zgRouterOffAssocCleanup = FALSE;
 // by the local device is accepted .
 uint8 zgNwkLeaveRequestAllowed = TRUE;
 
+//=======    Child Aging PARENT ROUTER (ZR/ZC) configuration   ========
+// You can setup a router to support Child Table Aging in 1 of 2 modes of
+// operation.  The first mode is NWK_PARENT_INFO_ORPHAN_NOTIFICATION and it
+// expects end devices to use orphan scan periodically as a means of a keep-alive
+// notification to the parent.  The other mode is NWK_PARENT_INFO_MAC_DATA_POLL
+// which uses the end device's MAC POLL request as the keep-alive notification.
+// The first method is preferred for new devices, where the end devices provide
+// support for it (which will be manditory in future Zigbee Home Automation
+// Specifications).
+// The second method is compatible with older end devices without the need for
+// specific child aging support.
+//
+// The method supported by the router (or coordinator) is determined at build time
+// by setting zgNwkParentInformation to either NWK_PARENT_INFO_ORPHAN_NOTIFICATION
+// or NWK_PARENT_INFO_MAC_DATA_POLL.
+//
+// End device built with Child Table Aging support both methods, the method is
+// determined by the parent and communicated at run-time.
+#if ( ZG_BUILD_RTR_TYPE )
+uint8 zgNwkParentInformation = NWK_PARENT_INFO_MAC_DATA_POLL;
+#else
+uint8 zgNwkParentInformation = NWK_PARENT_INFO_UNDEFINED;
+#endif
+
+// This is an index into table Requested Timeout Enumerated Values.
+// It is used by the parent router, it indicates the default timeout value
+// for any end device that does not negotiate a different timeout value
+uint8 zgNwkEndDeviceTimeoutDefault = NWK_END_DEV_TIMEOUT_DEFAULT;
+
+// Index into table Requested Timeout Enumerated Values.
+// Used to keep the leave message into MAC queue for child devices that has expired
+uint8 zgNwkEndDeviceLeaveTimeoutDefault = NWK_END_DEVICE_LEAVE_TIMEOUT;
+//=====================================================================
+
+//==========    Child Aging END DEVICE configuration    ===============
+// Values used by End Device when sending End Device Timeout Request
+uint8 zgEndDeviceTimeoutValue  = END_DEV_TIMEOUT_VALUE;
+uint8 zgEndDeviceConfiguration = END_DEV_CONFIGURATION;
+
+
+//=====================================================================
+
 // Determines if the Child Aging Table Management process is active or not.
 // This feature is optional and it is disabled by default.
-uint8 zgChildAgingEnable = FALSE;
+//
+// NOTICE:  Before enabling Child Aging make sure to review all the related
+// definitions in this file, especially zgNwkParentInformation.
+uint8 zgChildAgingEnable = TRUE;
+
+//==========    TouchLink NWK configuration    ===============
+// Values used by Router when starts a network as initiator
+uint8 zTouchLinkNwkStartRtr = FALSE;
 
 /*********************************************************************
  * APS GLOBAL VARIABLES
@@ -208,11 +276,13 @@ uint8 zgApsLinkKeyType = ZG_GLOBAL_LINK_KEY;
 uint8 zgUseDefaultTCLK;
 
 #if defined ( APP_TP2_TEST_MODE )
-uint8 guTxApsSecON = FALSE;
+uint8 guTxApsSecON = TP_GU_BOTH;
 uint8 guEnforceRxApsSec = TP_GU_ALL;
 #endif
 
 uint8 zgApsAllowR19Sec = FALSE;
+uint8 zgSwitchCoordKey = FALSE;
+uint8 zgSwitchCoordKeyIndex = 0;
 
 /*********************************************************************
  * ZDO GLOBAL VARIABLES
@@ -229,7 +299,7 @@ uint8 zgStartDelay = START_DELAY;
 
 #if !defined MT_TASK
 // Flag to use verbose (i.e. "cc2480-style") direct MT callbacks in ZDProfile.c, ZDP_IncomingData().
-uint8 zgZdoDirectCB = FALSE;
+uint8 zgZdoDirectCB = TRUE;
 #endif
 
 // Min number of attempted transmissions for Channel Interference detection
@@ -410,11 +480,21 @@ static CONST zgItem_t zgItemTable[] =
   {
     ZCD_NV_APS_DUPREJ_TABLE_SIZE, sizeof(zgApsMinDupRejTableSize), &zgApsMinDupRejTableSize
   },
-#if defined ( ZIGBEE_CHILD_AGING )
   {
     ZCD_NV_NWK_CHILD_AGE_ENABLE, sizeof(zgChildAgingEnable), &zgChildAgingEnable
   },
-#endif // ZIGBEE_CHILD_AGING
+  {
+    ZCD_NV_NWK_PARENT_INFO, sizeof(zgNwkParentInformation), &zgNwkParentInformation
+  },
+  {
+    ZCD_NV_NWK_ENDDEV_TIMEOUT_DEF, sizeof(zgNwkEndDeviceTimeoutDefault), &zgNwkEndDeviceTimeoutDefault
+  },
+  {
+    ZCD_NV_END_DEV_TIMEOUT_VALUE, sizeof(zgEndDeviceTimeoutValue), &zgEndDeviceTimeoutValue
+  },
+  {
+    ZCD_NV_END_DEV_CONFIGURATION, sizeof(zgEndDeviceConfiguration), &zgEndDeviceConfiguration
+  },
 #endif // NV_INIT
   // Last item -- DO NOT MOVE IT!
   {
@@ -427,6 +507,8 @@ static CONST zgItem_t zgItemTable[] =
  */
 
 static uint8 zgItemInit( uint16 id, uint16 len, void *buf, uint8 setDefault );
+
+static void zgUpgradeNVItems( void );
 
 #ifndef NONWK
 static uint8 zgPreconfigKeyInit( uint8 setDefault );
@@ -501,36 +583,53 @@ static uint8 zgItemInit( uint16 id, uint16 len, void *buf, uint8 setDefault )
 uint8 zgInit( void )
 {
   uint8  setDefault = FALSE;
-
+  uint8  status;
+  
+#ifdef NV_RESTORE
   // Do we want to default the Config state values
   if ( zgReadStartupOptions() & ZCD_STARTOPT_DEFAULT_CONFIG_STATE )
   {
     setDefault = TRUE;
   }
+#else
+    setDefault = TRUE;
+#endif
+  
+  status = osal_nv_item_init(ZCD_NV_BDBNODEISONANETWORK,sizeof(bdbAttributes.bdbNodeIsOnANetwork),&bdbAttributes.bdbNodeIsOnANetwork);
 
-#if defined ( FEATURE_SYSTEM_STATS )
-  // This sections tracks the number of resets
-  uint16 bootCnt = 0;
-
-  // Update the Boot Counter
-  if ( osal_nv_item_init( ZCD_NV_BOOTCOUNTER, sizeof(bootCnt), &bootCnt ) == ZSUCCESS )
+  //Force to reset state if device is forced to FN
+  if((status == SUCCESS) && setDefault)
   {
-    // Get the old value from NV memory
-    osal_nv_read( ZCD_NV_BOOTCOUNTER, 0, sizeof(bootCnt), &bootCnt );
+    bdb_setNodeIsOnANetwork(false);
   }
-
-  // Increment the Boot Counter and store it into NV memory
-  if ( setDefault )
+  
+#if defined (FEATURE_SYSTEM_STATS) 
   {
-    bootCnt = 0;
-  }
-  else
-  {
-    bootCnt++;
-  }
+    // This sections tracks the number of resets
+    uint16 bootCnt = 0;
 
-  osal_nv_write( ZCD_NV_BOOTCOUNTER, 0, sizeof(bootCnt), &bootCnt );
+    // Update the Boot Counter
+    if ( osal_nv_item_init( ZCD_NV_BOOTCOUNTER, sizeof(bootCnt), &bootCnt ) == ZSUCCESS )
+    {
+      // Get the old value from NV memory
+      osal_nv_read( ZCD_NV_BOOTCOUNTER, 0, sizeof(bootCnt), &bootCnt );
+    }
+
+    // Increment the Boot Counter and store it into NV memory
+    if ( setDefault )
+    {
+      bootCnt = 0;
+    }
+    else
+    {
+      bootCnt++;
+    }
+
+    osal_nv_write( ZCD_NV_BOOTCOUNTER, 0, sizeof(bootCnt), &bootCnt );
+  }
 #endif  // FEATURE_SYSTEM_STATS
+
+  zgUpgradeNVItems();
 
   // Initialize the Extended PAN ID as my own extended address
   ZMacGetReq( ZMacExtAddr, zgExtendedPANID );
@@ -554,7 +653,7 @@ uint8 zgInit( void )
   {
     zgWriteStartupOptions( ZG_STARTUP_CLEAR, ZCD_STARTOPT_DEFAULT_CONFIG_STATE );
   }
-
+  
   return ( ZSUCCESS );
 }
 
@@ -721,12 +820,29 @@ void zgSetItem( uint16 id, uint16 len, void *buf )
  */
 static uint8 zgPreconfigKeyInit( uint8 setDefault )
 {
-  uint8 zgPreConfigKey[SEC_KEY_LEN];
-  uint8 status;
-
-  // Initialize the Pre-Configured Key to the default key
-  osal_memcpy( zgPreConfigKey, defaultKey, SEC_KEY_LEN );
-
+  uint8              zgPreConfigKey[SEC_KEY_LEN];
+  uint8              status;
+  
+  //NWK KEY
+  //if nwk key is set to zeros, then generate a random key and use it
+  osal_memset(zgPreConfigKey,0,SEC_KEY_LEN);
+  
+#if (ZG_BUILD_RTR_TYPE)
+  if(ZG_DEVICE_RTR_TYPE)
+  {  
+    if(osal_memcmp(defaultKey, zgPreConfigKey,SEC_KEY_LEN))
+    {
+      ZDSecMgrGenerateRndKey(zgPreConfigKey);
+    }
+    else
+    {
+      // Initialize the Pre-Configured Key to the default key
+      osal_memcpy( zgPreConfigKey, defaultKey, SEC_KEY_LEN );
+    }
+  }
+#endif
+  
+  
   // If the item doesn't exist in NV memory, create and initialize it
   status = osal_nv_item_init( ZCD_NV_PRECFGKEY, SEC_KEY_LEN, zgPreConfigKey );
   if ( status == ZSUCCESS )
@@ -737,13 +853,51 @@ static uint8 zgPreconfigKeyInit( uint8 setDefault )
       status =  osal_nv_write( ZCD_NV_PRECFGKEY, 0, SEC_KEY_LEN, zgPreConfigKey );
     }
   }
-
+  
   // clear local copy of default key
   osal_memset(zgPreConfigKey, 0x00, SEC_KEY_LEN);
 
   return (status);
 }
 #endif
+
+/*********************************************************************
+ * @fn       zgUpgradeNVItems()
+ *
+ * @brief
+ *
+ *   Function that upgrades NV Items that have changed.
+ *
+ * @param   none
+ *
+ * @return  none
+ */
+static void zgUpgradeNVItems( void )
+{
+#if defined ( ZCD_NV_POLL_RATE_OLD16 )
+  {
+    // This conversion will only happen if the old poll rate exists and
+    // the new poll rate doesn't exist.  It will read the old poll rate,
+    // convert it to the new poll rate, create the new poll rate NV item,
+    // then delete the old poll rate NV item.
+    uint16 oldNvLen;
+    uint16 newNvLen;
+
+    // Use the length of the NV items to determine if they exist
+    oldNvLen = osal_nv_item_len( ZCD_NV_POLL_RATE_OLD16 );
+    newNvLen = osal_nv_item_len( ZCD_NV_POLL_RATE );
+    if ( (newNvLen == 0) && (oldNvLen == sizeof ( uint16 )) )
+    {
+      // The old poll rate exists, so read it and convert to the new 32 bit poll rate
+      uint16 oldPollRate;
+      osal_nv_read( ZCD_NV_POLL_RATE_OLD16, 0, sizeof(uint16), &oldPollRate );
+      zgPollRate = (uint32)oldPollRate;
+      osal_nv_item_init( ZCD_NV_POLL_RATE, sizeof(zgPollRate), &zgPollRate );
+      osal_nv_delete( ZCD_NV_POLL_RATE_OLD16, oldNvLen );
+    }
+  }
+#endif // ZCD_NV_POLL_RATE_OLD16
+}
 
 /*********************************************************************
 *********************************************************************/

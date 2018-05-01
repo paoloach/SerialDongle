@@ -22,6 +22,7 @@ void endpointRequestTaskId(byte task_id){
 }
 
 void addEndpointRequest(uint16 nwkAddr, byte endpoint, 	byte security) {
+	
 	struct EndpointRequest * next = (struct EndpointRequest *)osal_mem_alloc(sizeof(struct EndpointRequest));
 	if (next == NULL){
 		return;
@@ -31,9 +32,11 @@ void addEndpointRequest(uint16 nwkAddr, byte endpoint, 	byte security) {
 	next->security = security;
 	next->next = head;
 	head = next;
+
 }
 
 void sendOneEndpointRequest(void){
+	
 	if (head == NULL){
 		return;
 	}
@@ -46,5 +49,6 @@ void sendOneEndpointRequest(void){
 	if (head != NULL){
 		osal_start_timerEx( taskId, ENDPOINT_REQUEST_MSG, ENDPOINT_REQUEST_TIMEOUT );
 	}
+
 }
 

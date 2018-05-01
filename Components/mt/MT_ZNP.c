@@ -5,18 +5,17 @@
 
   Description:    Definitions for the ZNP sub-module of the MT API.
 
-
-  Copyright 2011 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2011-2015 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
   who downloaded the software, his/her employer (which must be your employer)
-  and Texas Instruments Incorporated (the "License").  You may not use this
+  and Texas Instruments Incorporated (the "License"). You may not use this
   Software unless you agree to abide by the terms of the License. The License
   limits your use, and you acknowledge, that the Software may not be modified,
   copied or distributed unless embedded on a Texas Instruments microcontroller
   or used solely and exclusively in conjunction with a Texas Instruments radio
-  frequency transceiver, which is integrated into your product.  Other than for
+  frequency transceiver, which is integrated into your product. Other than for
   the foregoing purpose, you may not use, reproduce, copy, prepare derivative
   works of, modify, distribute, perform, display or sell this Software and/or
   its documentation for any purpose.
@@ -157,15 +156,9 @@ bool MT_ZnpBasicRsp(void)
     return false;
   }
 
-  pBuf[0] = BREAK_UINT32(MT_PeriodicMsgRate, 0);
-  pBuf[1] = BREAK_UINT32(MT_PeriodicMsgRate, 1);
-  pBuf[2] = BREAK_UINT32(MT_PeriodicMsgRate, 2);
-  pBuf[3] = BREAK_UINT32(MT_PeriodicMsgRate, 3);
+  osal_buffer_uint32( &pBuf[0], MT_PeriodicMsgRate );
 
-  pBuf[4] = BREAK_UINT32(zgDefaultChannelList, 0);
-  pBuf[5] = BREAK_UINT32(zgDefaultChannelList, 1);
-  pBuf[6] = BREAK_UINT32(zgDefaultChannelList, 2);
-  pBuf[7] = BREAK_UINT32(zgDefaultChannelList, 3);
+  osal_buffer_uint32( &pBuf[4], zgDefaultChannelList );
 
   pBuf[8] = LO_UINT16(zgConfigPANID);
   pBuf[9] = HI_UINT16(zgConfigPANID);
@@ -274,20 +267,20 @@ bool MT_ZnpBasicRsp(void)
  */
 static void znpBasicCfg(uint8 *pBuf)
 {
-  uint32 t32 = BUILD_UINT32(pBuf[0], pBuf[1], pBuf[2], pBuf[3]);
+  uint32 t32 = osal_build_uint32( &pBuf[0], 4 );
   if (MT_PeriodicMsgRate != t32)
   {
     MT_PeriodicMsgRate = t32;
     (void)osal_start_reload_timer(MT_TaskID, MT_PERIODIC_MSG_EVENT, t32);
   }
 
-  t32 = BUILD_UINT32(pBuf[4], pBuf[5], pBuf[6], pBuf[7]);
+  t32 = osal_build_uint32( &pBuf[4], 4 );
   if (osal_memcmp(&zgDefaultChannelList, &t32, 4) == FALSE)
   {
     (void)osal_nv_write(ZCD_NV_CHANLIST, 0, 4, &t32);
   }
 
-  uint16 t16 = BUILD_UINT16(pBuf[8], pBuf[9]);
+  uint16 t16 = osal_build_uint16( &pBuf[8] );
   if (osal_memcmp(&zgConfigPANID, &t16, 2) == FALSE)
   {
     (void)osal_nv_write(ZCD_NV_PANID, 0, 2, &t16);

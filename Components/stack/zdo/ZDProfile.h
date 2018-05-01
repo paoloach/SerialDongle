@@ -1,12 +1,12 @@
 /**************************************************************************************************
   Filename:       ZDProfile.h
-  Revised:        $Date: 2013-10-02 15:57:50 -0700 (Wed, 02 Oct 2013) $
-  Revision:       $Revision: 35529 $
+  Revised:        $Date: 2015-02-10 15:42:13 -0800 (Tue, 10 Feb 2015) $
+  Revision:       $Revision: 42485 $
 
   Description:    This file contains the interface to the Zigbee Device Object.
 
 
-  Copyright 2004-2013 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2004-2015 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -108,7 +108,9 @@ extern "C"
 #define ZDP_MGMT_REL_UNKNOWN 0x3
 
 // Mgmt_Lqi_rsp - (neighbor table) unknown boolean value
-#define ZDP_MGMT_BOOL_UNKNOWN 0x02
+#define ZDP_MGMT_BOOL_RECEIVER_ON  0x00
+#define ZDP_MGMT_BOOL_RECEIVER_OFF 0x01  
+#define ZDP_MGMT_BOOL_UNKNOWN      0x02
 
 // Status fields used by ZDO_ProcessMgmtRtgReq
 #define ZDO_MGMT_RTG_ENTRY_ACTIVE                 0x00
@@ -149,13 +151,13 @@ extern "C"
 #define Device_annce            ((uint16)0x0013)
 #define User_Desc_set           ((uint16)0x0014)
 #define Server_Discovery_req    ((uint16)0x0015)
-#define End_Device_Timeout_req  ((uint16)0x001f)
+#define Parent_annce            ((uint16)0x001F)
 #define Complex_Desc_rsp        (Complex_Desc_req | ZDO_RESPONSE_BIT)
 #define User_Desc_rsp           (User_Desc_req | ZDO_RESPONSE_BIT)
 #define Discovery_Cache_rsp     (Discovery_Cache_req | ZDO_RESPONSE_BIT)
 #define User_Desc_conf          (User_Desc_set | ZDO_RESPONSE_BIT)
 #define Server_Discovery_rsp    (Server_Discovery_req | ZDO_RESPONSE_BIT)
-#define End_Device_Timeout_rsp  (End_Device_Timeout_req | ZDO_RESPONSE_BIT)
+#define Parent_annce_rsp        (Parent_annce | ZDO_RESPONSE_BIT)
 
 #define End_Device_Bind_req     ((uint16)0x0020)
 #define Bind_req                ((uint16)0x0021)
@@ -426,25 +428,13 @@ extern afStatus_t ZDP_SendData( uint8 *transSeq, zAddrType_t *dstAddr, uint16 cm
 #define ZDP_MgmtBindReq( dstAddr, StartIndex, SecurityEnable ) \
          ZDP_SendData( &ZDP_TransID, dstAddr, Mgmt_Bind_req, 1, &StartIndex, SecurityEnable )
 
-#ifdef REMOVE_BY_LAF
 /*
- * ZDP_NWKAddrRsp - Send a Network Address Response
+ * ZDP_ParentAnnceReq - Send a ParentAnnce Request
  */
-#define ZDP_NWKAddrRsp( TransSeq, dstAddr, Status, IEEEAddrRemoteDev, ReqType, nwkAddr, NumAssocDev, \
-                 StartIndex, NWKAddrAssocDevList, SecurityEnable ) \
-                          ZDP_AddrRsp( NWK_addr_rsp, TransSeq, dstAddr, Status, \
-                                IEEEAddrRemoteDev, ReqType, nwkAddr, NumAssocDev, StartIndex, \
-                                NWKAddrAssocDevList, SecurityEnable )
+#define ZDP_ParentAnnceReq( dstAddr, numberOfChildren, childInfo, SecurityEnable ) \
+           ZDP_ParentAnnce( &ZDP_TransID, &dstAddr, numberOfChildren, childInfo, \
+                            Parent_annce, SecurityEnable )
 
-/*
- * ZDP_IEEEAddrRsp - Send an IEEE Address Response
- */
-#define ZDP_IEEEAddrRsp( TransSeq, dstAddr, Status, IEEEAddrRemoteDev, ReqType, nwkAddr, NumAssocDev, \
-                 StartIndex, NWKAddrAssocDevList, SecurityEnable ) \
-                          ZDP_AddrRsp( IEEE_addr_rsp, TransSeq, dstAddr, Status, \
-                                IEEEAddrRemoteDev, ReqType, nwkAddr, NumAssocDev, StartIndex, \
-                                NWKAddrAssocDevList, SecurityEnable )
-#endif
 /*
  * ZDP_ActiveEPRsp - Send an list of active endpoint
  */
@@ -510,10 +500,11 @@ extern afStatus_t ZDP_SendData( uint8 *transSeq, zAddrType_t *dstAddr, uint16 cm
       ZDP_SendData( &TransSeq, dstAddr, Mgmt_Direct_Join_rsp, 1, &Status, SecurityEnable )
 
 /*
- * ZDP_EndDeviceTimeoutRsp - Send an End Device Timeout Response message.
+ * ZDP_ParentAnnceRsp - Send a ParentAnnceRsp Response
  */
-#define ZDP_EndDeviceTimeoutRsp( TransSeq, dstAddr, Status, SecurityEnable ) \
-      ZDP_SendData( &TransSeq, dstAddr, End_Device_Timeout_rsp, 1, &Status, SecurityEnable )
+#define ZDP_ParentAnnceRsp( TransSeq, dstAddr, numberOfChildren, childInfo, SecurityEnable ) \
+           ZDP_ParentAnnce( &TransSeq, &dstAddr, numberOfChildren, childInfo, \
+                            Parent_annce_rsp, SecurityEnable )
 
 /*********************************************************************
  * FUNCTIONS - API
@@ -614,6 +605,16 @@ afStatus_t ZDP_ServerDiscReq( uint16 serverMask, byte SecurityEnable );
  */
 extern afStatus_t ZDP_DeviceAnnce( uint16 nwkAddr, uint8 *IEEEAddr,
                          byte capabilities, byte SecurityEnable );
+
+/*
+ * ZDP_ParentAnnce - Parent Announce and Parent Announce Rsp
+ */
+extern afStatus_t ZDP_ParentAnnce( uint8 *TransSeq,
+                                   zAddrType_t *dstAddr,
+                                   uint8 numberOfChildren,
+                                   uint8 *childInfo,
+                                   cId_t clusterID,
+                                   uint8 SecurityEnable );
 
 /*
  * ZDP_EndDeviceBindReq - End Device (hand) bind request
@@ -842,14 +843,6 @@ extern ZStatus_t ZDP_UserDescRsp( byte TransSeq, zAddrType_t *dstAddr,
  */
 ZStatus_t ZDP_ServerDiscRsp( byte transID, zAddrType_t *dstAddr, byte status,
                            uint16 aoi, uint16 serverMask, byte SecurityEnable );
-
-#if defined ( ZIGBEE_CHILD_AGING )
-/*
- * ZDP_EndDeviceTimeoutReq - Sends the End Device Timeout Request message.
- */
-afStatus_t ZDP_EndDeviceTimeoutReq( uint16 parentAddr, uint16 reqTimeout,
-                                    uint8 SecurityEnable );
-#endif // ZIGBEE_CHILD_AGING
 
 /*
  * ZDP_IncomingData - Incoming data callback from AF layer

@@ -1,7 +1,7 @@
 /**************************************************************************************************
   Filename:       zcl_general.h
-  Revised:        $Date: 2014-06-06 11:07:53 -0700 (Fri, 06 Jun 2014) $
-  Revision:       $Revision: 38852 $
+  Revised:        $Date: 2014-10-14 13:03:14 -0700 (Tue, 14 Oct 2014) $
+  Revision:       $Revision: 40629 $
 
   Description:    This file contains the ZCL General definitions.
 
@@ -381,9 +381,9 @@ extern "C"
 #define ON_OFF_SWITCH_TYPE_MULTIFUNCTION                  0x02
 
 /*** On Off Switch Actions attribute values ***/
-#define ON_OFF_SWITCH_ACTIONS_0                           0x00
-#define ON_OFF_SWITCH_ACTIONS_1                           0x01
-#define ON_OFF_SWITCH_ACTIONS_2                           0x02
+#define ON_OFF_SWITCH_ACTIONS_ON                           0x00
+#define ON_OFF_SWITCH_ACTIONS_OFF                          0x01
+#define ON_OFF_SWITCH_ACTIONS_TOGGLE                       0x02
 
 /**************************************/
 /*** On/Off Switch Cluster Commands ***/
@@ -555,6 +555,15 @@ extern "C"
 #define ATTRID_IOV_BASIC_ENGINEERING_UNITS                  0x0075
 #define ATTRID_IOV_BASIC_APP_TYPE                           0x0100
 
+/**********************************************************/
+/*** Appliance Control Cluster Attributes ***/
+/**********************************************************/ 
+#ifdef ZCL_APPLIANCE_CONTROL
+#define ATTRID_APPLIANCE_CONTROL_START_TIME                 0x0000
+#define ATTRID_APPLIANCE_CONTROL_FINISH_TIME                0x0001
+#define ATTRID_APPLIANCE_CONTROL_REMAINING_TIME             0x0002
+#endif    
+  
 /*** StatusFlags attribute bits ***/
 #define STATUS_FLAGS_IN_ALARM                               0x01
 #define STATUS_FLAGS_FAULT                                  0x02
@@ -1029,10 +1038,14 @@ extern "C"
 //   2 + 1 + 11 for Color Control cluster (currentX/currentY/EnhancedCurrentHue/CurrentSaturation/colorLoopActive/colorLoopDirection/colorLoopTime attributes)
 //   2 + 1 + 1 for Door Lock cluster (Lock State attribute)
 //   2 + 1 + 2 for Window Covering cluster (LiftPercentage/TiltPercentage attributes)
+#if !defined ( ZCL_GEN_SCENE_EXT_LEN )
 #define ZCL_GEN_SCENE_EXT_LEN                            31
+#endif
 
 // The maximum number of entries in the Scene table
+#if !defined ( ZCL_GEN_MAX_SCENES )
 #define ZCL_GEN_MAX_SCENES                               16
+#endif
 
 /*********************************************************************
  * TYPEDEFS
@@ -1401,13 +1414,7 @@ typedef void (*zclGCB_LocationRsp_t)( zclLocationRsp_t *pRsp );
 typedef struct
 {
   zclGCB_BasicReset_t               pfnBasicReset;                // Basic Cluster Reset command
-  zclGCB_Identify_t                 pfnIdentify;                  // Identify command
-#ifdef ZCL_EZMODE
-  zclGCB_IdentifyEZModeInvoke_t     pfnIdentifyEZModeInvoke;      // Identify EZ-Mode Invoke command
-  zclGCB_IdentifyUpdateCommState_t  pfnIdentifyUpdateCommState;   // Identify Update Commission State command
-#endif
   zclGCB_IdentifyTriggerEffect_t    pfnIdentifyTriggerEffect;     // Identify Trigger Effect command
-  zclGCB_IdentifyQueryRsp_t         pfnIdentifyQueryRsp;          // Identify Query Response command
   zclGCB_OnOff_t                    pfnOnOff;                     // On/Off cluster commands
   zclGCB_OnOff_OffWithEffect_t      pfnOnOff_OffWithEffect;       // On/Off cluster enhanced command Off with Effect
   zclGCB_OnOff_OnWithRecallGlobalScene_t  pfnOnOff_OnWithRecallGlobalScene;  // On/Off cluster enhanced command On with Recall Global Scene

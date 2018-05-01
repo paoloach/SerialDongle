@@ -157,8 +157,8 @@ void ZDConfig_UpdateNodeDescriptor( void )
   ZDO_Config_Node_Descriptor.MaxOutTransferSize[0] = LO_UINT16( MAX_TRANSFER_SIZE );
   ZDO_Config_Node_Descriptor.MaxOutTransferSize[1] = HI_UINT16( MAX_TRANSFER_SIZE );
 
-  // Server Mask
-  ZDO_Config_Node_Descriptor.ServerMask = 0;
+  // Set the current stack revision
+  ZDO_Config_Node_Descriptor.ServerMask |= (STACK_COMPLIANCE_CURRENT_REV << STACK_COMPLIANCE_CURRENT_REV_POS);
 
   // Descriptor Capability Field - extended active endpoint list and
   // extended simple descriptor are not supported.

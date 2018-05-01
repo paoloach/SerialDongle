@@ -1,7 +1,7 @@
 /******************************************************************************
   Filename:       zcl_ota.c
-  Revised:        $Date: 2014-06-25 18:07:01 -0700 (Wed, 25 Jun 2014) $
-  Revision:       $Revision: 39221 $
+  Revised:        $Date: 2014-12-08 16:48:47 -0800 (Mon, 08 Dec 2014) $
+  Revision:       $Revision: 41382 $
 
   Description:    Zigbee Cluster Library - Over-the-Air Upgrade Cluster ( OTA )
 
@@ -191,10 +191,15 @@ static uint8 zclOta_OtaZDPTransSeq;
 
 #endif // (defined OTA_CLIENT) && (OTA_CLIENT == TRUE)
 
+// Used by the client to correlate the Upgrade End Request and received
+// Default Response.
+static uint8 zclOta_OtaUpgradeEndReqTransSeq;
 /******************************************************************************
  * LOCAL FUNCTIONS
  */
 static ZStatus_t zclOTA_HdlIncoming ( zclIncoming_t *pInMsg );
+static void zclOTA_ProcessUnhandledFoundationZCLMsgs ( zclIncomingMsg_t *pMsg );
+static void zclOTA_ProcessInDefaultRspCmd( zclIncomingMsg_t *pInMsg );
 
 #if (defined OTA_CLIENT) && (OTA_CLIENT == TRUE)
 static void zclOTA_StartTimer ( uint16 eventId, uint32 minutes );
@@ -240,12 +245,12 @@ static void zclOTA_InitBlockReqDelay ( void );
 CONST zclAttrRec_t zclOTA_Attrs[ZCL_OTA_MAX_ATTRIBUTES] =
 {
   {
-    ZCL_CLUSTER_ID_OTA,                   // Cluster IDs - defined in the foundation (ie. zcl.h)
+    ZCL_CLUSTER_ID_OTA,                     // Cluster IDs - defined in the foundation (ie. zcl.h)
     { // Attribute record
-      ATTRID_UPGRADE_SERVER_ID,           // Attribute ID - Found in Cluster Library header (ie. zcl_general.h)
-      ZCL_DATATYPE_IEEE_ADDR,             // Data Type - found in zcl.h
-      ACCESS_CONTROL_READ,                // Variable access control - found in zcl.h
-      ( void * ) &zclOTA_UpgradeServerID  // Pointer to attribute variable
+      ATTRID_UPGRADE_SERVER_ID,             // Attribute ID - Found in Cluster Library header (ie. zcl_general.h)
+      ZCL_DATATYPE_IEEE_ADDR,               // Data Type - found in zcl.h
+      ACCESS_CONTROL_READ | ACCESS_CLIENT,  // Variable access control - found in zcl.h
+      ( void * ) &zclOTA_UpgradeServerID    // Pointer to attribute variable
     }
   },
   {
@@ -253,7 +258,7 @@ CONST zclAttrRec_t zclOTA_Attrs[ZCL_OTA_MAX_ATTRIBUTES] =
     { // Attribute record
       ATTRID_FILE_OFFSET,
       ZCL_DATATYPE_UINT32,
-      ACCESS_CONTROL_READ,
+      ACCESS_CONTROL_READ | ACCESS_CLIENT,
       ( void * ) &zclOTA_FileOffset
     }
   },
@@ -262,7 +267,7 @@ CONST zclAttrRec_t zclOTA_Attrs[ZCL_OTA_MAX_ATTRIBUTES] =
     { // Attribute record
       ATTRID_CURRENT_FILE_VERSION,
       ZCL_DATATYPE_UINT32,
-      ACCESS_CONTROL_READ,
+      ACCESS_CONTROL_READ | ACCESS_CLIENT,
       ( void * ) &zclOTA_CurrentFileVersion
     }
   },
@@ -271,7 +276,7 @@ CONST zclAttrRec_t zclOTA_Attrs[ZCL_OTA_MAX_ATTRIBUTES] =
     { // Attribute record
       ATTRID_CURRENT_ZIGBEE_STACK_VERSION,
       ZCL_DATATYPE_UINT16,
-      ACCESS_CONTROL_READ,
+      ACCESS_CONTROL_READ | ACCESS_CLIENT,
       ( void * ) &zclOTA_CurrentZigBeeStackVersion
     }
   },
@@ -280,7 +285,7 @@ CONST zclAttrRec_t zclOTA_Attrs[ZCL_OTA_MAX_ATTRIBUTES] =
     { // Attribute record
       ATTRID_DOWNLOADED_FILE_VERSION,
       ZCL_DATATYPE_UINT32,
-      ACCESS_CONTROL_READ,
+      ACCESS_CONTROL_READ | ACCESS_CLIENT,
       ( void * ) &zclOTA_DownloadedFileVersion
     }
   },
@@ -289,7 +294,7 @@ CONST zclAttrRec_t zclOTA_Attrs[ZCL_OTA_MAX_ATTRIBUTES] =
     { // Attribute record
       ATTRID_DOWNLOADED_ZIGBEE_STACK_VERSION,
       ZCL_DATATYPE_UINT16,
-      ACCESS_CONTROL_READ,
+      ACCESS_CONTROL_READ | ACCESS_CLIENT,
       ( void * ) &zclOTA_DownloadedZigBeeStackVersion
     }
   },
@@ -297,8 +302,8 @@ CONST zclAttrRec_t zclOTA_Attrs[ZCL_OTA_MAX_ATTRIBUTES] =
     ZCL_CLUSTER_ID_OTA,
     { // Attribute record
       ATTRID_IMAGE_UPGRADE_STATUS,
-      ZCL_DATATYPE_UINT8,
-      ACCESS_CONTROL_READ,
+      ZCL_DATATYPE_ENUM8,
+      ACCESS_CONTROL_READ | ACCESS_CLIENT,
       ( void * ) &zclOTA_ImageUpgradeStatus
     }
   },
@@ -307,7 +312,7 @@ CONST zclAttrRec_t zclOTA_Attrs[ZCL_OTA_MAX_ATTRIBUTES] =
     { // Attribute record
       ATTRID_MANUFACTURER_ID,
       ZCL_DATATYPE_UINT16,
-      ACCESS_CONTROL_READ,
+      ACCESS_CONTROL_READ | ACCESS_CLIENT,
       ( void * ) &zclOTA_ManufacturerID
     }
   },
@@ -316,7 +321,7 @@ CONST zclAttrRec_t zclOTA_Attrs[ZCL_OTA_MAX_ATTRIBUTES] =
     { // Attribute record
       ATTRID_IMAGE_TYPE_ID,
       ZCL_DATATYPE_UINT16,
-      ACCESS_CONTROL_READ,
+      ACCESS_CONTROL_READ | ACCESS_CLIENT,
       ( void * ) &zclOTA_ImageTypeID
     }
   },
@@ -325,7 +330,7 @@ CONST zclAttrRec_t zclOTA_Attrs[ZCL_OTA_MAX_ATTRIBUTES] =
     { // Attribute record
       ATTRID_MINIMUM_BLOCK_REQ_DELAY,
       ZCL_DATATYPE_UINT16,
-      ACCESS_CONTROL_READ,
+      ACCESS_CONTROL_READ | ACCESS_CLIENT,
       ( void * ) &zclOTA_MinBlockReqDelay
     }
   },
@@ -334,7 +339,7 @@ CONST zclAttrRec_t zclOTA_Attrs[ZCL_OTA_MAX_ATTRIBUTES] =
     { // Attribute record
       ATTRID_IMAGE_STAMP,
       ZCL_DATATYPE_UINT32,
-      ACCESS_CONTROL_READ,
+      ACCESS_CONTROL_READ | ACCESS_CLIENT,
       ( void * ) &zclOTA_ImageStamp
     }
   }
@@ -402,7 +407,12 @@ SimpleDescriptionFormat_t zclOTA_SimpleDesc =
 static endPointDesc_t zclOTA_Ep =
 {
   ZCL_OTA_ENDPOINT,
+  0,
+#ifndef ZCL_STANDALONE
   &zcl_TaskID,
+#else
+  &zclOTA_TaskID,
+#endif
   ( SimpleDescriptionFormat_t * ) &zclOTA_SimpleDesc,
   ( afNetworkLatencyReq_t ) 0
 };
@@ -544,6 +554,11 @@ void zclOTA_Init ( uint8 task_id )
 
   // Register with the ZDO to receive Match Descriptor Responses
   ZDO_RegisterForZDOMsg ( task_id, Match_Desc_rsp );
+  
+#ifndef ZCL_STANDALONE
+  // Register for all OTA End Point, unhandled, ZCL foundation commands
+  zcl_registerForMsgExt( task_id, ZCL_OTA_ENDPOINT );
+#endif
 
   // Per section 6.1 of ZigBee Over-the-Air Upgrading Cluster spec, we should
   // periodically query the server. It does not specify the rate.  For example's
@@ -554,6 +569,9 @@ void zclOTA_Init ( uint8 task_id )
   // Wake up in 5 seconds and do some service discovery for an OTA Server
   queryImgJitter = ( ( uint32 ) 5000 );
   osal_start_reload_timer ( task_id, ZCL_OTA_SEND_MATCH_DESCRIPTOR_EVT, queryImgJitter );
+  
+  // Initiliaze OTA Update End Request Transaction Seq Number
+  zclOta_OtaUpgradeEndReqTransSeq = 0;
 
 #endif // (defined OTA_CLIENT) && (OTA_CLIENT == TRUE) 
 }
@@ -578,6 +596,11 @@ uint16 zclOTA_event_loop ( uint8 task_id, uint16 events )
     {
       switch ( MSGpkt->hdr.event )
       {
+#ifdef ZCL_STANDALONE
+        case AF_INCOMING_MSG_CMD:
+          zcl_ProcessMessageMSG ( MSGpkt );
+          break;
+#endif
 
 #if (defined OTA_CLIENT) && (OTA_CLIENT == TRUE)
         case ZDO_CB_MSG:
@@ -590,6 +613,10 @@ uint16 zclOTA_event_loop ( uint8 task_id, uint16 events )
           zclOTA_ServerHandleFileSysCb ( ( OTA_MtMsg_t* ) MSGpkt );
           break;
 #endif
+        case ZCL_INCOMING_MSG:
+          zclOTA_ProcessUnhandledFoundationZCLMsgs ( ( zclIncomingMsg_t* ) MSGpkt );
+          break;
+          
         default:
           break;
       }
@@ -755,9 +782,20 @@ uint16 zclOTA_event_loop ( uint8 task_id, uint16 events )
                        FALSE );
 
 
+    osal_start_timerEx ( zclOTA_TaskID, ZCL_OTA_SEND_IEEE_ADD_REQ_EVT, 250 );
+    
     return ( events ^ ZCL_OTA_SEND_MATCH_DESCRIPTOR_EVT );
   }
 
+  if ( events & ZCL_OTA_SEND_IEEE_ADD_REQ_EVT )
+  {
+    
+    // Request the IEEE address of the server to put into the
+    // ATTRID_UPGRADE_SERVER_ID attribute
+    ZDP_IEEEAddrReq ( zclOTA_serverAddr.addr.shortAddr, ZDP_ADDR_REQTYPE_SINGLE, 0, 0 );
+
+    return ( events ^ ZCL_OTA_SEND_IEEE_ADD_REQ_EVT );
+  }
 #endif // (defined OTA_CLIENT) && (OTA_CLIENT == TRUE)
 
   // Discard unknown events
@@ -831,6 +869,81 @@ static ZStatus_t zclOTA_HdlIncoming ( zclIncoming_t *pInMsg )
   }
 
   return ( stat );
+}
+
+/******************************************************************************
+ * @fn      zclOTA_ProcessZCLMsgs
+ *
+ * @brief   Process unhandled foundation ZCL messages for the OTA End Point.
+ *
+ * @param   pMsg - a Pointer to the ZCL message
+ *
+ * @return  none
+ */
+static void zclOTA_ProcessUnhandledFoundationZCLMsgs ( zclIncomingMsg_t *pMsg )
+{
+  switch ( pMsg->zclHdr.commandID )
+  {
+    case ZCL_CMD_DEFAULT_RSP:
+      zclOTA_ProcessInDefaultRspCmd( pMsg );
+      break;
+    default :
+      break;
+  }
+
+  if ( pMsg->attrCmd )
+  {
+    osal_mem_free( pMsg->attrCmd );
+    pMsg->attrCmd = NULL;
+  }
+}
+
+/******************************************************************************
+ * @fn      zclOTA_ProcessInDefaultRspCmd 
+ *
+ * @brief   Passed along from application.
+ *
+ * @param   pInMsg - Pointer to Default Response Command
+ *
+ * @return  void
+ */
+static void zclOTA_ProcessInDefaultRspCmd( zclIncomingMsg_t *pInMsg )
+{
+  // If the OTA server issued a Default Response, most likely something bad
+  // happened.
+       
+  zclDefaultRspCmd_t *defRspCmd = (zclDefaultRspCmd_t*)pInMsg->attrCmd;
+    
+  switch ( defRspCmd->statusCode )
+  {
+      
+    case ( ZCL_STATUS_ABORT ) :
+        
+      switch ( zclOTA_ImageUpgradeStatus )
+      {
+        case ( OTA_STATUS_COMPLETE ) :
+          if ( pInMsg->zclHdr.transSeqNum == zclOta_OtaUpgradeEndReqTransSeq )
+          {
+            // The server has issued an ABORT while we were waiting for the 
+            // Upgrade End Response.
+            zclOTA_ImageUpgradeStatus = OTA_STATUS_NORMAL;
+            zclOta_OtaUpgradeEndReqTransSeq = 0;
+          }
+          break;
+          
+        // Handling for reception of the Default Response with status code == 
+        // ABORT, in other OTA states, can be added here.
+          
+        default :
+          break;
+      }
+      break;
+      
+    // Handling for other Defautl Response status codes and OTA states can 
+    // be added here.
+    default :
+      break;
+  }           
 }
 
 #if (defined OTA_SERVER) && (OTA_SERVER == TRUE)
@@ -1160,10 +1273,12 @@ ZStatus_t zclOTA_SendUpgradeEndReq ( afAddrType_t *dstAddr,
   *pBuf++ = HI_UINT16 ( pParams->fileId.type );
   pBuf = osal_buffer_uint32 ( pBuf, pParams->fileId.version );
 
+  zclOta_OtaUpgradeEndReqTransSeq = zclOTA_SeqNo++;
+  
   status = zcl_SendCommand ( ZCL_OTA_ENDPOINT, dstAddr, ZCL_CLUSTER_ID_OTA,
                              COMMAND_UPGRADE_END_REQ, TRUE,
                              ZCL_FRAME_CLIENT_SERVER_DIR, FALSE, 0,
-                             zclOTA_SeqNo++, ( uint16 ) ( pBuf - buf ), buf );
+                             zclOta_OtaUpgradeEndReqTransSeq, ( uint16 ) ( pBuf - buf ), buf );
 
   return status;
 }
@@ -1609,10 +1724,6 @@ static ZStatus_t zclOTA_ProcessQueryNextImageRsp ( zclIncoming_t *pInMsg )
       osal_start_timerEx ( zclOTA_TaskID, ZCL_OTA_IMAGE_BLOCK_REQ_DELAY_EVT, zclOTA_MinBlockReqDelay );
       status = ZCL_STATUS_CMD_HAS_RSP;
 
-      // Request the IEEE address of the server to put into the
-      // ATTRID_UPGRADE_SERVER_ID attribute
-      ZDP_IEEEAddrReq ( pInMsg->msg->srcAddr.addr.shortAddr, ZDP_ADDR_REQTYPE_SINGLE, 0, 0 );
-
       osal_stop_timerEx ( zclOTA_TaskID, ZCL_OTA_IMAGE_QUERY_TO_EVT );
     }
   }
@@ -1818,6 +1929,11 @@ static ZStatus_t zclOTA_ProcessUpgradeEndRsp ( zclIncoming_t *pInMsg )
   zclOTA_FileID_t currentFileId = {zclOTA_ManufacturerId, zclOTA_ImageType, zclOTA_DownloadedFileVersion};
   uint8 *pData;
 
+  
+  // Clear the Upgrade End Request transaction sequence number.  At this stage
+  // it's no longer needed.
+  zclOta_OtaUpgradeEndReqTransSeq = 0;
+  
   // verify message length
   if ( pInMsg->pDataLen != PAYLOAD_MAX_LEN_UPGRADE_END_RSP )
   {
@@ -2415,7 +2531,7 @@ ZStatus_t zclOTA_Srv_ImagePageReq ( afAddrType_t *pSrcAddr, zclOTA_ImagePageReqP
 ZStatus_t zclOTA_Srv_UpgradeEndReq ( afAddrType_t *pSrcAddr, zclOTA_UpgradeEndReqParams_t *pParam )
 {
   uint8 status = ZFailure;
-
+  
   if ( zclOTA_Permit && ( pParam != NULL ) )
   {
     zclOTA_UpgradeEndRspParams_t rspParms;
@@ -2745,4 +2861,5 @@ static void zclOTA_InitBlockReqDelay ( void )
   }
 }
 #endif // defined (OTA_SERVER) && (OTA_SERVER == TRUE)
+
 

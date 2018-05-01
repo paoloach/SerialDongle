@@ -1,7 +1,7 @@
 /**************************************************************************************************
   Filename:       mac_csp_tx.c
-  Revised:        $Date: 2013-05-17 11:25:11 -0700 (Fri, 17 May 2013) $
-  Revision:       $Revision: 34355 $
+  Revised:        $Date: 2014-10-07 12:55:35 -0700 (Tue, 07 Oct 2014) $
+  Revision:       $Revision: 40482 $
 
   Description:    Describe the purpose and contents of the file.
 
@@ -849,7 +849,7 @@ MAC_INTERNAL_API void macCspTxRequestAckTimeoutCallback(void)
   startSymbol = CSP_WEVENT_READ_COUNT_SYMBOLS();
 
   /* set symbol timeout from PIB */
-  symbols = macPib.ackWaitDuration;
+  symbols = pMacPib->ackWaitDuration;
 
   /* make sure delay value is not too small for logic to handle */
   MAC_ASSERT(symbols > MAC_A_UNIT_BACKOFF_PERIOD);  /* symbols timeout period must be great than a backoff */

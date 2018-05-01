@@ -1,12 +1,12 @@
 /**************************************************************************************************
   Filename:       hal_assert.c
-  Revised:        $Date: 2010-11-22 08:13:43 -0800 (Mon, 22 Nov 2010) $
-  Revision:       $Revision: 24480 $
+  Revised:        $Date: 2014-07-23 12:14:30 -0700 (Wed, 23 Jul 2014) $
+  Revision:       $Revision: 39492 $
 
   Description:    Describe the purpose and contents of the file.
 
 
-  Copyright 2006-2010 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2006-2014 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -72,8 +72,19 @@ void halAssertHazardLights(void);
  * @return      none
  **************************************************************************************************
  */
-void halAssertHandler(void)
+void halAssertHandler( void )
 {
+#if defined( HAL_ASSERT_RESET )
+  HAL_SYSTEM_RESET();
+#elif defined ( HAL_ASSERT_LIGHTS )
+  halAssertHazardLights();
+#elif defined( HAL_ASSERT_SPIN )
+  volatile uint8 i = 1;
+  HAL_DISABLE_INTERRUPTS();
+  while(i);
+#endif
+
+  return;
 }
 
 #if !defined ASSERT_WHILE

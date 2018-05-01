@@ -1,12 +1,12 @@
 /**************************************************************************************************
   Filename:       APS.h
-  Revised:        $Date: 2014-05-08 15:33:08 -0700 (Thu, 08 May 2014) $
-  Revision:       $Revision: 38471 $
+  Revised:        $Date: 2015-06-02 15:55:43 -0700 (Tue, 02 Jun 2015) $
+  Revision:       $Revision: 43961 $
 
   Description:    Primitives of the Application Support Sub Layer Task functions.
 
 
-  Copyright 2004-2014 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2004-2015 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -192,7 +192,8 @@ extern void (*pAPS_DataConfirmReflect)( nwkDB_t *rec, uint8 status );
 
 extern void (*pAPS_DataIndReflect)( zAddrType_t *SrcAddress, aps_FrameFormat_t *aff,
                  NLDE_Signal_t *sig, uint8 AckRequest, uint8 discoverRoute,
-                 uint8 SecurityUse, uint32 timestamp  );
+                 uint8 SecurityUse, uint32 timestamp,
+                 uint16 txOptions, uint8 apsRetries );
 
 /****************************************************************************
 ****************************************************************************/

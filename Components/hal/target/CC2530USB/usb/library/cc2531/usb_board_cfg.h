@@ -1,24 +1,24 @@
 /**************************************************************************************************
     Filename:       usb_board_cfg.h
-    Revised:        $Date:$
-    Revision:       $Revision:$
+    Revised:        $Date: 2014-12-09 14:12:37 -0800 (Tue, 09 Dec 2014) $
+    Revision:       $Revision: 41398 $
 
     Description:
 
     This file implements the Temperature/Voltage Sample Application.
 
 
-    Copyright 2009-2012 Texas Instruments Incorporated. All rights reserved.
+    Copyright 2009-2014 Texas Instruments Incorporated. All rights reserved.
 
     IMPORTANT: Your use of this Software is limited to those specific rights
     granted under the terms of a software license agreement between the user
     who downloaded the software, his/her employer (which must be your employer)
-    and Texas Instruments Incorporated (the "License").  You may not use this
+    and Texas Instruments Incorporated (the "License"). You may not use this
     Software unless you agree to abide by the terms of the License. The License
     limits your use, and you acknowledge, that the Software may not be modified,
     copied or distributed unless embedded on a Texas Instruments microcontroller
     or used solely and exclusively in conjunction with a Texas Instruments radio
-    frequency transceiver, which is integrated into your product.  Other than for
+    frequency transceiver, which is integrated into your product. Other than for
     the foregoing purpose, you may not use, reproduce, copy, prepare derivative
     works of, modify, distribute, perform, display or sell this Software and/or
     its documentation for any purpose.
@@ -152,14 +152,14 @@
                                                     break; } )
 
 #define MCU_IO_OUTPUT_PREP(port, pin, val)  st( P##port##SEL &= ~BV(pin); \
-                                                P##port##_##pin## = val; \
+                                                P##port##_##pin = val; \
                                                 P##port##DIR |= BV(pin); )
 
-#define MCU_IO_SET_HIGH_PREP(port, pin)     st( P##port##_##pin## = 1; )
-#define MCU_IO_SET_LOW_PREP(port, pin)      st( P##port##_##pin## = 0; )
+#define MCU_IO_SET_HIGH_PREP(port, pin)     st( P##port##_##pin = 1; )
+#define MCU_IO_SET_LOW_PREP(port, pin)      st( P##port##_##pin = 0; )
 
-#define MCU_IO_SET_PREP(port, pin, val)     st( P##port##_##pin## = val; )
-#define MCU_IO_TGL_PREP(port, pin)          st( P##port##_##pin## ^= 1; )
+#define MCU_IO_SET_PREP(port, pin, val)     st( P##port##_##pin = val; )
+#define MCU_IO_TGL_PREP(port, pin)          st( P##port##_##pin ^= 1; )
 #define MCU_IO_GET_PREP(port, pin)          (P##port## & BV(pin))
 
 #define MCU_IO_DIR_INPUT_PREP(port, pin)    st( P##port##DIR &= ~BV(pin); )

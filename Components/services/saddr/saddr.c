@@ -1,12 +1,12 @@
 /****************************************************************************
   Filename:       saddr.c
-  Revised:        $Date: 2013-06-13 09:40:13 -0700 (Thu, 13 Jun 2013) $
-  Revision:       $Revision: 34575 $
+  Revised:        $Date: 2014-11-06 11:03:55 -0800 (Thu, 06 Nov 2014) $
+  Revision:       $Revision: 41021 $
 
   Description:    Zigbee and 802.15.4 device address utility functions.
 
 
-  Copyright 2005-2013 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2005-2014 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -44,8 +44,9 @@
 #include "OSAL.h"
 #include "saddr.h"
 
-#if defined( CC26XX )
-  #include "flash_JT.h"
+#include "R2R_FlashJT.h"
+#if defined (CC26XX)
+#include "R2F_FlashJT.h"
 #endif /* CC26XX */
 
 /****************************************************************************
@@ -78,7 +79,7 @@ bool sAddrCmp(const sAddr_t *pAddr1, const sAddr_t *pAddr2)
   }
   else if (pAddr1->addrMode == SADDR_MODE_EXT)
   {
-    return (sAddrExtCmp(pAddr1->addr.extAddr, pAddr2->addr.extAddr));
+    return (MAP_sAddrExtCmp(pAddr1->addr.extAddr, pAddr2->addr.extAddr));
   }
   else
   {
@@ -136,7 +137,7 @@ bool sAddrIden(const sAddr_t *pAddr1, const sAddr_t *pAddr2)
   else if (pAddr1->addrMode == SADDR_MODE_EXT)
   {
     // compare extended addresses
-    return (sAddrExtCmp(pAddr1->addr.extAddr, pAddr2->addr.extAddr));
+    return (MAP_sAddrExtCmp(pAddr1->addr.extAddr, pAddr2->addr.extAddr));
   }
   else // unknown error
   {
@@ -165,7 +166,7 @@ void sAddrCpy(sAddr_t *pDest, const sAddr_t *pSrc)
 
   if (pDest->addrMode == SADDR_MODE_EXT)
   {
-    sAddrExtCpy(pDest->addr.extAddr, pSrc->addr.extAddr);
+    MAP_sAddrExtCpy(pDest->addr.extAddr, pSrc->addr.extAddr);
   }
   else
   {

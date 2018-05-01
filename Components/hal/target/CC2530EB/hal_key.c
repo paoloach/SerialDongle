@@ -186,7 +186,10 @@ void HalKeyInit( void )
   halKeySavedKeys = 0;
 
   HAL_KEY_SW_6_SEL &= ~(HAL_KEY_SW_6_BIT);    /* Set pin function to GPIO */
+
+#if ! defined ENABLE_LED4_DISABLE_S1
   HAL_KEY_SW_6_DIR &= ~(HAL_KEY_SW_6_BIT);    /* Set pin direction to Input */
+#endif
 
   HAL_KEY_JOY_MOVE_SEL &= ~(HAL_KEY_JOY_MOVE_BIT); /* Set pin function to GPIO */
   HAL_KEY_JOY_MOVE_DIR &= ~(HAL_KEY_JOY_MOVE_BIT); /* Set pin direction to Input */
@@ -348,7 +351,11 @@ void HalKeyPoll (void)
   }
 
   /* Invoke Callback if new keys were depressed */
-  if (keys && (pHalKeyProcessFunction))
+  if (pHalKeyProcessFunction
+#ifdef HAL_LEGACY_KEYS
+    && keys //in legacy modes, only report key presses and do not report when a key is released
+#endif
+    )
   {
     (pHalKeyProcessFunction) (keys, HAL_KEY_STATE_NORMAL);
   }

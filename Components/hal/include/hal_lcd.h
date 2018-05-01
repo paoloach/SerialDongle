@@ -69,7 +69,19 @@ extern "C"
 #define HAL_LCD_LINE_6      0x06
 #define HAL_LCD_LINE_7      0x07
 #define HAL_LCD_LINE_8      0x08
- 
+
+#define HAL_LCD_SERIAL_DEBUG_ONLY      0xFF
+
+#ifdef LEGACY_LCD_DEBUG
+#define HAL_LCD_DEBUG_LINE_1 1
+#define HAL_LCD_DEBUG_LINE_2 2
+#define HAL_LCD_DEBUG_LINE_3 3
+#else
+#define HAL_LCD_DEBUG_LINE_1 HAL_LCD_SERIAL_DEBUG_ONLY
+#define HAL_LCD_DEBUG_LINE_2 HAL_LCD_SERIAL_DEBUG_ONLY
+#define HAL_LCD_DEBUG_LINE_3 HAL_LCD_SERIAL_DEBUG_ONLY
+#endif
+
 /**************************************************************************************************
  *                                          MACROS
  **************************************************************************************************/
@@ -124,6 +136,10 @@ extern void HalLcdWriteStringValueValue( char *title, uint16 value1, uint8 forma
  */
 extern void HalLcdDisplayPercentBar( char *title, uint8 value );
 
+/*
+ * CLear the LCD
+ */
+extern void HalLcd_HW_Clear(void);
 
 /**************************************************************************************************
 **************************************************************************************************/

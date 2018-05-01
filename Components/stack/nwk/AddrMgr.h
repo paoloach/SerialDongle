@@ -172,6 +172,7 @@ extern void AddrMgrWriteNV( void );
  */
 extern void AddrMgrWriteNVRequest( void );
 
+#if ( ADDRMGR_CALLBACK_ENABLED == 1 )
 /******************************************************************************
  * @fn          AddrMgrRegister
  *
@@ -183,6 +184,8 @@ extern void AddrMgrWriteNVRequest( void );
  * @return      uint8 - success(TRUE:FALSE)
  */
 extern uint8 AddrMgrRegister( uint8 reg, AddrMgrUserCB_t cb );
+
+#endif //ADDRMGR_CALLBACK_ENABLED
 
 /******************************************************************************
  * @fn          AddrMgrExtAddrSet

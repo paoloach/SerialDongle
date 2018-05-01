@@ -1,12 +1,12 @@
 /**************************************************************************************************
   Filename:       nwk_globals.c
-  Revised:        $Date: 2014-05-17 12:12:11 -0700 (Sat, 17 May 2014) $
-  Revision:       $Revision: 38578 $
+  Revised:        $Date: 2015-01-08 16:32:12 -0800 (Thu, 08 Jan 2015) $
+  Revision:       $Revision: 41678 $
 
   Description:    User definable Network Parameters.
 
 
-  Copyright 2004-2014 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2004-2015 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -54,6 +54,14 @@
 #include "ZDConfig.h"
 #include "ZGlobals.h"
 #include "ZDApp.h"
+#include "ZDSecMgr.h"
+
+#if defined ( LCD_SUPPORTED )
+  #include "OnBoard.h"
+#endif
+
+/* HAL */
+#include "hal_lcd.h"
 
 /*********************************************************************
  * MACROS
@@ -76,7 +84,8 @@
 // So the hold time will vary within this interval:
 // { (NWK_INDIRECT_MSG_TIMEOUT-1)*CNT_RTG_TIMER,
 //                                    NWK_INDIRECT_MSG_TIMEOUT*CNT_RTG_TIMER }
-#define NWK_INDIRECT_CNT_RTG_TMR    1
+
+ #define NWK_INDIRECT_CNT_RTG_TMR    60
 // To hold msg for sleeping end devices for 30 secs:
 // #define CNT_RTG_TIMER            1
 // #define NWK_INDIRECT_MSG_TIMEOUT 30
@@ -140,7 +149,9 @@ uint8 gMIN_TREE_LQI = MIN_LQI_COST_3;
 // Statically defined Associated Device List
 associated_devices_t AssociatedDevList[NWK_MAX_DEVICES];
 
-#if defined ( ZIGBEE_STOCHASTIC_ADDRESSING )
+CONST uint8 gMAX_NWK_SEC_MATERIAL_TABLE_ENTRIES = MAX_NWK_SEC_MATERIAL_TABLE_ENTRIES;
+
+#if defined ( ZIGBEEPRO )
   CONST uint16 gNWK_MIN_ROUTER_CHILDREN = NWK_MIN_ROUTER_CHILDREN;
   CONST uint16 gNWK_MIN_ENDDEVICE_CHILDREN = NWK_MIN_ENDDEVICE_CHILDREN;
 #else
@@ -170,7 +181,7 @@ CONST uint8 gMAX_PASSIVE_ACK_CNT = MAX_PASSIVE_ACK_CNT;
 // Routing table
 rtgEntry_t rtgTable[MAX_RTG_ENTRIES];
 
-#if defined ( ZIGBEE_SOURCE_ROUTING ) || defined ( ZBIT )
+#if defined ( ZIGBEEPRO ) || defined ( ZBIT )
   rtgSrcEntry_t rtgSrcTable[MAX_RTG_SRC_ENTRIES];
   uint16 rtgSrcRelayList[MAX_SOURCE_ROUTE];
 #endif
@@ -193,7 +204,7 @@ CONFIG_ITEM bcastTableIndex_t gMAX_BCAST = MAX_BCAST;
 // could be limited.
 CONST uint8 gNWK_TREE_ALLOCATE_ROUTERADDR_FOR_ENDDEVICE = FALSE;
 
-#if defined ( ZIGBEE_STOCHASTIC_ADDRESSING ) || defined ( ZBIT )
+#if defined ( ZIGBEEPRO ) || defined ( ZBIT )
 // number of link status periods after the last received address conflict report
 // (network status command)
 CONST uint8 gNWK_CONFLICTED_ADDR_EXPIRY_TIME = NWK_CONFLICTED_ADDR_EXPIRY_TIME;
@@ -223,8 +234,23 @@ CONST uint16 gLINK_STATUS_JITTER_MASK = LINK_STATUS_JITTER_MASK;
 CONST uint8 gMAX_NOT_MYCHILD_DEVICES = MAX_NOT_MYCHILD_DEVICES;
 
 // Child table Management timeout values
-CONST uint16 gKEEPALIVE_TIMEOUT_MAX = KEEPALIVE_TIMEOUT_MAX;
-CONST uint16 gTIMEOUT_COUNTER_MAX = TIMEOUT_COUNTER_MAX;
+CONST uint32 timeoutValue[15] =
+{   10, // 0	10 seconds
+     2, // 1	2 minutes
+     4, // 2	4 minutes
+     8, // 3	8 minutes
+    16, // 4	16 minutes
+    32, // 5	32 minutes
+    64, // 6	64 minutes
+   128, // 7	128 minutes
+   256, // 8	256 minutes
+   512, // 9	512 minutes
+  1024, // 10	1024 minutes
+  2048, // 11	2048 minutes
+  4096, // 12	4096 minutes
+  8192, // 13	8192 minutes
+ 16384 // 14	16384 minutes
+};
 
 // This table stores devices that have been aged out by the Child Aging Table
 // mechanism or have never been a child of this device
@@ -272,6 +298,12 @@ CONFIG_ITEM uint8 gAPS_MAX_GROUPS = APS_MAX_GROUPS;
 // change this to make a unique key
 // SEC_KEY_LEN is defined in ssp.h.
 
+
+#if (ZG_BUILD_JOINING_TYPE)  
+//Distributed key is only used by devices with joining capabilities (router and ZED)
+CONFIG_ITEM uint8 distributedDefaultKey[SEC_KEY_LEN] = DISTRIBUTED_GLOBAL_LINK_KEY;
+#endif
+
 #if defined ( DEFAULT_KEY )
 CONFIG_ITEM uint8 defaultKey[SEC_KEY_LEN] = DEFAULT_KEY;
 #else
@@ -296,6 +328,24 @@ CONST uint8 defaultTCLinkKey[SEC_KEY_LEN] = DEFAULT_TC_LINK_KEY;
 /*********************************************************************
  * STATUS STRINGS
  */
+#if defined ( LCD_SUPPORTED )
+  const char PingStr[]         = "Ping Rcvd from";
+  const char AssocCnfStr[]     = "Assoc Cnf";
+  const char SuccessStr[]      = "Success";
+  const char EndDeviceStr[]    = "EndDevice:";
+  const char ParentStr[]       = "Parent:";
+  const char ZigbeeCoordStr[]  = "ZigBee Coord";
+  const char NetworkIDStr[]    = "Network ID:";
+  const char RouterStr[]       = "Router:";
+  const char OrphanRspStr[]    = "Orphan Response";
+  const char SentStr[]         = "Sent";
+  const char FailedStr[]       = "Failed";
+  const char AssocRspFailStr[] = "Assoc Rsp fail";
+  const char AssocIndStr[]     = "Assoc Ind";
+  const char AssocCnfFailStr[] = "Assoc Cnf fail";
+  const char EnergyLevelStr[]  = "Energy Level";
+  const char ScanFailedStr[]   = "Scan Failed";
+#endif
 
 /*********************************************************************
  * @fn       nwk_globals_init()
@@ -314,7 +364,7 @@ void nwk_globals_init( void )
 {
   AddrMgrInit( NWK_MAX_ADDRESSES );
 
-#if !defined ( ZIGBEE_STOCHASTIC_ADDRESSING )
+#if !defined ( ZIGBEEPRO )
   if ( ZSTACK_ROUTER_BUILD )
   {
     // Initialize the Cskip Table
@@ -323,24 +373,15 @@ void nwk_globals_init( void )
   }
 #endif
 
-  // To compile out the Link Status Feature, set NWK_LINK_STATUS_PERIOD
-  // to 0 (compiler flag).
-  if ( ZSTACK_ROUTER_BUILD && NWK_LINK_STATUS_PERIOD )
-  {
-    NLME_InitLinkStatus();
-  }
-
 #if defined ( ZIGBEE_FREQ_AGILITY )
   NwkFreqAgilityInit();
 #endif
 
-#if defined ( ZIGBEE_CHILD_AGING )
   if ( ( ZSTACK_ROUTER_BUILD ) && ( zgChildAgingEnable == TRUE ) )
   {
     // Set the function pointers for the Child Aging feature
     NwkInitChildAging();
   }
-#endif  // ZIGBEE_CHILD_AGING
 }
 
 /*********************************************************************
@@ -411,14 +452,6 @@ void NIB_init()
 
   _NIB.nwkKeyLoaded = FALSE;
 
-#if defined ( ZIGBEE_STOCHASTIC_ADDRESSING )
-  _NIB.nwkAddrAlloc  = NWK_ADDRESSING_STOCHASTIC;
-  _NIB.nwkUniqueAddr = FALSE;
-#else
-  _NIB.nwkAddrAlloc  = NWK_ADDRESSING_DISTRIBUTED;
-  _NIB.nwkUniqueAddr = TRUE;
-#endif
-
   _NIB.nwkLinkStatusPeriod = NWK_LINK_STATUS_PERIOD;
   _NIB.nwkRouterAgeLimit = NWK_ROUTE_AGE_LIMIT;
 
@@ -427,30 +460,22 @@ void NIB_init()
   _NIB.nwkIsConcentrator = zgConcentratorEnable;
   _NIB.nwkConcentratorRadius = zgConcentratorRadius;
 
-#if defined ( ZIGBEE_MULTICAST )
+#if defined ( ZIGBEEPRO )
   _NIB.nwkUseMultiCast = MULTICAST_ENABLED;
 #else
   _NIB.nwkUseMultiCast = FALSE;
 #endif
 
 #if defined ( NV_RESTORE )
-  if ( osal_nv_read( ZCD_NV_NWKMGR_ADDR, 0, sizeof( _NIB.nwkManagerAddr ), &_NIB.nwkManagerAddr ) != SUCCESS )
+  if ( osal_nv_read( ZCD_NV_NWKMGR_ADDR, 0, sizeof( _NIB.nwkManagerAddr ),
+                     &_NIB.nwkManagerAddr ) != SUCCESS )
 #endif
   {
     _NIB.nwkManagerAddr = 0x0000;
   }
 
-  _NIB.nwkUpdateId = 0;
+  NLME_SetUpdateID( 0 );
   _NIB.nwkTotalTransmissions = 0;
-
-  if ( ZSTACK_ROUTER_BUILD )
-  {
-#if defined ( ZIGBEE_STOCHASTIC_ADDRESSING )
-    NLME_InitStochasticAddressing();
-#else
-    NLME_InitTreeAddressing();
-#endif
-  }
 }
 
 /*********************************************************************
@@ -467,7 +492,78 @@ void NIB_init()
  */
 void nwk_Status( uint16 statusCode, uint16 statusValue )
 {
+#if defined ( SERIAL_DEBUG_SUPPORTED ) || (defined ( LEGACY_LCD_DEBUG ) && defined (LCD_SUPPORTED))
+  switch ( statusCode )
+  {
+    case NWK_STATUS_COORD_ADDR:
+      if ( ZSTACK_ROUTER_BUILD )
+      {
+        
+      if ( _NIB.nwkDevAddress == NWK_PAN_COORD_ADDR )
+      {
+        HalLcdWriteString( (char*)ZigbeeCoordStr, HAL_LCD_DEBUG_LINE_1 );
+      }
+      if ( (_NIB.nwkDevAddress != NWK_PAN_COORD_ADDR) &&
+           (_NIB.nwkDevAddress != INVALID_NODE_ADDR) )
+      {
+        HalLcdWriteStringValue( (char*)RouterStr, _NIB.nwkDevAddress, 16, HAL_LCD_DEBUG_LINE_1 );
+      }
+      
+        HalLcdWriteStringValue( (char*)NetworkIDStr, statusValue, 16, HAL_LCD_DEBUG_LINE_2 );
+        BuzzerControl( BUZZER_BLIP );
+      }
+      break;
 
+    case NWK_STATUS_ROUTER_ADDR:
+      if ( ZSTACK_ROUTER_BUILD )
+      {
+        HalLcdWriteStringValue( (char*)RouterStr, statusValue, 16, HAL_LCD_DEBUG_LINE_1 );
+      }
+      break;
+
+    case NWK_STATUS_ORPHAN_RSP:
+      if ( ZSTACK_ROUTER_BUILD )
+      {
+        if ( statusValue == ZSuccess )
+          HalLcdWriteScreen( (char*)OrphanRspStr, (char*)SentStr );
+        else
+          HalLcdWriteScreen( (char*)OrphanRspStr, (char*)FailedStr );
+      }
+      break;
+
+    case NWK_ERROR_ASSOC_RSP:
+      if ( ZSTACK_ROUTER_BUILD )
+      {
+        HalLcdWriteString( (char*)AssocRspFailStr, HAL_LCD_DEBUG_LINE_1 );
+        HalLcdWriteValue( (uint32)(statusValue), 16, HAL_LCD_DEBUG_LINE_2 );
+      }
+      break;
+
+    case NWK_STATUS_ED_ADDR:
+      if ( ZSTACK_END_DEVICE_BUILD )
+      {
+        HalLcdWriteStringValue( (char*)EndDeviceStr, statusValue, 16, HAL_LCD_DEBUG_LINE_1 );
+      }
+      break;
+
+    case NWK_STATUS_PARENT_ADDR:
+            HalLcdWriteStringValue( (char*)ParentStr, statusValue, 16, HAL_LCD_DEBUG_LINE_2 );
+      break;
+
+    case NWK_STATUS_ASSOC_CNF:
+      HalLcdWriteScreen( (char*)AssocCnfStr, (char*)SuccessStr );
+      break;
+
+    case NWK_ERROR_ASSOC_CNF_DENIED:
+      HalLcdWriteString((char*)AssocCnfFailStr, HAL_LCD_DEBUG_LINE_1 );
+      HalLcdWriteValue( (uint32)(statusValue), 16, HAL_LCD_DEBUG_LINE_2 );
+      break;
+
+    case NWK_ERROR_ENERGY_SCAN_FAILED:
+      HalLcdWriteScreen( (char*)EnergyLevelStr, (char*)ScanFailedStr );
+      break;
+  }
+#endif
 }
 
 /*********************************************************************

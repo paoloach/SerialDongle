@@ -1,12 +1,12 @@
 /**************************************************************************************************
   Filename:       mac_radio_defs.c
-  Revised:        $Date: 2014-06-03 17:03:00 -0700 (Tue, 03 Jun 2014) $
-  Revision:       $Revision: 38779 $
+  Revised:        $Date: 2015-02-17 14:17:44 -0800 (Tue, 17 Feb 2015) $
+  Revision:       $Revision: 42683 $
 
   Description:    Describe the purpose and contents of the file.
 
 
-  Copyright 2006-2014 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2006-2015 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -137,22 +137,23 @@ const uint8 CODE macRadioDefsTxPwrCC2591[] =
 };
 #endif
 
-/* TBD Placeholder for CC2530+CC2592 */
 #if defined HAL_PA_LNA_CC2592 || defined MAC_RUNTIME_CC2592
 const uint8 CODE macRadioDefsTxPwrCC2592[] =
 {
-  20,  /* tramsmit power level of the first entry */
-  (uint8)(int8)11, /* transmit power level of the last entry */
-  /*  20 dBm */   0xF5,   /* characterized as 20.3 dBm */
-  /*  19 dBm */   0xC5,   /* characterized as 19 dBm   */
-  /*  18 dBm */   0xB5,   /* characterized as 18 dBm   */
-  /*  17 dBm */   0xA5,   /* characterized as 17.5 dBm */
-  /*  16 dBm */   0x95,   /* characterized as 16.3 dBm */
-  /*  15 dBm */   0x85,   /* characterized as 15.7 dBm */
-  /*  14 dBm */   0x75,   /* characterized as 14.5 dBm */
-  /*  13 dBm */   0x65,   /* characterized as 13 dBm   */
-  /*  12 dBm */   0x65,   /* characterized as 13 dBm   */
-  /*  11 dBm */   0x55,   /* characterized as 11.3dBm  */
+  21,  /* tramsmit power level of the first entry */
+  (uint8)(int8)10, /* transmit power level of the last entry */
+  /*  21 dBm */   0xF4,   /* characterized as 21.47 dBm */
+  /*  20 dBm */   0xD4,   /* characterized as 20.26 dBm */
+  /*  19 dBm */   0xC0,   /* characterized as 19.31 dBm */
+  /*  18 dBm */   0xA5,   /* characterized as 18.21 dBm */
+  /*  17 dBm */   0x95,   /* characterized as 17.14 dBm */
+  /*  16 dBm */   0x82,   /* characterized as 16.27 dBm */
+  /*  15 dBm */   0x72,   /* characterized as 15.15 dBm */
+  /*  14 dBm */   0x63,   /* characterized as 14.12 dBm */
+  /*  13 dBm */   0x61,   /* characterized as 13.24 dBm */
+  /*  12 dBm */   0x55,   /* characterized as 11.93 dBm */
+  /*  11 dBm */   0x50,   /* characterized as 10.90 dBm */
+  /*  10 dBm */   0x49    /* characterized as 10.29 dBm */
 };
 #endif
 
@@ -584,9 +585,9 @@ MAC_INTERNAL_API void macRadioTurnOnPower(void)
   if (macChipVersion <= REV_B)
   {
     /* radio initializations for disappearing RAM; PG1.0 and before only */
-    MAC_RADIO_SET_PAN_ID(macPib.panId);
-    MAC_RADIO_SET_SHORT_ADDR(macPib.shortAddress);
-    MAC_RADIO_SET_IEEE_ADDR(macPib.extendedAddress.addr.extAddr);
+    MAC_RADIO_SET_PAN_ID(pMacPib->panId);
+    MAC_RADIO_SET_SHORT_ADDR(pMacPib->shortAddress);
+    MAC_RADIO_SET_IEEE_ADDR(pMacPib->extendedAddress.addr.extAddr);
   }
 
   /* Turn on frame filtering */
@@ -622,6 +623,17 @@ MAC_INTERNAL_API void macRadioTurnOffPower(void)
     {
       HAL_PA_LNA_RX_LGM(); 
       HAL_PA_LNA_RX_CSD_LOW();
+    }
+    else 
+    {   
+      if (paLnaChip == PA_LNA_CC2591  ||  paLnaChip == PA_LNA_CC2590)
+      {
+        /* Set direction of P1_4 to output and pulled down to prevent any leakage
+         * when used to drive PA LNA		
+		 */
+        P1DIR |= BV(4);
+        P1_4 = 0;
+      }
     }
   }
   #endif /* defined MAC_RUNTIME_CC2591 || ... || defined HAL_PA_LNA_SE2431L */

@@ -58,6 +58,9 @@ extern "C"
 #include "APSMEDE.h"
 #include "ZDConfig.h"
 #include "ZDSecMgr.h"
+  
+#include "bdb.h"
+#include "bdb_interface.h"
 
 /******************************************************************************
  * CONSTANTS
@@ -75,20 +78,22 @@ extern "C"
   #define ZDSECMGR_STORED_DEVICES 3
 #endif
 
-// Total number of preconfigured trust center link key
-#if !defined ( ZDSECMGR_TC_DEVICE_MAX )
-  #define ZDSECMGR_TC_DEVICE_MAX 1
-#endif
-
-#if ( ZDSECMGR_TC_DEVICE_MAX < 1 ) || ( ZDSECMGR_TC_DEVICE_MAX > 255 )
-  #error "ZDSECMGR_TC_DEVICE_MAX shall be between 1 and 255 !"
-#endif
+// Joining Device Policies: r21 spec 4.9.1
+// This boolean indicates whether the device will request a new Trust Center Link key after joining.
+// TC link key cannot be requested if join is performed on distributed nwk
+bool  requestNewTrustCenterLinkKey = TRUE;  
+//This integer indicates the maximum time in seconds that a device will wait for a response to a 
+//request for a Trust Center link key.
+uint32  requestLinkKeyTimeout = BDBC_TC_LINK_KEY_EXANGE_TIMEOUT;
+ //bool acceptNewUnsolicitedApplicationLinkKey;   
 
 // APSME Stub Implementations
-#define ZDSecMgrLinkKeySet     APSME_LinkKeySet
-#define ZDSecMgrLinkKeyNVIdGet APSME_LinkKeyNVIdGet
-#define ZDSecMgrKeyFwdToChild  APSME_KeyFwdToChild
-#define ZDSecMgrIsLinkKeyValid APSME_IsLinkKeyValid
+#define ZDSecMgrLinkKeySet       APSME_LinkKeySet
+#define ZDSecMgrLinkKeyNVIdGet   APSME_LinkKeyNVIdGet
+#define ZDSecMgrKeyFwdToChild    APSME_KeyFwdToChild
+#define ZDSecMgrIsLinkKeyValid   APSME_IsLinkKeyValid
+
+
 
 /******************************************************************************
  * TYPEDEFS
@@ -112,8 +117,14 @@ typedef struct
 /******************************************************************************
  * EXTERNAL VARIABLES
  */
+extern CONST uint8 gMAX_NWK_SEC_MATERIAL_TABLE_ENTRIES;
 extern pfnZdoCb zdoCBFunc[MAX_ZDO_CB_FUNC];
 
+
+/******************************************************************************
+ * EXTERNAL FUNCTIONS
+ */
+extern void   ZDApp_ResetTimerCancel( void );
 /******************************************************************************
  * LOCAL VARIABLES
  */
@@ -140,11 +151,14 @@ void ZDSecMgrAddrMgrCB( uint8 update, AddrMgrEntry_t* newEntry, AddrMgrEntry_t* 
 uint8 ZDSecMgrPermitJoiningEnabled;
 uint8 ZDSecMgrPermitJoiningTimed;
 
-APSME_TCLinkKey_t TrustCenterLinkKey;
+APSME_TCLKDevEntry_t TrustCenterLinkKey;
 
 APSME_ApsLinkKeyFrmCntr_t ApsLinkKeyFrmCntr[ZDSECMGR_ENTRY_MAX];
 APSME_TCLinkKeyFrmCntr_t TCLinkKeyFrmCntr[ZDSECMGR_TC_DEVICE_MAX];
 
+ CONST uint16 gZDSECMGR_TC_DEVICE_MAX = ZDSECMGR_TC_DEVICE_MAX;
+ CONST uint16 gZDSECMGR_TC_DEVICE_IC_MAX = ZDSECMGR_TC_DEVICE_IC_MAX;
+ CONST uint8  gZDSECMGR_TC_ATTEMPT_DEFAULT_KEY = ZDSECMGR_TC_ATTEMPT_DEFAULT_KEY;
 /******************************************************************************
  * PRIVATE FUNCTIONS
  *
@@ -160,6 +174,8 @@ APSME_TCLinkKeyFrmCntr_t TCLinkKeyFrmCntr[ZDSECMGR_TC_DEVICE_MAX];
  *   ZDSecMgrEntryNew
  *   ZDSecMgrAppKeyGet
  *   ZDSecMgrAppKeyReq
+ *   ZDSecMgrTclkReq
+ *   ZDSecMgrAppConfKeyReq 
  *   ZDSecMgrSendNwkKey
  *   ZDSecMgrDeviceRemove
  *   ZDSecMgrDeviceValidateRM
@@ -199,7 +215,7 @@ ZStatus_t ZDSecMgrEntryLookupAMIGetIndex( uint16 ami, uint16* entryIndex );
 void ZDSecMgrEntryFree( ZDSecMgrEntry_t* entry );
 ZStatus_t ZDSecMgrEntryNew( ZDSecMgrEntry_t** entry );
 ZStatus_t ZDSecMgrAuthenticationSet( uint8* extAddr, ZDSecMgr_Authentication_Option option );
-void ZDSecMgrApsLinkKeyInit(void);
+void ZDSecMgrApsLinkKeyInit(uint8 setDefault);
 #if defined ( NV_RESTORE )
 static void ZDSecMgrWriteNV(void);
 static void ZDSecMgrRestoreFromNV(void);
@@ -216,6 +232,8 @@ ZStatus_t ZDSecMgrAppKeyGet( uint16  initNwkAddr,
                              uint8** key,
                              uint8*  keyType );
 void ZDSecMgrAppKeyReq( ZDO_RequestKeyInd_t* ind );
+void ZDSecMgrTclkReq( ZDO_RequestKeyInd_t* ind );
+void ZDSecMgrAppConfKeyReq( ZDO_VerifyKeyInd_t* ind );
 ZStatus_t ZDSecMgrSendNwkKey( ZDSecMgrDevice_t* device );
 void ZDSecMgrNwkKeyInit(uint8 setDefault);
 
@@ -245,7 +263,8 @@ void ZDSecMgrAuthNwkKey( void );
 //-----------------------------------------------------------------------------
 void APSME_TCLinkKeyInit( uint8 setDefault );
 uint8 APSME_IsDefaultTCLK( uint8 *extAddr );
-
+void ZDSecMgrGenerateSeed(uint8 setDefault );
+void ZDSecMgrGenerateKeyFromSeed(uint8 *extAddr, uint8 shift, uint8 *key);
 /******************************************************************************
  * @fn          ZDSecMgrAddrStore
  *
@@ -716,7 +735,6 @@ uint8 ZDSecMgrAppKeyType = KEY_TYPE_APP_LINK;    // Set the default key type
                                                  // to KEY_TYPE_APP_LINK since
                                                  // only specific requirement
                                                  // right now comes from SE profile
-
 ZStatus_t ZDSecMgrAppKeyGet( uint16  initNwkAddr,
                              uint8*  initExtAddr,
                              uint16  partNwkAddr,
@@ -741,6 +759,9 @@ ZStatus_t ZDSecMgrAppKeyGet( uint16  initNwkAddr,
 
   return ZSuccess;
 }
+
+
+
 
 /******************************************************************************
  * @fn          ZDSecMgrAppKeyReq
@@ -798,6 +819,87 @@ void ZDSecMgrAppKeyReq( ZDO_RequestKeyInd_t* ind )
     }
   }
 }
+
+/******************************************************************************
+ * @fn          ZDSecMgrTclkReq
+ *
+ * @brief       Process request for TCLK.
+ *
+ * @param       device - [in] ZDO_RequestKeyInd_t, request info
+ *
+ * @return      none
+ */
+void ZDSecMgrTclkReq( ZDO_RequestKeyInd_t* ind )
+{
+  APSME_TransportKeyReq_t req;
+  uint8                   initExtAddr[Z_EXTADDR_LEN];
+  uint16                  partNwkAddr;
+  uint8                   key[SEC_KEY_LEN];
+  APSME_TCLKDevEntry_t    TCLKDevEntry;
+  uint8                   found;
+    
+  // validate initiator and partner
+  if ( ( ( APSME_LookupNwkAddr( ind->partExtAddr, &partNwkAddr ) == TRUE ) || ( ind->keyType != KEY_TYPE_APP_MASTER ) ) &&
+       (   APSME_LookupExtAddr( ind->srcAddr, initExtAddr )      == TRUE ) )
+  {
+    // point the key to some memory
+    req.key = key;
+
+    //Search for the entry
+    APSME_SearchTCLinkKeyEntry(initExtAddr,&found, &TCLKDevEntry);
+
+    //If found, generate the key accordingly to the key attribute
+    if(found)
+    {
+      //Generate key from the seed, which would be the unique key
+      ZDSecMgrGenerateKeyFromSeed(TCLKDevEntry.extAddr,TCLKDevEntry.SeedShift_IcIndex,req.key);
+    
+      // always secure
+      req.nwkSecure = TRUE;
+      req.apsSecure = TRUE;
+      req.tunnel    = NULL;
+
+      // send key to initiator device
+      req.dstAddr   = ind->srcAddr;
+      req.extAddr   = initExtAddr;
+      req.initiator = TRUE;
+      req.keyType   = KEY_TYPE_TC_LINK;
+        
+      APSME_TransportKeyReq( &req );
+        
+      // clear copy of key in RAM
+      osal_memset( key, 0x00, SEC_KEY_LEN);
+    
+    }
+  }
+}
+
+/******************************************************************************
+ * @fn          ZDSecMgrAppConfKeyReq
+ *
+ * @brief       Process request for APP key between two devices.
+ *
+ * @param       device - [in] ZDO_VerifyKeyInd_t, request info
+ *
+ * @return      none
+ */
+void ZDSecMgrAppConfKeyReq( ZDO_VerifyKeyInd_t* ind )
+{
+  APSME_ConfirmKeyReq_t   req;
+
+  // send key to initiator device
+  req.dstAddr      = ind->srcAddr;
+  req.status       = ind->verifyKeyStatus;
+  req.dstExtAddr   = ind->extAddr;
+  req.keyType      = ind->keyType;
+
+  if ( ( ZSTACK_DEVICE_BUILD & DEVICE_BUILD_COORDINATOR ) != 0 )
+  {
+    APSME_ConfirmKeyReq( &req );
+  }
+  
+}
+
 
 /******************************************************************************
  * @fn          ZDSecMgrSendNwkKey
@@ -933,6 +1035,7 @@ void ZDSecMgrDeviceRemove( ZDSecMgrDevice_t* device )
   APSME_RemoveDeviceReq_t remDevReq;
   NLME_LeaveReq_t         leaveReq;
   associated_devices_t*   assoc;
+  uint8 TC_ExtAddr[Z_EXTADDR_LEN];
 
   // check if parent, remove the device
   if ( device->parentAddr == NLME_GetShortAddr() )
@@ -976,34 +1079,39 @@ void ZDSecMgrDeviceRemove( ZDSecMgrDevice_t* device )
     remDevReq.parentAddr   = device->parentAddr;
     remDevReq.childExtAddr = device->extAddr;
 
-#if defined ( APP_TP2_TEST_MODE )
-    if ( guTxApsSecON == TRUE )
-    {
-      remDevReq.apsSecure = TRUE;
-    }
-    else
-    {
-      remDevReq.apsSecure = FALSE;
-    }
-
-    APSME_RemoveDeviceReq( &remDevReq );
-
-#else
     if ( ZG_CHECK_SECURITY_MODE == ZG_SECURITY_SE_STANDARD )
     {
+      uint8 found;
+      APSME_GetRequest( apsTrustCenterAddress,0, TC_ExtAddr );
+      
+      APSME_SearchTCLinkKeyEntry(TC_ExtAddr,&found,NULL);
+      
       // For ZG_GLOBAL_LINK_KEY the message has to be sent twice, one
       // APS un-encrypted and one APS encrypted, to make sure that it can interoperate
       // with legacy Coordinator devices which can only handle one or the other.
-      if ( zgApsLinkKeyType == ZG_GLOBAL_LINK_KEY )
+#if defined ( APP_TP2_TEST_MODE )
+      if ( ( zgApsLinkKeyType == ZG_GLOBAL_LINK_KEY ) && ( found == FALSE ) && ( guTxApsSecON != TRUE ) )
+#else
+      if ( ( zgApsLinkKeyType == ZG_GLOBAL_LINK_KEY ) && ( found == FALSE ) )
+#endif
       {
         remDevReq.apsSecure = FALSE;
 
         APSME_RemoveDeviceReq( &remDevReq );
       }
 
+#if defined ( APP_TP2_TEST_MODE )
+      if ( guTxApsSecON != FALSE )
+      {
+        remDevReq.apsSecure = TRUE;
+
+        APSME_RemoveDeviceReq( &remDevReq );
+      }
+#else
       remDevReq.apsSecure = TRUE;
 
       APSME_RemoveDeviceReq( &remDevReq );
+#endif
     }
     else
     {
@@ -1011,7 +1119,6 @@ void ZDSecMgrDeviceRemove( ZDSecMgrDevice_t* device )
 
       APSME_RemoveDeviceReq( &remDevReq );
     }
-#endif
   }
 }
 
@@ -1158,6 +1265,8 @@ ZStatus_t ZDSecMgrDeviceJoin( ZDSecMgrDevice_t* device )
       zdoCBFunc[ZDO_TC_DEVICE_CBID]( (void*)&dev );
     }
   }
+      
+      
 
   return status;
 }
@@ -1174,6 +1283,37 @@ ZStatus_t ZDSecMgrDeviceJoin( ZDSecMgrDevice_t* device )
 ZStatus_t ZDSecMgrDeviceJoinDirect( ZDSecMgrDevice_t* device )
 {
   ZStatus_t status;
+  
+  if(device->secure == FALSE)
+  {  
+    uint8  found;
+    uint16 keyNvIndex;
+    APSME_TCLKDevEntry_t TCLKDevEntry;
+    
+    keyNvIndex = APSME_SearchTCLinkKeyEntry(device->extAddr,&found, &TCLKDevEntry);
+    
+    //If found and it was verified, then allow it to join in a fresh state by erasing the key entry
+    if((found == TRUE) && (TCLKDevEntry.keyAttributes == ZG_VERIFIED_KEY))
+    {
+      uint16 index;
+      TCLKDevEntry.keyAttributes = ZG_DEFAULT_KEY;
+      //Increase the shift by one. Validate the maximum shift of the seed which is 15
+      TCLKDevEntry.SeedShift_IcIndex++;
+      TCLKDevEntry.SeedShift_IcIndex &= 0x0F;
+      
+      TCLKDevEntry.rxFrmCntr = 0;
+      TCLKDevEntry.txFrmCntr = 0;
+      
+      index = keyNvIndex - ZCD_NV_TCLK_TABLE_START;
+      
+      TCLinkKeyFrmCntr[index].rxFrmCntr = 0;
+      TCLinkKeyFrmCntr[index].txFrmCntr = 0;
+      
+      //Update the entry
+      osal_nv_write(keyNvIndex,0,sizeof(APSME_TCLKDevEntry_t), &TCLKDevEntry );
+    }
+    
+  }
 
   status = ZDSecMgrDeviceJoin( device );
 
@@ -1181,6 +1321,14 @@ ZStatus_t ZDSecMgrDeviceJoinDirect( ZDSecMgrDevice_t* device )
   {
     // set association status to authenticated
     ZDSecMgrAssocDeviceAuth( AssocGetWithShort( device->nwkAddr ) );
+    
+  #if (ZG_BUILD_COORDINATOR_TYPE)    
+    //Add the device as joining device, if it did join unsecured
+    if(device->secure == FALSE)
+    {
+      bdb_TCAddJoiningDevice(NLME_GetShortAddr(),device->extAddr);
+    }
+  #endif
   }
 
   return status;
@@ -1199,6 +1347,7 @@ ZStatus_t ZDSecMgrDeviceJoinFwd( ZDSecMgrDevice_t* device )
 {
   ZStatus_t               status;
   APSME_UpdateDeviceReq_t req;
+  uint8 TC_ExtAddr[Z_EXTADDR_LEN];
 
   // forward any joining device to the Trust Center -- the Trust Center will
   // decide if the device is allowed to join
@@ -1250,26 +1399,21 @@ ZStatus_t ZDSecMgrDeviceJoinFwd( ZDSecMgrDevice_t* device )
   // set association status to authenticated
   ZDSecMgrAssocDeviceAuth( AssocGetWithShort( device->nwkAddr ) );
 
-#if defined ( APP_TP2_TEST_MODE )
-  if ( guTxApsSecON == TRUE )
-  {
-    req.apsSecure = TRUE;
-  }
-  else
-  {
-    req.apsSecure = FALSE;
-  }
-
-  // send and APSME_UPDATE_DEVICE request to the trust center
-  status = APSME_UpdateDeviceReq( &req );
-
-#else
   if ( ZG_CHECK_SECURITY_MODE == ZG_SECURITY_SE_STANDARD )
   {
+    uint8 found;
+    APSME_GetRequest( apsTrustCenterAddress,0, TC_ExtAddr );
+    
+    APSME_SearchTCLinkKeyEntry(TC_ExtAddr,&found,NULL);
+    
     // For ZG_GLOBAL_LINK_KEY the message has to be sent twice one
     // un-encrypted and one APS encrypted, to make sure that it can interoperate
     // with legacy Coordinator devices which can only handle one or the other.
-    if ( zgApsLinkKeyType == ZG_GLOBAL_LINK_KEY )
+#if defined ( APP_TP2_TEST_MODE )
+    if ( ( zgApsLinkKeyType == ZG_GLOBAL_LINK_KEY ) && ( found == FALSE ) && ( guTxApsSecON != TRUE ) )
+#else
+    if ( ( zgApsLinkKeyType == ZG_GLOBAL_LINK_KEY ) && ( found == FALSE ) )
+#endif
     {
       req.apsSecure = FALSE;
 
@@ -1277,11 +1421,22 @@ ZStatus_t ZDSecMgrDeviceJoinFwd( ZDSecMgrDevice_t* device )
       status = APSME_UpdateDeviceReq( &req );
     }
 
+#if defined ( APP_TP2_TEST_MODE )
+    if ( guTxApsSecON != FALSE )
+    {
+      // send the message APS encrypted
+      req.apsSecure = TRUE;
+
+      // send and APSME_UPDATE_DEVICE request to the trust center
+      status = APSME_UpdateDeviceReq( &req );
+    }
+#else
     // send the message APS encrypted
     req.apsSecure = TRUE;
 
     // send and APSME_UPDATE_DEVICE request to the trust center
     status = APSME_UpdateDeviceReq( &req );
+#endif
   }
   else
   {
@@ -1290,7 +1445,6 @@ ZStatus_t ZDSecMgrDeviceJoinFwd( ZDSecMgrDevice_t* device )
     // send and APSME_UPDATE_DEVICE request to the trust center
     status = APSME_UpdateDeviceReq( &req );
   }
-#endif
 
   return status;
 }
@@ -1405,7 +1559,7 @@ void ZDSecMgrInit(uint8 state)
          || ( ( ZG_BUILD_RTR_TYPE ) && APSME_IsDistributedSecurity() ) )
     {
       // setup joining permissions
-      ZDSecMgrPermitJoiningEnabled = TRUE;
+      ZDSecMgrPermitJoiningEnabled = TRUE;  
       ZDSecMgrPermitJoiningTimed   = FALSE;
     }
   }
@@ -1494,10 +1648,7 @@ uint8 ZDSecMgrPermitJoining( uint8 duration )
   {
     ZDSecMgrPermitJoiningEnabled = TRUE;
 
-    if ( duration != 0xFF )
-    {
-      ZDSecMgrPermitJoiningTimed = TRUE;
-    }
+    ZDSecMgrPermitJoiningTimed = TRUE;
   }
   else
   {
@@ -1660,15 +1811,24 @@ void ZDSecMgrTransportKeyInd( ZDO_TransportKeyInd_t* ind )
   uint8 zgPreConfigKey[SEC_KEY_LEN];
 
   ZDSecMgrUpdateTCAddress( ind->srcExtAddr );
+  
+#if ZG_BUILD_JOINING_TYPE
+  if(ZG_DEVICE_JOINING_TYPE)
+  {
+    //Update the TC address in the entry
+    osal_nv_write(ZCD_NV_TCLK_TABLE_START, osal_offsetof(APSME_TCLKDevEntry_t,extAddr), Z_EXTADDR_LEN, ind->srcExtAddr);
+  }
+#endif
+  
   // check for distributed security
   if ( ( ZG_BUILD_RTR_TYPE ) && osal_isbufset( ind->srcExtAddr, 0xFF, Z_EXTADDR_LEN ) )
   {
-    ZDSecMgrPermitJoiningEnabled = TRUE;
+    ZDSecMgrPermitJoiningEnabled = TRUE;  
   }
-
+  
   // load Trust Center data if needed
   ZDSecMgrTCDataLoad( ind->srcExtAddr );
-
+  
   if ( ( ind->keyType == KEY_TYPE_NWK ) ||
        ( ind->keyType == 6            ) )
   {
@@ -1704,7 +1864,39 @@ void ZDSecMgrTransportKeyInd( ZDO_TransportKeyInd_t* ind )
   }
   else if ( ind->keyType == KEY_TYPE_TC_LINK )
   {
-    // This should not happen because TCLK should not be Tx
+    uint16 entryIndex;
+    uint8 found;
+    APSME_TCLKDevEntry_t TCLKDevEntry;
+    
+    //Search the entry, which should exist at this point
+    entryIndex = APSME_SearchTCLinkKeyEntry(ind->srcExtAddr, &found, &TCLKDevEntry);
+    
+    if(found)
+    {
+      //If the key was an IC, then erase the entry since that will not longer be used.
+      if(TCLKDevEntry.keyAttributes == ZG_PROVISIONAL_KEY)
+      {
+        APSME_EraseICEntry(&TCLKDevEntry.SeedShift_IcIndex);
+      }
+      
+      TCLKDevEntry.keyAttributes = ZG_UNVERIFIED_KEY;
+      TCLKDevEntry.keyType = ZG_UNIQUE_LINK_KEY;
+      TCLKDevEntry.rxFrmCntr = 0;
+      TCLKDevEntry.txFrmCntr = 0;
+      TCLKDevEntry.SeedShift_IcIndex = 0;
+      
+      //Update the entry
+      osal_nv_write(entryIndex,0,sizeof(APSME_TCLKDevEntry_t),&TCLKDevEntry);
+
+      //Create the entry for the key
+      if(ZSUCCESS == osal_nv_item_init(ZCD_NV_TCLK_JOIN_DEV,SEC_KEY_LEN,ind->key) )
+      {
+        //Or replace it if already existed
+        osal_nv_write(ZCD_NV_TCLK_JOIN_DEV,0,SEC_KEY_LEN,ind->key);
+      }
+      
+      bdb_tcLinkKeyExchangeAttempt(TRUE,BDB_REQ_VERIFY_TC_LINK_KEY);
+    }
   }
   else if ( ind->keyType == KEY_TYPE_APP_LINK )
   {
@@ -1773,6 +1965,34 @@ void ZDSecMgrUpdateDeviceInd( ZDO_UpdateDeviceInd_t* ind )
       device.devStatus |=  DEV_SEC_AUTH_STATUS;
       device.secure = TRUE;
     }
+    else
+    {
+#if (ZG_BUILD_COORDINATOR_TYPE)
+      uint8  found;
+      uint16 keyNvIndex;
+      APSME_TCLKDevEntry_t TCLKDevEntry;
+      
+      keyNvIndex = APSME_SearchTCLinkKeyEntry(device.extAddr,&found, &TCLKDevEntry);
+      
+      //If found and it was verified, then allow it to join in a fresh state by erasing the key entry
+      if((found == TRUE) && (TCLKDevEntry.keyAttributes == ZG_VERIFIED_KEY))
+      {
+        TCLKDevEntry.keyAttributes = ZG_DEFAULT_KEY;
+        //Increase the shift by one. Validate the maximum shift of the seed which is 15
+        TCLKDevEntry.SeedShift_IcIndex++;
+        TCLKDevEntry.SeedShift_IcIndex &= 0x0F;
+        
+        TCLKDevEntry.rxFrmCntr = 0;
+        TCLKDevEntry.txFrmCntr = 0;  
+        
+        //Update the entry
+        osal_nv_write(keyNvIndex,0,sizeof(APSME_TCLKDevEntry_t), &TCLKDevEntry );
+      }
+      
+      bdb_TCAddJoiningDevice(device.parentAddr,device.extAddr);
+#endif
+    
+    }
 
     ZDSecMgrDeviceJoin( &device );
   }
@@ -1826,9 +2046,26 @@ void ZDSecMgrRequestKeyInd( ZDO_RequestKeyInd_t* ind )
   }
   else if ( ind->keyType == KEY_TYPE_TC_LINK )
   {
+    ZDSecMgrTclkReq( ind );
   }
   //else ignore
 }
+
+
+/******************************************************************************
+ * @fn          ZDSecMgrVerifyKeyInd
+ *
+ * @brief       Process the ZDO_VerifyKeyInd_t message.
+ *
+ * @param       ind - [in] ZDO_VerifyKeyInd_t indication
+ *
+ * @return      none
+ */
+void ZDSecMgrVerifyKeyInd( ZDO_VerifyKeyInd_t* ind )
+{
+  ZDSecMgrAppConfKeyReq( ind );
+}
+
 
 /******************************************************************************
  * @fn          ZDSecMgrSwitchKeyInd
@@ -1846,6 +2083,92 @@ void ZDSecMgrSwitchKeyInd( ZDO_SwitchKeyInd_t* ind )
   // Save if nv
   ZDApp_NVUpdate();
 }
+  
+/******************************************************************************
+ * @fn          ZDSecMgrGenerateSeed
+ *
+ * @brief       Generate the seed for TC link keys and store it in Nv
+ *
+ * @param       SetDefault, force to use new seed
+ *
+ * @return      none
+ */
+void ZDSecMgrGenerateSeed(uint8 SetDefault)
+{
+  uint8 SeedKey[SEC_KEY_LEN];  
+  
+  ZDSecMgrGenerateRndKey(SeedKey);
+  
+  if((SUCCESS == osal_nv_item_init(ZCD_NV_TCLK_SEED,SEC_KEY_LEN,SeedKey)) && SetDefault)
+  {
+    //Force to use a new seed
+    osal_nv_write(ZCD_NV_TCLK_SEED,0,SEC_KEY_LEN,SeedKey);
+  }
+
+  osal_memset(SeedKey,0,SEC_KEY_LEN);
+}
+
+
+/******************************************************************************
+ * @fn          ZDSecMgrGenerateKeyFromSeed
+ *
+ * @brief       Generate the TC link key for an specific device usign seed and ExtAddr
+ *
+ * @param       [in]  extAddr  
+ * @param       [in]  shift    number of byte shifts that the seed will do to 
+ *                             generate a new key for the same device. 
+ *                             This value must be less than SEC_KEY_LEN
+ * @param       [out] key      buffer in which the key will be copied
+ *
+ * @return      none
+ */
+void ZDSecMgrGenerateKeyFromSeed(uint8 *extAddr, uint8 shift, uint8 *key)
+{
+  uint8 i;
+  uint8 tempKey[SEC_KEY_LEN];
+  
+  if((key != NULL) && (extAddr != NULL))
+  {
+    //Read the key
+    osal_nv_read(ZCD_NV_TCLK_SEED,0,SEC_KEY_LEN,tempKey);
+
+    //shift the seed
+    osal_memcpy(key, &tempKey[shift], SEC_KEY_LEN - shift);
+    osal_memcpy(&key[SEC_KEY_LEN - shift], tempKey, shift);
+   
+    //Create the key from the seed
+    for(i = 0; i < Z_EXTADDR_LEN; i++)
+    {
+      key[i] ^= extAddr[i];
+      key[i+Z_EXTADDR_LEN] ^= extAddr[i];
+    }
+  }
+}
+
+
+/******************************************************************************
+ * @fn          ZDSecMgrGenerateRndKey
+ *
+* @brief       Generate a random key. NOTE: Random key is generated by osal_rand, refer to osal_rand to see the random properties of the key generated by this mean.
+ *
+ * @param       pKey - [out] Buffer pointer in which the key will be passed.
+ *
+ * @return      none
+ */
+void ZDSecMgrGenerateRndKey(uint8* pKey)
+{
+  uint16  temp;
+  uint8   index = 0;
+  
+  while(index < (SEC_KEY_LEN/2))
+  {
+    temp = osal_rand();
+    pKey[index*2]   = (uint8) (temp & 0x00FF);
+    pKey[index*2+1] = (uint8) ((temp >> 8) & 0x00FF);
+    index++;
+  }
+}
+
 
 #if ( ZG_BUILD_COORDINATOR_TYPE )
 /******************************************************************************
@@ -1967,8 +2290,11 @@ ZStatus_t ZDSecMgrSwitchNwkKey( uint8 keySeqNum, uint16 dstAddr )
     status = APSME_SwitchKeyReq( &req );
   }
 
-  SSP_SwitchNwkKey( keySeqNum );
-
+  if ( dstAddr >= NWK_BROADCAST_SHORTADDR_DEVZCZR)
+  {
+    zgSwitchCoordKey = TRUE;
+    zgSwitchCoordKeyIndex = keySeqNum;
+  }
   // Save if nv
   ZDApp_NVUpdate();
 
@@ -2216,6 +2542,7 @@ uint8 ZDSecMgrAuthenticationCheck( uint16 shortAddr )
 #endif // TC_LINKKEY_JOIN
 }
 
+
 /******************************************************************************
  * @fn          ZDSecMgrLinkKeyNVIdGet (stubs APSME_LinkKeyNVIdGet)
  *
@@ -2397,7 +2724,7 @@ uint8 ZDSecMgrInitNV(void)
                 (sizeof(nvDeviceListHdr_t) + (sizeof(ZDSecMgrEntry_t) * ZDSECMGR_ENTRY_MAX)), NULL);
 
   // If the item does not already exist, set all values to 0
-  if (rtrn != SUCCESS)
+  if (rtrn == NV_ITEM_UNINIT)
   {
     nvDeviceListHdr_t hdr;
     hdr.numRecs = 0;
@@ -2656,65 +2983,61 @@ ZStatus_t ZDSecMgrAPSRemove( uint16 nwkAddr, uint8 *extAddr, uint16 parentAddr )
  */
 void APSME_TCLinkKeyInit(uint8 setDefault)
 {
-  uint8             i;
-  APSME_TCLinkKey_t tcLinkKey;
-  uint8             rtrn;
-
-  // Initialize all NV items for preconfigured TCLK
-  for( i = 0; i < ZDSECMGR_TC_DEVICE_MAX; i++ )
+  APSME_TCLKDevEntry_t TCLKDevEntry;
+  uint8                rtrn;
+  uint16               i;
+  
+  // Clear the data for the keys
+  osal_memset( &TCLKDevEntry, 0x00, sizeof(APSME_TCLKDevEntry_t) );
+  TCLKDevEntry.keyAttributes = ZG_DEFAULT_KEY;
+  
+  // Initialize all NV items
+  for( i = 0; i < gZDSECMGR_TC_DEVICE_MAX; i++ )
   {
-    // Making sure data is cleared for every key all the time
-    osal_memset( &tcLinkKey, 0x00, sizeof(APSME_TCLinkKey_t) );
-
-    // Initialize first element of the table with the default TCLK
-    if((i == 0) && ( zgUseDefaultTCLK == TRUE ))
-    {
-      osal_memset( tcLinkKey.extAddr, 0xFF, Z_EXTADDR_LEN );
-      osal_memcpy( tcLinkKey.key, defaultTCLinkKey, SEC_KEY_LEN);
-    }
-
     // If the item doesn't exist in NV memory, create and initialize
     // it with the default value passed in, either defaultTCLK or 0
     rtrn = osal_nv_item_init( (ZCD_NV_TCLK_TABLE_START + i),
-                               sizeof(APSME_TCLinkKey_t), &tcLinkKey);
+                               sizeof(APSME_TCLKDevEntry_t), &TCLKDevEntry);
 
     if (rtrn == SUCCESS)
     {
-      // set the Frame counters to 0 to existing keys in NV
-      osal_nv_read( ( ZCD_NV_TCLK_TABLE_START + i), 0,
-                     sizeof(APSME_TCLinkKey_t), &tcLinkKey );
-
-#if defined ( NV_RESTORE )
-      if (setDefault == TRUE)
+      if(setDefault)
       {
-        // clear the value stored in NV
-        tcLinkKey.txFrmCntr = 0;
+        //Force to initialize the entry
+        osal_nv_write(ZCD_NV_TCLK_TABLE_START + i, 0, sizeof(APSME_TCLKDevEntry_t), &TCLKDevEntry);
+        TCLinkKeyFrmCntr[i].txFrmCntr = 0;
+        TCLinkKeyFrmCntr[i].rxFrmCntr = 0;
       }
       else
       {
+        // set the Frame counters to 0 to existing keys in NV
+        osal_nv_read( ( ZCD_NV_TCLK_TABLE_START + i), 0,
+                       sizeof(APSME_TCLKDevEntry_t), &TCLKDevEntry );
+
         // increase the value stored in NV
-        tcLinkKey.txFrmCntr += ( MAX_TCLK_FRAMECOUNTER_CHANGES + 1 );
+        TCLKDevEntry.txFrmCntr += ( MAX_TCLK_FRAMECOUNTER_CHANGES + 1 );
+
+        osal_nv_write( ( ZCD_NV_TCLK_TABLE_START + i), 0,
+                        sizeof(APSME_TCLKDevEntry_t), &TCLKDevEntry );
+
+        // set initial values for counters in RAM
+        TCLinkKeyFrmCntr[i].txFrmCntr = TCLKDevEntry.txFrmCntr;
+        TCLinkKeyFrmCntr[i].rxFrmCntr = TCLKDevEntry.rxFrmCntr;
+        
+        // Making sure data is cleared and set to default for every key all the time
+        osal_memset( &TCLKDevEntry, 0x00, sizeof(APSME_TCLKDevEntry_t) );
+        TCLKDevEntry.keyAttributes = ZG_DEFAULT_KEY;
       }
-#else
-      // Clear the counters if NV_RESTORE is not enabled and this NV item
-      // already existed in the NV memory
-      tcLinkKey.txFrmCntr = 0;
-      tcLinkKey.rxFrmCntr = 0;
-#endif  // NV_RESTORE
-
-      osal_nv_write( ( ZCD_NV_TCLK_TABLE_START + i), 0,
-                      sizeof(APSME_TCLinkKey_t), &tcLinkKey );
-
-      // set initial values for counters in RAM
-      TCLinkKeyFrmCntr[i].txFrmCntr = tcLinkKey.txFrmCntr;
-      TCLinkKeyFrmCntr[i].rxFrmCntr = tcLinkKey.rxFrmCntr;
     }
   }
 
-  // clear copy of key in RAM
-  osal_memset( &tcLinkKey, 0x00, sizeof(APSME_TCLinkKey_t) );
-
+  if(setDefault)
+  {
+    //Force to erase all IC
+    APSME_EraseICEntry(NULL);
+  }
 }
+
 
 /******************************************************************************
  * @fn          APSME_TCLinkKeySync
@@ -2728,88 +3051,115 @@ void APSME_TCLinkKeyInit(uint8 setDefault)
  */
 ZStatus_t APSME_TCLinkKeySync( uint16 srcAddr, SSP_Info_t* si )
 {
-  uint8 i, selectedId = ZDSECMGR_TC_DEVICE_MAX;
-  ZStatus_t status = ZSecNoKey;
-  APSME_TCLinkKey_t tcLinkKey;
-  uint32 *tclkRxFrmCntr;
-  uint16 originatorAddr = APSME_TRUSTCENTER_NWKADDR;
-
+  APSME_TCLKDevEntry_t  TCLKDevEntry;
+  ZStatus_t             status = ZSecNoKey;
+  uint32                *tclkRxFrmCntr;
+  uint16                entryIndex = 0xFFFF;
+  uint16                selectedId = gZDSECMGR_TC_DEVICE_MAX;
+  uint8                 entryFound = FALSE;
+  
+#if ZG_BUILD_JOINING_TYPE
+  uint8   defaultEntry[Z_EXTADDR_LEN];
+#endif
+ 
   // Look up the IEEE address of the trust center if it's available
   if ( AddrMgrExtAddrValid( si->extAddr ) == FALSE )
   {
     APSME_LookupExtAddr( srcAddr, si->extAddr );
   }
-  else if ( osal_ExtAddrEqual( si->extAddr, _NIB.nwkCoordExtAddress ) )
+
+  entryIndex = APSME_SearchTCLinkKeyEntry(si->extAddr,&entryFound,&TCLKDevEntry);
+  
+#if ZG_BUILD_JOINING_TYPE
+  if(ZG_DEVICE_JOINING_TYPE && !entryFound)
   {
-    originatorAddr = _NIB.nwkCoordAddress;
-    // in case originated not from our parent, use the default TC address
+    osal_memset(defaultEntry, 0, Z_EXTADDR_LEN);
+    entryIndex = APSME_SearchTCLinkKeyEntry(defaultEntry,&entryFound,&TCLKDevEntry);
   }
-
-  // Look up the TC link key associated with the device
-  // or the default TC link key (extAddr is all FFs), whichever is found
-  for ( i = 0; i < ZDSECMGR_TC_DEVICE_MAX; i++ )
+#endif
+  
+  if(entryFound)
   {
-    // Read entry i of the TC link key table from NV
-    osal_nv_read( (ZCD_NV_TCLK_TABLE_START + i), 0,
-                 sizeof(APSME_TCLinkKey_t), &tcLinkKey );
+    status = ZSuccess;
+    
+    selectedId = entryIndex - ZCD_NV_TCLK_TABLE_START;
 
-    // prefer exact match over default
-    if ( AddrMgrExtAddrEqual(si->extAddr, tcLinkKey.extAddr) )
+    switch(TCLKDevEntry.keyAttributes)
     {
-      selectedId = i;
-      // break from the loop
+      case ZG_UNVERIFIED_KEY:
+        #if ZG_BUILD_JOINING_TYPE
+        if(ZG_DEVICE_JOINING_TYPE)
+        {   
+          si->keyNvId = ZCD_NV_TCLK_JOIN_DEV;
+          break;
+        }
+        #endif
+      case ZG_DEFAULT_KEY:
+        if(ZG_DEVICE_JOINING_TYPE)
+        { 
+          //If default was found, then it is joining as FN, then try distributed key as well
+          si->distributedKeyTry = TRUE;
+        }
+        si->keyNvId = ZCD_NV_TCLK_DEFAULT;
+      break;
+      case ZG_PROVISIONAL_KEY:
+        si->keyNvId = ZCD_NV_TCLK_IC_TABLE_START + TCLKDevEntry.SeedShift_IcIndex;
+        //Attempt to use default keys (centralized and distributed) if IC fails?
+        si->distributedKeyTry = gZDSECMGR_TC_ATTEMPT_DEFAULT_KEY;
+        si->defaultKeyTry = gZDSECMGR_TC_ATTEMPT_DEFAULT_KEY;
+      break;
+      case ZG_VERIFIED_KEY:
+      case ZG_NON_R21_NWK_JOINED:
+        //Only verify the frame counter for Verified keys, or keys used with non R21 TC
+        tclkRxFrmCntr = &TCLinkKeyFrmCntr[selectedId].rxFrmCntr;
+
+        if ( si->frmCntr >= *tclkRxFrmCntr )
+        {
+          // update the rx frame counter
+          *tclkRxFrmCntr = si->frmCntr + 1;
+          status = ZSuccess;
+          
+          #if ZG_BUILD_JOINING_TYPE
+          if(ZG_DEVICE_JOINING_TYPE)
+          {   
+            si->keyNvId = ZCD_NV_TCLK_JOIN_DEV;
+            break;
+          }
+          #endif
+          #if ZG_BUILD_COORDINATOR_TYPE
+          if(ZG_DEVICE_COORDINATOR_TYPE)
+          {
+            si->keyNvId = ZCD_NV_TCLK_SEED;
+            si->seedShift = TCLKDevEntry.SeedShift_IcIndex;
+          }
+          #endif
+          osal_memcpy(si->dstExtAddr, TCLKDevEntry.extAddr,Z_EXTADDR_LEN);
+        }
+        else
+        {
+          status = ZSecOldFrmCount;
+        }
+      break;
+      default:
+        //This should not happen
       break;
     }
-    else if ( APSME_IsDefaultTCLK(tcLinkKey.extAddr) )
-    {
-      if ( ( originatorAddr != APSME_TRUSTCENTER_NWKADDR ) && ( si->keyID == SEC_KEYID_TRANSPORT )
-           && (i == 0) && ( zgUseDefaultTCLK == TRUE ) )
-      {
-        //if a Key is received directly from an unusual TC,
-        // don't use the first element of the table initialized with the default TCLK
-        continue;
-      }
-      if ( selectedId == ZDSECMGR_TC_DEVICE_MAX )
-      {
-        selectedId = i;
-      }
-    }
   }
-
-  if ( selectedId < ZDSECMGR_TC_DEVICE_MAX )
+  else
   {
-     // Only for UNIQUE keys, verify that the incoming frame counter is valid
-    if ( zgApsLinkKeyType == ZG_UNIQUE_LINK_KEY )
-    {
-      tclkRxFrmCntr = &TCLinkKeyFrmCntr[selectedId].rxFrmCntr;
-
-      if ( si->frmCntr >= *tclkRxFrmCntr )
+    if (ZG_DEVICE_COORDINATOR_TYPE) 
+    {    
+      if(bdb_doTrustCenterRequireKeyExchange() == FALSE)
       {
-        // set the keyNvId to use
-        si->keyNvId = (ZCD_NV_TCLK_TABLE_START + selectedId);
-
-        // update the rx frame counter
-        *tclkRxFrmCntr = si->frmCntr + 1;
-
+        //If the TCLK exchange is not mandated, and the key cannot be found for this device, 
+        //is because we have erased the entry. Try with default key.
+        si->keyNvId = ZCD_NV_TCLK_DEFAULT;
         status = ZSuccess;
       }
-      else
-      {
-        status = ZSecOldFrmCount;
-      }
-    }
-    else
-    {
-      // set the keyNvId to use
-      si->keyNvId = (ZCD_NV_TCLK_TABLE_START + selectedId);
-
-      status = ZSuccess;
     }
   }
-
-  // clear copy of key in RAM
-  osal_memset( &tcLinkKey, 0x00, sizeof(APSME_TCLinkKey_t) );
-
+  
+  
   return status;
 }
 
@@ -2825,91 +3175,119 @@ ZStatus_t APSME_TCLinkKeySync( uint16 srcAddr, SSP_Info_t* si )
  */
 ZStatus_t APSME_TCLinkKeyLoad( uint16 dstAddr, SSP_Info_t* si )
 {
-  uint8 i;
-  ZStatus_t status = ZSecNoKey;
-  APSME_TCLinkKey_t tcLinkKey;
-  AddrMgrEntry_t addrEntry;
-  uint32 *tclkTxFrmCntr;
-  uint8 extAddrFound;
-  uint8 defaultTCLKIdx = ZDSECMGR_TC_DEVICE_MAX;
+  APSME_TCLKDevEntry_t TCLKDevEntry;
+  AddrMgrEntry_t       addrEntry;
+  ZStatus_t            status = ZSecNoKey;
+  uint16               entryIndex;
+  uint8                extAddrFound;
+  uint8                found;
 
+  
   // Look up the ami of the srcAddr if available
   addrEntry.user    = ADDRMGR_USER_DEFAULT;
   addrEntry.nwkAddr = dstAddr;
 
   extAddrFound = AddrMgrExtAddrValid( si->extAddr );
-
-  // Look up the TC link key associated with the device
-  // or the master TC link key (ami = 0xFFFF), whichever is found
-  for( i = 0; i < ZDSECMGR_TC_DEVICE_MAX; i++ )
+  
+  if(extAddrFound)
   {
-    // Read entry i of the TC link key table from NV
-    osal_nv_read( (ZCD_NV_TCLK_TABLE_START + i), 0,
-                 sizeof(APSME_TCLinkKey_t), &tcLinkKey );
-
-    if( extAddrFound && AddrMgrExtAddrEqual(si->extAddr, tcLinkKey.extAddr) )
+    entryIndex = APSME_SearchTCLinkKeyEntry(si->extAddr,&found,&TCLKDevEntry);
+    if(entryIndex != 0xFFFF)
     {
-      status = ZSuccess;
-
-      break; // break from the loop
-    }
-
-    if ( APSME_IsDefaultTCLK(tcLinkKey.extAddr) )
-    {
-      if ( !extAddrFound && ( !APSME_IsDistributedSecurity() ) )
+      uint16 i = entryIndex - ZCD_NV_TCLK_TABLE_START;
+      
+      if(found)
       {
-        status = ZSuccess;
-
-        break; // break from the loop
+        switch(TCLKDevEntry.keyAttributes)
+        {
+          case ZG_UNVERIFIED_KEY:
+            #if ZG_BUILD_JOINING_TYPE
+            if(ZG_DEVICE_JOINING_TYPE)
+            {   
+              si->keyNvId = ZCD_NV_TCLK_JOIN_DEV;
+              break;
+            }
+            #endif
+          case ZG_DEFAULT_KEY:
+          case ZG_NON_R21_NWK_JOINED:
+            si->keyNvId = ZCD_NV_TCLK_DEFAULT;
+          break;
+          case ZG_PROVISIONAL_KEY:
+            si->keyNvId = ZCD_NV_TCLK_IC_TABLE_START + TCLKDevEntry.SeedShift_IcIndex;
+          break;
+          case ZG_VERIFIED_KEY:
+            #if ZG_BUILD_JOINING_TYPE
+            if(ZG_DEVICE_JOINING_TYPE)
+            {   
+              si->keyNvId = ZCD_NV_TCLK_JOIN_DEV;
+              break;
+            }
+            #endif
+            #if ZG_BUILD_COORDINATOR_TYPE
+            if(ZG_DEVICE_COORDINATOR_TYPE)
+            {
+              si->keyNvId = ZCD_NV_TCLK_SEED;
+              si->seedShift = TCLKDevEntry.SeedShift_IcIndex;
+            }
+            #endif
+            osal_memcpy(si->dstExtAddr, TCLKDevEntry.extAddr,Z_EXTADDR_LEN);
+          break;
+          default:
+            //This should not happen
+          break;
+        }
+      }
+      //Not found, then create an entry for it. Adding the device to the TCLKDev Entries for first time
+      else
+      {
+        //Initialize the entry
+        osal_memcpy(TCLKDevEntry.extAddr, si->extAddr, Z_EXTADDR_LEN);
+        TCLKDevEntry.keyAttributes = ZG_DEFAULT_KEY;
+        TCLKDevEntry.keyType = ZG_GLOBAL_LINK_KEY;
+        //Create the entry with a random shift of the seed. Validate the maximum shift of the seed which is 15
+        TCLKDevEntry.SeedShift_IcIndex = osal_rand() & 0x000F;
+        TCLKDevEntry.txFrmCntr = 0;
+        TCLKDevEntry.rxFrmCntr = 0;
+        //save entry in nv
+        osal_nv_write(entryIndex,0,sizeof(APSME_TCLKDevEntry_t),&TCLKDevEntry);
+        //Initialize framecounter
+        osal_memset(&TCLinkKeyFrmCntr[i],0,sizeof(APSME_TCLinkKeyFrmCntr_t));
+        // set the keyNvId to use
+        si->keyNvId = ZCD_NV_TCLK_DEFAULT;
       }
 
-      // Remember the last default TCLK index
-      defaultTCLKIdx = i;
-    }
-  }
+      // update link key related fields
+      si->keyID   = SEC_KEYID_LINK;
+      si->frmCntr = TCLinkKeyFrmCntr[i].txFrmCntr;
 
-  if ( (status != ZSuccess) && (defaultTCLKIdx < ZDSECMGR_TC_DEVICE_MAX) )
-  {
-    // Exact match was not found; use the last default TC Link Key
-    i = defaultTCLKIdx;
+      // update outgoing frame counter
+      TCLinkKeyFrmCntr[i].txFrmCntr++;
+
+  #if defined ( NV_RESTORE )
+      // write periodically to NV
+      if ( !(TCLinkKeyFrmCntr[i].txFrmCntr % MAX_TCLK_FRAMECOUNTER_CHANGES) )
+      {
+        // set the flag to write key to NV
+        TCLinkKeyFrmCntr[i].pendingFlag = TRUE;
+
+        // Notify the ZDApp that the frame counter has changed.
+        osal_set_event( ZDAppTaskID, ZDO_TCLK_FRAMECOUNTER_CHANGE );
+      }
+  #endif
+    }  
+    else
+    {
+      //If no more TCLK entries, try global so we can try to add legacy devices
+      si->keyNvId = ZCD_NV_TCLK_DEFAULT;
+    }
     status = ZSuccess;
   }
-
-  if ( status == ZSuccess )
-  {
-    tclkTxFrmCntr = &TCLinkKeyFrmCntr[i].txFrmCntr;
-
-    // set the keyNvId to use
-    si->keyNvId = (ZCD_NV_TCLK_TABLE_START + i);
-
-    // update link key related fields
-    si->keyID   = SEC_KEYID_LINK;
-    si->frmCntr = *tclkTxFrmCntr;
-
-    // update outgoing frame counter
-    (*tclkTxFrmCntr)++;
-
-#if defined ( NV_RESTORE )
-    // write periodically to NV
-    if ( !(*tclkTxFrmCntr % MAX_TCLK_FRAMECOUNTER_CHANGES) )
-    {
-      // set the flag to write key to NV
-      TCLinkKeyFrmCntr[i].pendingFlag = TRUE;
-
-      // Notify the ZDApp that the frame counter has changed.
-      osal_set_event( ZDAppTaskID, ZDO_TCLK_FRAMECOUNTER_CHANGE );
-    }
-#endif
-  }
-
+  
   // If no TC link key found, remove the device from the address manager
   if ( (status != ZSuccess) && (AddrMgrEntryLookupNwk(&addrEntry) == TRUE) )
   {
     AddrMgrEntryRelease( &addrEntry );
   }
-
-    // clear copy of key in RAM
-  osal_memset( &tcLinkKey, 0x00, sizeof(APSME_TCLinkKey_t) );
 
   return status;
 }
@@ -2946,10 +3324,42 @@ void ZDSecMgrNwkKeyInit(uint8 setDefault)
 {
   uint8 status;
   nwkKeyDesc nwkKey;
-
   // Initialize NV items for NWK key, this structure contains the frame counter
   // and is only used when NV_RESTORE is enabled
   nwkActiveKeyItems keyItems;
+  
+
+  uint8 i,nwkFrameCounterReset = FALSE;
+  nwkSecMaterialDesc_t nwkSecMaterialDesc;
+  
+  //NwkSecMaterial entry is empty if set to 0s
+  osal_memset(&nwkSecMaterialDesc,0,sizeof(nwkSecMaterialDesc_t));
+#ifdef NV_RESTORE  
+  // Has been set to reset the nwk security material?
+  if ( zgReadStartupOptions() & ZCD_STARTOPT_CLEAR_NWK_FRAME_COUNTER )
+  {
+    nwkFrameCounterReset = TRUE;
+  }
+#else
+  nwkFrameCounterReset = TRUE;
+#endif
+  
+  //Initialize the nwk security material
+  for( i = 0; i < gMAX_NWK_SEC_MATERIAL_TABLE_ENTRIES; i++)
+  {
+    if((osal_nv_item_init(ZCD_NV_NWK_SEC_MATERIAL_TABLE_START + i,sizeof(nwkSecMaterialDesc_t),&nwkSecMaterialDesc) == SUCCESS) && (nwkFrameCounterReset))
+    {
+      osal_nv_write(ZCD_NV_NWK_SEC_MATERIAL_TABLE_START + i,0,sizeof(nwkSecMaterialDesc_t),&nwkSecMaterialDesc);
+    }
+  }
+  //Set the last item to the generic nwk security material by setting extPanId to 0xFFs
+  osal_memset(nwkSecMaterialDesc.extendedPanID,0xFF,Z_EXTADDR_LEN);
+  
+  if((osal_nv_item_init(ZCD_NV_NWK_SEC_MATERIAL_TABLE_START + i - 1,sizeof(nwkSecMaterialDesc_t),&nwkSecMaterialDesc) == SUCCESS) && (nwkFrameCounterReset))
+  {
+    osal_nv_write(ZCD_NV_NWK_SEC_MATERIAL_TABLE_START + i - 1,0,sizeof(nwkSecMaterialDesc_t),&nwkSecMaterialDesc);
+  }
+
 
   osal_memset( &keyItems, 0, sizeof( nwkActiveKeyItems ) );
 
@@ -3012,6 +3422,8 @@ void ZDSecMgrNwkKeyInit(uint8 setDefault)
 
 }
 
+
+
 /*********************************************************************
  * @fn          ZDSecMgrReadKeyFromNv
  *
@@ -3041,15 +3453,51 @@ ZStatus_t ZDSecMgrReadKeyFromNv(uint16 keyNvId, void *keyinfo)
                          SEC_KEY_LEN,
                          keyinfo));
   }
-  else if ((keyNvId >= ZCD_NV_TCLK_TABLE_START) &&
-           (keyNvId < (ZCD_NV_TCLK_TABLE_START + ZDSECMGR_TC_DEVICE_MAX)))
+  
+  else if(keyNvId == ZCD_NV_TCLK_DEFAULT)
+  {
+    osal_memcpy(keyinfo,defaultTCLinkKey,SEC_KEY_LEN);
+    return ZSuccess;
+  }
+  
+#if (ZG_BUILD_JOINING_TYPE) 
+  else if(keyNvId == ZCD_NV_DISTRIBUTED_KEY)
+  {
+    if(ZG_DEVICE_JOINING_TYPE)
+    {
+      osal_memcpy(keyinfo,distributedDefaultKey,SEC_KEY_LEN);
+      return ZSuccess;
+    }
+  }
+#endif
+  
+  else if((keyNvId == ZCD_NV_TCLK_JOIN_DEV) || (keyNvId == ZCD_NV_PRECFGKEY)) 
   {
     // Read entry keyNvId of the TC link key table from NV. keyNvId should be
     // ZCD_NV_TCLK_TABLE_START + <offset_in_table>
     return (osal_nv_read(keyNvId,
-                         osal_offsetof(APSME_TCLinkKey_t, key),
+                         0,
                          SEC_KEY_LEN,
                          keyinfo));
+  }
+    else if (keyNvId == ZCD_NV_PRECFGKEY)
+  {
+    // Read entry keyNvId of the Preconfig key from NV.
+    return (osal_nv_read(keyNvId,
+                         0,
+                         SEC_KEY_LEN,
+                         keyinfo));
+  }
+
+  else if((keyNvId >= ZCD_NV_TCLK_IC_TABLE_START) &&
+           (keyNvId < (ZCD_NV_TCLK_IC_TABLE_START + gZDSECMGR_TC_DEVICE_IC_MAX)))
+  {
+    //Read the key derived from the IC
+    return (osal_nv_read(keyNvId,
+                         0,
+                         SEC_KEY_LEN,
+                         keyinfo));
+  
   }
   else if ((keyNvId >= ZCD_NV_APS_LINK_KEY_DATA_START) &&
            (keyNvId < (ZCD_NV_APS_LINK_KEY_DATA_START + ZDSECMGR_ENTRY_MAX)))
@@ -3058,14 +3506,6 @@ ZStatus_t ZDSecMgrReadKeyFromNv(uint16 keyNvId, void *keyinfo)
     // ZCD_NV_APS_LINK_KEY_DATA_START + <offset_in_table>
     return (osal_nv_read(keyNvId,
                          osal_offsetof(APSME_LinkKeyData_t, key),
-                         SEC_KEY_LEN,
-                         keyinfo));
-  }
-  else if (keyNvId == ZCD_NV_PRECFGKEY)
-  {
-    // Read entry keyNvId of the Preconfig key from NV.
-    return (osal_nv_read(keyNvId,
-                         0,
                          SEC_KEY_LEN,
                          keyinfo));
   }
@@ -3078,11 +3518,11 @@ ZStatus_t ZDSecMgrReadKeyFromNv(uint16 keyNvId, void *keyinfo)
  *
  * @brief       Initialize the NV table for Application link keys
  *
- * @param       none
+ * @param       setDefault - TRUE to set default values
  *
  * @return      none
  */
-void ZDSecMgrApsLinkKeyInit(void)
+void ZDSecMgrApsLinkKeyInit(uint8 setDefault)
 {
   APSME_LinkKeyData_t pApsLinkKey;
   uint8 i;
@@ -3097,7 +3537,13 @@ void ZDSecMgrApsLinkKeyInit(void)
                                sizeof(APSME_LinkKeyData_t), &pApsLinkKey );
 
 #if defined ( NV_RESTORE )
-    (void)status;   // to eliminate compiler warning
+  // If the set default is requested, the APS Link key needs to be erased, regardless of the NV_RESTORE enabled
+      if ((status == SUCCESS) && (setDefault == TRUE ))
+      {
+        osal_nv_write( (ZCD_NV_APS_LINK_KEY_DATA_START + i), 0,
+                      sizeof(APSME_LinkKeyData_t), &pApsLinkKey );
+
+      }
 #else
     // reset the values of NV items if NV_RESTORE is not enabled
     if (status == SUCCESS)
@@ -3109,6 +3555,7 @@ void ZDSecMgrApsLinkKeyInit(void)
 #endif // defined (NV_RESTORE)
   }
 }
+
 
 /******************************************************************************
  * @fn          ZDSecMgrInitNVKeyTables
@@ -3122,9 +3569,18 @@ void ZDSecMgrApsLinkKeyInit(void)
 void ZDSecMgrInitNVKeyTables(uint8 setDefault)
 {
   ZDSecMgrNwkKeyInit(setDefault);
-  ZDSecMgrApsLinkKeyInit();
+  ZDSecMgrApsLinkKeyInit(setDefault); 
   APSME_TCLinkKeyInit(setDefault);
+  
+#if ZG_BUILD_COORDINATOR_TYPE
+  if(ZG_DEVICE_COORDINATOR_TYPE)
+  {
+    ZDSecMgrGenerateSeed(setDefault);
+    
+  }
+#endif
 }
+
 
 /******************************************************************************
  * @fn          ZDSecMgrSaveApsLinkKey
@@ -3186,34 +3642,32 @@ void ZDSecMgrSaveApsLinkKey(void)
  */
 void ZDSecMgrSaveTCLinkKey(void)
 {
-  APSME_TCLinkKey_t *pKeyData = NULL;
+  APSME_TCLKDevEntry_t *pKeyData = NULL;
   uint16 i;
 
-  pKeyData = (APSME_TCLinkKey_t *)osal_mem_alloc(sizeof(APSME_TCLinkKey_t));
+  pKeyData = (APSME_TCLKDevEntry_t *)osal_mem_alloc(sizeof(APSME_TCLKDevEntry_t));
 
   if (pKeyData != NULL)
   {
-    for( i = 0; i < ZDSECMGR_TC_DEVICE_MAX; i++ )
+    for( i = 0; i < gZDSECMGR_TC_DEVICE_MAX; i++ )
     {
       if (TCLinkKeyFrmCntr[i].pendingFlag == TRUE)
       {
         if (osal_nv_read(ZCD_NV_TCLK_TABLE_START + i, 0,
-                         sizeof(APSME_TCLinkKey_t), pKeyData) == SUCCESS)
+                         sizeof(APSME_TCLKDevEntry_t), pKeyData) == SUCCESS)
         {
           pKeyData->txFrmCntr = TCLinkKeyFrmCntr[i].txFrmCntr;
           pKeyData->rxFrmCntr = TCLinkKeyFrmCntr[i].rxFrmCntr;
 
           // Write the TC link key back to the NV
           osal_nv_write(ZCD_NV_TCLK_TABLE_START + i, 0,
-                        sizeof(APSME_TCLinkKey_t), pKeyData);
+                        sizeof(APSME_TCLKDevEntry_t), pKeyData);
 
           // clear the pending write flag
           TCLinkKeyFrmCntr[i].pendingFlag = FALSE;
         }
       }
     }
-      // clear copy of key in RAM
-    osal_memset( pKeyData, 0x00, sizeof(APSME_TCLinkKey_t) );
 
     osal_mem_free(pKeyData);
   }
@@ -3232,6 +3686,8 @@ void ZDSecMgrUpdateTCAddress( uint8 *extAddr )
 {
   uint8 noTCAddress[Z_EXTADDR_LEN] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
   APSME_SetRequest( apsTrustCenterAddress, 0, ( extAddr != NULL) ? extAddr : noTCAddress );
+  osal_cpyExtAddr( zgApsTrustCenterAddr, ( extAddr != NULL) ? extAddr : noTCAddress );
+  
 #if defined ( NV_RESTORE )
   osal_nv_write( ZCD_NV_TRUSTCENTER_ADDR, 0, Z_EXTADDR_LEN, zgApsTrustCenterAddr );
 #endif

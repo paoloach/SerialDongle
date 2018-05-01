@@ -1,7 +1,7 @@
 /**************************************************************************************************
   Filename:       zmac_cb.c
-  Revised:        $Date: 2014-06-04 08:52:26 -0700 (Wed, 04 Jun 2014) $
-  Revision:       $Revision: 38796 $
+  Revised:        $Date: 2014-12-03 16:04:46 -0800 (Wed, 03 Dec 2014) $
+  Revision:       $Revision: 41329 $
 
   Description:    This file contains the NWK functions that the ZMAC calls
 
@@ -46,7 +46,8 @@
 #include "ZMAC.h"
 #include "MT_MAC.h"
 #include "hal_mcu.h"
-
+#include "cGP_stub.h"
+   
 #if !defined NONWK
 #include "nwk.h"
 #include "nwk_bufs.h"
@@ -60,6 +61,9 @@
 #include "mac_security.h"
 
 #include "mac_main.h"
+#ifdef FEATURE_DUAL_MAC
+#include "dmmgr.h"
+#endif /* FEATURE_DUAL_MAC */
 extern void *ZMac_ScanBuf;
 
 /********************************************************************************************************
@@ -85,7 +89,8 @@ const uint8 CODE zmacCBSizeTable [] = {
   sizeof(macMcpsDataInd_t),         // MAC_MCPS_DATA_IND           13  Data indication
   0,                                // MAC_MCPS_PURGE_CNF          14  Purge confirm
   0,                                // MAC_PWR_ON_CNF              15  Power on confirm
-  sizeof(ZMacPollInd_t)             // MAC_MLME_POLL_IND           16  Poll indication
+  sizeof(ZMacPollInd_t),            // MAC_MLME_POLL_IND           16  Poll indication
+  sizeof(ZMacDataCnf_t)            // MAC_MCPS_GREEN_PWR_DATA_CNF 17  Data confirm for Green Power
 };
 #endif /* !defined NONWK */
 
@@ -134,7 +139,11 @@ uint8 (*pZMac_AppCallback)( uint8 *msgPtr ) = (void*)NULL;
  *
  * @return   none
  *************************************************************************************************/
+#ifdef FEATURE_DUAL_MAC
+void ZMacCbackEventHdlr(macCbackEvent_t *pData)
+#else
 void MAC_CbackEvent(macCbackEvent_t *pData)
+#endif /* FEATURE_DUAL_MAC */
 #ifndef MT_MAC_CB_FUNC
 {
 #if !defined NONWK
@@ -261,10 +270,23 @@ void MAC_CbackEvent(macCbackEvent_t *pData)
     {
       uint8 fcFrameType = (pData->dataInd.msdu.p[0] & 0x03);
       uint8 fcProtoVer = ((pData->dataInd.msdu.p[0] >> 2) & 0x0F);
-      uint8 fcReserve = (pData->dataInd.msdu.p[1] & 0xE0);
+      uint8 fcReserve = (pData->dataInd.msdu.p[1] & 0xC0);
       if ( (fcFrameType > 0x01) || (fcProtoVer != _NIB.nwkProtocolVersion) || (fcReserve != 0)
           || (pData->dataInd.mac.srcAddr.addrMode != SADDR_MODE_SHORT) )
       {
+#if (ZG_BUILD_RTR_TYPE)       
+        //Is this for GP
+        if(fcProtoVer == GP_ZIGBEE_PROTOCOL_VER)
+        {
+          pData->hdr.event = GP_MAC_MCPS_DATA_IND;
+   
+          // Application hasn't already processed this message. Send it to NWK task.
+          osal_msg_send( gp_TaskID, (uint8 *)pData );
+
+          return;
+        }
+#endif
+      
         // Drop the message
         mac_msg_deallocate( (uint8 **)&pData );
         return;
@@ -292,19 +314,31 @@ void MAC_CbackEvent(macCbackEvent_t *pData)
     else if ((event == MAC_MCPS_DATA_CNF) && (pData->hdr.status != MAC_NO_RESOURCES))
     {
       macMcpsDataCnf_t *pCnf = &msgPtr->dataCnf;
-      
+
       if ( pCnf->pDataReq && (pCnf->pDataReq->internal.txOptions & MAC_TXOPTION_ACK) )
       {
         // See if LQI needs adjustment due to frame correlation
         ZMacLqiAdjust( pCnf->correlation, &pCnf->mpduLinkQuality );
       }
     }
-
-    // Application hasn't already processed this message. Send it to NWK task.
-    osal_msg_send( NWK_TaskID, (uint8 *)msgPtr );
+    if(event == MAC_MCPS_GREEN_PWR_DATA_CNF)
+    {
+      msgPtr->dataCnf.hdr.event = GP_MAC_MCPS_DATA_CNF;
+#if (ZG_BUILD_RTR_TYPE)       
+      osal_msg_send( gp_TaskID, (uint8 *)msgPtr);
+#endif
+    }
+    else
+    {
+      osal_msg_send( NWK_TaskID, (uint8 *)msgPtr );
+    }
   }
-
-  if ((event == MAC_MCPS_DATA_CNF) && (pData->dataCnf.pDataReq != NULL))
+  
+#if (ZG_BUILD_RTR_TYPE)
+  if ((event == MAC_MCPS_DATA_CNF || event == MAC_MCPS_GREEN_PWR_DATA_CNF) && (pData->dataCnf.pDataReq != NULL))
+#else
+  if ((event == MAC_MCPS_DATA_CNF ) && (pData->dataCnf.pDataReq != NULL))
+#endif
   {
     // If the application needs 'pDataReq' then we cannot free it here.
     // The application must free it after using it. Note that 'pDataReq'
@@ -326,7 +360,12 @@ void MAC_CbackEvent(macCbackEvent_t *pData)
 
     case MAC_MLME_ASSOCIATE_CNF:
       if ( _macCallbackSub & CB_ID_NWK_ASSOCIATE_CNF )
+      {
         nwk_MTCallbackSubNwkAssociateCnf ( (ZMacAssociateCnf_t *)pData );
+#ifdef FEATURE_DUAL_MAC
+        DMMGR_ResetActivityFlag( ASSOC_ACTIVITY );
+#endif /* FEATURE_DUAL_MAC */
+      }
       break;
 
     case MAC_MLME_DISASSOCIATE_IND:
@@ -336,7 +375,12 @@ void MAC_CbackEvent(macCbackEvent_t *pData)
 
     case MAC_MLME_DISASSOCIATE_CNF:
       if ( _macCallbackSub & CB_ID_NWK_DISASSOCIATE_CNF )
+      {
         nwk_MTCallbackSubNwkDisassociateCnf ( (ZMacDisassociateCnf_t *)pData );
+#ifdef FEATURE_DUAL_MAC
+        DMMGR_ResetActivityFlag( DISASSOC_ACTIVITY );
+#endif /* FEATURE_DUAL_MAC */
+      }
       break;
 
     case MAC_MLME_BEACON_NOTIFY_IND:
@@ -354,6 +398,9 @@ void MAC_CbackEvent(macCbackEvent_t *pData)
       {
         pData->scanCnf.result.pEnergyDetect = ZMac_ScanBuf;
         nwk_MTCallbackSubNwkScanCnf ( (ZMacScanCnf_t *) pData );
+#ifdef FEATURE_DUAL_MAC
+        DMMGR_ResetActivityFlag( SCAN_ACTIVITY );
+#endif /* FEATURE_DUAL_MAC */
       }
 
       if (ZMac_ScanBuf != NULL)
@@ -366,7 +413,12 @@ void MAC_CbackEvent(macCbackEvent_t *pData)
 
     case MAC_MLME_START_CNF:
       if ( _macCallbackSub & CB_ID_NWK_START_CNF )
+      {
         nwk_MTCallbackSubNwkStartCnf ( pData->hdr.status );
+#ifdef FEATURE_DUAL_MAC
+        DMMGR_ResetActivityFlag( START_ACTIVITY );
+#endif /* FEATURE_DUAL_MAC */
+      }
       break;
 
     case MAC_MLME_SYNC_LOSS_IND:
@@ -376,21 +428,81 @@ void MAC_CbackEvent(macCbackEvent_t *pData)
 
     case MAC_MLME_POLL_CNF:
       if ( _macCallbackSub & CB_ID_NWK_POLL_CNF )
-         nwk_MTCallbackSubNwkPollCnf( pData->hdr.status );
+      {
+        nwk_MTCallbackSubNwkPollCnf( pData->hdr.status );
+#ifdef FEATURE_DUAL_MAC
+        DMMGR_ResetActivityFlag( DATA_POLL_ACTIVITY );
+#endif /* FEATURE_DUAL_MAC */
+      }
       break;
 
     case MAC_MLME_COMM_STATUS_IND:
       if ( _macCallbackSub & CB_ID_NWK_COMM_STATUS_IND )
+      {
         nwk_MTCallbackSubCommStatusInd ( (ZMacCommStatusInd_t *) pData );
+#ifdef FEATURE_DUAL_MAC
+        /**
+         * Reset the activity flags if we receive the comm status 
+         * indication. The association response and orphan response msg 
+         * receives the comm-status indication message as a response. 
+         */
+        switch ( ((ZMacCommStatusInd_t *) pData)->hdr.Status )
+        {
+          case ZMAC_SUCCESS:
+          case ZMAC_TRANSACTION_OVERFLOW:
+          case ZMAC_TRANSACTION_EXPIRED:
+          case ZMAC_CHANNEL_ACCESS_FAILURE:
+          case ZMAC_NO_RESOURCES:          
+          case ZMAC_NO_ACK:
+          case ZMAC_COUNTER_ERROR:    
+          case ZMAC_INVALID_PARAMETER:
+            DMMGR_ResetActivityFlag( ALL_ACTIVITY );
+            break;
+          default:
+            /**
+             * If the activity flag is not reset, we need to re-evaluate the
+             * and add more case statement above. Note, MAC security is not
+             * used by zstack and not supported by dual mac.
+             */
+            break;
+        }
+#endif /* FEATURE_DUAL_MAC */
+      }
       break;
 
     case MAC_MCPS_DATA_CNF:
+    {
+#ifdef FEATURE_DUAL_MAC
+      if ( pData->dataCnf.pDataReq != NULL )
+      {
+        if ( DMMGR_IsDefaultMac() )
+        {
+          DMMGR_ProcessMacDataCnf((macMcpsDataCnf_t *)pData);
+        }
+        
+        mac_msg_deallocate((uint8 **)&pData->dataCnf.pDataReq); 
+      }
+      
+      if ( _macCallbackSub & CB_ID_NWK_DATA_CNF )
+      {
+        nwk_MTCallbackSubNwkDataCnf( (ZMacDataCnf_t *) pData );
+      }
+
+      DMMGR_ResetActivityFlag( DATA_ACTIVITY );
+#else
       if (pData->dataCnf.pDataReq != NULL)
+      {
         mac_msg_deallocate((uint8**)&pData->dataCnf.pDataReq);
+      }
 
       if ( _macCallbackSub & CB_ID_NWK_DATA_CNF )
+      {
         nwk_MTCallbackSubNwkDataCnf( (ZMacDataCnf_t *) pData );
-      break;
+      }
+
+#endif /* FEATURE_DUAL_MAC */
+    }
+    break;
 
     case MAC_MCPS_DATA_IND:
       {
@@ -409,7 +521,7 @@ void MAC_CbackEvent(macCbackEvent_t *pData)
 
         /* Copy security fields */
         osal_memcpy(&pDataInd->Sec, &pData->dataInd.sec, sizeof(ZMacSec_t));
-        
+
         /* Copy mac fields one by one since the two buffers overlap. */
         osal_memcpy(&pDataInd->SrcAddr, &pData->dataInd.mac.srcAddr, sizeof(zAddrType_t));
         osal_memcpy(&pDataInd->DstAddr, &pData->dataInd.mac.dstAddr, sizeof(zAddrType_t));
@@ -442,12 +554,20 @@ void MAC_CbackEvent(macCbackEvent_t *pData)
 
     case MAC_MCPS_PURGE_CNF:
       if ( _macCallbackSub & CB_ID_NWK_PURGE_CNF )
+      {
         nwk_MTCallbackSubNwkPurgeCnf( (ZMacPurgeCnf_t *) pData);
+#ifdef FEATURE_DUAL_MAC
+        DMMGR_ResetActivityFlag( DATA_PURGE_ACTIVITY );
+#endif /* FEATURE_DUAL_MAC */
+
+      }
       break;
 
     case MAC_MLME_POLL_IND:
-      if ( _macCallbackSub & CB_ID_NWK_ASSOCIATE_IND )
-         nwk_MTCallbackSubNwkPollInd( (ZMacPollInd_t *)pData );
+        if ( _macCallbackSub & CB_ID_NWK_ASSOCIATE_IND )
+        {
+          nwk_MTCallbackSubNwkPollInd( (ZMacPollInd_t *)pData );
+        }
       break;
 
     default:
@@ -465,7 +585,11 @@ void MAC_CbackEvent(macCbackEvent_t *pData)
  *
  * @return  Number of indirect msg holding
  ********************************************************************************************************/
+#ifdef FEATURE_DUAL_MAC
+uint8 ZMacCbackCheckPending(void)
+#else
 uint8 MAC_CbackCheckPending(void)
+#endif 
 {
 #if !defined (NONWK)
   if ( ZSTACK_ROUTER_BUILD )
@@ -503,7 +627,11 @@ uint8 MAC_CbackCheckPending(void)
  * @return      0x00 to stop retransmission, 0x01 to continue retransmission.
  **************************************************************************************************
 */
+#ifdef FEATURE_DUAL_MAC
+uint8 ZMacCbackQueryRetransmit(void)
+#else
 uint8 MAC_CbackQueryRetransmit(void)
+#endif /* FEATURE_DUAL_MAC */
 {
   return(0);
 }

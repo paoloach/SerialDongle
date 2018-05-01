@@ -20,14 +20,17 @@
 #include "zcl_functions.h"
 #include "TimerEvents.h"
 #include "AddrMgr.h"
+#include "bdb_interface.h"
 
 #include "OnBoard.h"
 
 #include "ZigBeeSerialBridge.h"
 #include "ZdoMessageHandlers.h"
-//#include "SerialFunctions.h"
-#include "SerialSend/SendMethods.h"	 
-#include "CheckingChildList.h"
+#ifndef NO_SERIAL
+ #include "SerialSend/SendMethods.h"	 
+ #include "CheckingChildList.h"
+ #include "endpointRequestList.h"
+#endif
 #include "ZigbeeSerialBridge_data.h"	 
 
 	 
@@ -38,7 +41,7 @@
 /* HAL */
 #include "hal_led.h"
 #include "stdio.h"
-#include "endpointRequestList.h"
+
 
 #define DEVICE_VERSION     0
 #define FLAGS              0
@@ -54,6 +57,11 @@ byte serialDongleTaskID;   // Task ID for internal task/event processing
  * LOCAL FUNCTIONS
  */
 static void messageMSGCB( afIncomingMSGPacket_t *pckt );
+static void processCommissioningStatus(bdbCommissioningModeMsg_t *bdbCommissioningModeMsg);
+uint8  bdbCommissioningStatus;
+uint8  bdbCommissioningMode;
+uint8  bdbRemainingCommissioningModes;
+
 
 #define MAX_INCLUSTERS       4
 const cId_t InClusterList[MAX_INCLUSTERS] ={
@@ -95,13 +103,12 @@ SimpleDescriptionFormat_t simpleDesc = {
  */
 void serialDongleAppInit( byte task_id ){
 	serialDongleTaskID = task_id;
-	
 	serialInit();
 	
 	sendMessage("Start Serial ZDongle\n");
-	  
+
 	endpointRequestTaskId(serialDongleTaskID);
-	zclHA_Init( &simpleDesc );
+	bdb_RegisterSimpleDescriptor(&simpleDesc );
 	
   	// Register the Application to receive the unprocessed Foundation command/response messages
  	zcl_registerForMsg( serialDongleTaskID );
@@ -118,9 +125,11 @@ void serialDongleAppInit( byte task_id ){
 	ZDO_RegisterForZDOMsg( serialDongleTaskID, Node_Desc_rsp);
 	ZDO_RegisterForZDOMsg( serialDongleTaskID, Mgmt_Lqi_rsp);
 
+	bdb_RegisterCommissioningStatusCB( processCommissioningStatus );
 	
+	bdb_StartCommissioning(BDB_COMMISSIONING_MODE_NWK_FORMATION);
 	T1CTL=1;
-	
+	NLME_PermitJoiningRequest(0xFF) ;
 	osal_start_timerEx(task_id, ALIVE, 5000);
 //	osal_start_timerEx(task_id, WATCHDOG, 100);
 }
@@ -158,11 +167,13 @@ UINT16 processEvent( byte task_id, UINT16 events ){
 			break;
 		case AF_DATA_CONFIRM_CMD:
 			break;
+#ifndef NO_SERIAL			
 		case EVENT_SERIAL_CMD:	{
 			struct UsbISR * isr = (struct UsbISR*)hdrEvent;
 			isr->isr(hdrEvent);
 			}
 			break;
+#endif			
 		}
 		osal_msg_deallocate( (uint8 *)hdrEvent );
 	    result = (events ^ SYS_EVENT_MSG);
@@ -170,7 +181,9 @@ UINT16 processEvent( byte task_id, UINT16 events ){
 	}
 
 	if (events & ENDPOINT_REQUEST_MSG){
+#ifndef NO_SERIAL		
 		sendOneEndpointRequest();
+#endif
 		result = (events ^ ENDPOINT_REQUEST_MSG);
 		goto end;
 	}
@@ -181,7 +194,9 @@ UINT16 processEvent( byte task_id, UINT16 events ){
 	}
 	
 	if (events & ALIVE) {
+#ifndef NO_SERIAL
 		sendAliveMsg();
+#endif
 		result = (events ^ ALIVE);
 		osal_start_timerEx(task_id, ALIVE, 5000);
 	}
@@ -225,6 +240,12 @@ void messageMSGCB( afIncomingMSGPacket_t *pkt )
 }
 
 
+
+static void processCommissioningStatus(bdbCommissioningModeMsg_t *bdbCommissioningModeMsg) {
+	bdbCommissioningStatus = bdbCommissioningModeMsg->bdbCommissioningStatus;
+	bdbCommissioningMode = bdbCommissioningModeMsg->bdbCommissioningMode;
+	bdbRemainingCommissioningModes = bdbCommissioningModeMsg->bdbRemainingCommissioningModes;
+}
 
 
 /*********************************************************************

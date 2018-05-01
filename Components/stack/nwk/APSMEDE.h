@@ -1,13 +1,13 @@
 /**************************************************************************************************
   Filename:       APSMEDE.h
-  Revised:        $Date: 2014-03-05 15:20:26 -0800 (Wed, 05 Mar 2014) $
-  Revision:       $Revision: 37536 $
+  Revised:        $Date: 2015-06-02 15:55:43 -0700 (Tue, 02 Jun 2015) $
+  Revision:       $Revision: 43961 $
 
   Description:    Primitives of the Application Support Sub Layer Data Entity (APSDE) and
                   Management Entity (APSME).
 
 
-  Copyright 2004-2014 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2004-2015 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -98,13 +98,15 @@ extern "C" {
 #define APS_ACK_BITS_FIELD_LEN       0x01
 
 // Tx Options (bitmap values)
-#define APS_TX_OPTIONS_SECURITY_ENABLE  0x01u
-//#define APS_TX_OPTIONS_USE_NWK_KEY    0x02u remove from spec
-#define APS_TX_OPTIONS_ACK              0x04u
-#define APS_TX_OPTIONS_PERMIT_FRAGMENT  0x08u
-#define APS_TX_OPTIONS_SKIP_ROUTING     0x10u
-#define APS_TX_OPTIONS_FIRST_FRAGMENT   0x20u
-#define APS_TX_OPTIONS_PREPROCESS       0x40u
+#define APS_TX_OPTIONS_SECURITY_ENABLE  0x0001u
+//#define APS_TX_OPTIONS_USE_NWK_KEY    0x0002u remove from spec
+#define APS_TX_OPTIONS_ACK              0x0004u
+#define APS_TX_OPTIONS_PERMIT_FRAGMENT  0x0008u
+#define APS_TX_OPTIONS_SKIP_ROUTING     0x0010u
+#define APS_TX_OPTIONS_FIRST_FRAGMENT   0x0020u
+#define APS_TX_OPTIONS_PREPROCESS       0x0040u
+#define APS_TX_OPTIONS_RETRY_MSG        0x0080u
+#define APS_TX_OPTIONS_REFLECTED_MSG    0x0100u
 
 // APSDE header fields
 #define APS_HDR_FC 0
@@ -119,7 +121,9 @@ extern "C" {
 #define APSME_CMD_REQUEST_KEY      0x08
 #define APSME_CMD_SWITCH_KEY       0x09
 #define APSME_CMD_TUNNEL           0x0E
-
+#define APSME_CMD_VERIFY_KEY       0x0F
+#define APSME_CMD_CONFIRM_KEY      0x10
+   
 // APSME CMD packet fields (APSME_CMD_TRANSPORT_KEY)
 #define APSME_TK_KEY_TYPE      1
 #define APSME_TK_KEY           2
@@ -141,7 +145,12 @@ extern "C" {
 #define APSME_TK_APP_PARTNER_ADDR 18
 #define APSME_TK_APP_INITIATOR    26
 #define APSME_TK_APP_KEY_LEN      27
-
+                                 
+#define APSME_TK_APP_SOURCE_ADDR_OFFSET  42                                 
+#define APSME_REQ_KEY_CMD_OFFSET         15
+                         
+   
+   
 // APSME CMD packet fields (APSME_CMD_UPDATE_DEVICE)
 #define APSME_UD_STANDARD_SECURED_REJOIN        0
 #define APSME_UD_STANDARD_UNSECURED_JOIN        1
@@ -177,6 +186,18 @@ extern "C" {
 //      APSME_TUNNEL_AUX  9 //auxillary header(obsolete)
 #define APSME_TUNNEL_TCMD 9 //tunnelled command
 #define APSME_TUNNEL_LEN  9
+
+// APSME CMD packet fields (APSME_CMD_VERIFY_KEY)
+#define APSME_VK_KEY_TYPE 1
+#define APSME_VK_EADDR    2
+#define APSME_VK_HASH     10
+#define APSME_VK_APP_LEN  26
+
+// APSME CMD packet fields (APSME_CMD_CONFIRM_KEY)
+#define APSME_CK_STATUS   1
+#define APSME_CK_KEY_TYPE 2
+#define APSME_CK_EADDR    3
+#define APSME_CK_APP_LEN  11   
 
 // APSME Coordinator/Trust Center NWK addresses
 #define APSME_TRUSTCENTER_NWKADDR  NWK_PAN_COORD_ADDR
@@ -237,19 +258,19 @@ typedef struct
 
 typedef struct
 {
-  byte FrmCtrl;
-  byte XtndFrmCtrl;
-  byte DstEndPoint;
-  byte SrcEndPoint;
+  uint8 FrmCtrl;
+  uint8 XtndFrmCtrl;
+  uint8 DstEndPoint;
+  uint8 SrcEndPoint;
   uint16 GroupID;
   uint16 ClusterID;
   uint16 ProfileID;
   uint16 macDestAddr;
-  byte wasBroadcast;
-  byte apsHdrLen;
-  byte *asdu;
-  byte asduLength;
-  byte ApsCounter;
+  uint8 wasBroadcast;
+  uint8 apsHdrLen;
+  uint8 *asdu;
+  uint8 asduLength;
+  uint8 ApsCounter;
   uint8 transID;
   uint8 BlkCount;
   uint8 AckBits;
@@ -279,6 +300,8 @@ typedef struct
   uint8       radiusCounter;
   uint8       apsCount;
   uint8       blkCount;
+  uint8       apsRetries;
+  uint8       nsduHandle;
 } APSDE_DataReq_t;
 
 typedef struct
@@ -293,6 +316,7 @@ typedef struct
 typedef struct
 {
   uint8 secure;
+  uint8 addressingMode; // Helps to identify the exact length of the payload.
 } APSDE_DataReqMTU_t;
 
 // APS Security Related Primitives
@@ -378,6 +402,36 @@ typedef struct
   uint8  keySeqNum;
 } APSME_SwitchKeyInd_t;
 
+typedef struct
+{
+  uint8* tcExtAddr;
+  uint8  keyType;
+} APSME_VerifyKeyReq_t;
+
+typedef struct
+{
+  uint16 srcAddr;
+  uint8  keyType;
+  uint8* partExtAddr;
+  uint8* receivedInitiatorHashValue;
+} APSME_VerifyKeyInd_t;
+
+typedef struct
+{
+  uint16 dstAddr;
+  uint8  status;
+  uint8* dstExtAddr;
+  uint8  keyType;
+} APSME_ConfirmKeyReq_t;
+
+typedef struct
+{
+  uint16 srcAddr;
+  uint8  status;
+  uint8* srcExtAddr;
+  uint8  keyType;
+} APSME_ConfirmKeyInd_t;
+
 // APS Incoming Command Packet
 typedef struct
 {
@@ -425,6 +479,7 @@ typedef struct
   uint8  asduLen;
   uint16 dstAddr;
   uint8  transID;
+  uint8  apsCounter;
 } APSDE_StoredFrameData_t;
 
 typedef struct
@@ -455,14 +510,15 @@ typedef struct
   uint8                status;
 } APSDE_FrameBlk_t;
 
-
 typedef struct
 {
-  uint8  extAddr[Z_EXTADDR_LEN];
-  uint8  key[SEC_KEY_LEN];
   uint32 txFrmCntr;
   uint32 rxFrmCntr;
-} APSME_TCLinkKey_t;
+  uint8  extAddr[Z_EXTADDR_LEN];
+  uint8  keyAttributes;
+  uint8  keyType;
+  uint8  SeedShift_IcIndex;    //For Unique key this is the number of shifts, for IC this is the offset on the NvId index
+} APSME_TCLKDevEntry_t;
 
 typedef struct
 {
@@ -656,6 +712,7 @@ extern void APSME_SecurityCM_CD( void );// COMMERCIAL MODE  - COORD DEVICE
  *   APSME_RemoveDeviceReq
  *   APSME_RequestKeyReq
  *   APSME_SwitchKeyReq
+ *   APSME_ConfirmKeyReq    // added for confirm key service
  */
 
 /*
@@ -682,6 +739,16 @@ extern ZStatus_t APSME_RequestKeyReq( APSME_RequestKeyReq_t* req );
  * APSME_SwitchKeyReq primitive.
  */
 extern ZStatus_t APSME_SwitchKeyReq( APSME_SwitchKeyReq_t* req );
+
+/*
+ * APSME_VerifyKeyReq_t primitive.
+ */
+extern ZStatus_t APSME_VerifyKeyReq( APSME_VerifyKeyReq_t* req );
+
+/*
+ * APSME_SwitchKeyReq primitive.
+ */
+extern ZStatus_t APSME_ConfirmKeyReq( APSME_ConfirmKeyReq_t* req );
 
 /******************************************************************************
  * APS Security Primitive Stubs - API, NHLE Implements Callback Stubs
@@ -718,6 +785,36 @@ extern void APSME_RequestKeyInd( APSME_RequestKeyInd_t* ind );
  */
 extern void APSME_SwitchKeyInd( APSME_SwitchKeyInd_t* ind );
 
+/*
+ * APSME_VerifyKeyInd primitive.
+ */
+extern void APSME_VerifyKeyInd( APSME_VerifyKeyInd_t* ind );
+
+/*
+ * APSME_ConfirmKeyInd primitive.
+ */
+extern void APSME_ConfirmKeyInd( APSME_ConfirmKeyInd_t* apsmeInd );
+
+
+/*
+ * APSME_EraseICEntry
+ */
+extern void APSME_EraseICEntry(uint8 *IcIndex);
+
+/*
+ * APSME_AddTCLinkKey Interface to add TC link key derived from install codes.
+ */
+extern ZStatus_t APSME_AddTCLinkKey(uint8* pTCLinkKey, uint8* pExt);
+
+/*
+ * APSME_SetDefaultKey Interface to set the centralized default key to defaultTCLinkKey
+ */
+extern ZStatus_t APSME_SetDefaultKey(void);
+
+/*
+ * APSME_SearchTCLinkKeyEntry Interface search for the TCLK entry
+ */
+extern uint16 APSME_SearchTCLinkKeyEntry(uint8 *pExt,uint8* found, APSME_TCLKDevEntry_t* tcLinkKeyAddrEntry);
 /******************************************************************************
  * APS Security Support - NHLE Implements Callback Stubs
  *
@@ -730,6 +827,7 @@ extern void APSME_SwitchKeyInd( APSME_SwitchKeyInd_t* ind );
  * APSME_LinkKeySet stub.
  */
 extern ZStatus_t APSME_LinkKeySet( uint8* extAddr, uint8* key );
+
 
 /*
  * APSME_LinkKeyNVIdGet stub.
@@ -752,6 +850,8 @@ extern uint8 APSME_KeyFwdToChild( APSME_TransportKeyInd_t* ind );
  *    Use with ZG_SECURITY_SE_STANDARD
  */
 extern uint8 APSME_IsDistributedSecurity( void );
+
+
 
 /******************************************************************************
 ******************************************************************************/

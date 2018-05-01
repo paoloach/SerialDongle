@@ -1,7 +1,7 @@
 /**************************************************************************************************
   Filename:       hal_defs.h
-  Revised:        $Date: 2014-08-04 15:38:03 -0700 (Mon, 04 Aug 2014) $
-  Revision:       $Revision: 39653 $
+  Revised:        $Date: 2014-11-19 13:29:24 -0800 (Wed, 19 Nov 2014) $
+  Revision:       $Revision: 41175 $
 
   Description:    This file contains useful macros and data types
 
@@ -102,6 +102,9 @@
 // Return the 32bit little-endian formatted value pointed to by pBuf, and increment pBuf by 4
 #define BUF_TO_UINT32_LITTLE_ENDIAN(pBuf) (((pBuf) += 4), BUILD_UINT32((pBuf)[-4], (pBuf)[-3], (pBuf)[-2], (pBuf)[-1]))
 
+#ifndef CHECK_BIT
+#define CHECK_BIT(DISCS, IDX) ((DISCS) & (1<<(IDX)))
+#endif          
 #ifndef GET_BIT
 #define GET_BIT(DISCS, IDX)  (((DISCS)[((IDX) / 8)] & BV((IDX) % 8)) ? TRUE : FALSE)
 #endif

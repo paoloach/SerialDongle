@@ -1,12 +1,12 @@
 /**************************************************************************************************
   Filename:       AssocList.h
-  Revised:        $Date: 2013-05-22 13:28:03 -0700 (Wed, 22 May 2013) $
-  Revision:       $Revision: 34410 $
+  Revised:        $Date: 2015-01-22 13:22:52 -0800 (Thu, 22 Jan 2015) $
+  Revision:       $Revision: 41965 $
 
   Description:    Associated Device List.
 
 
-  Copyright 2004-2013 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2004-2015 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -85,12 +85,18 @@ extern "C" {
 #define NOTUSED             0xFF
 
 // Child Table age out values
-#define TIMEOUT_DONT_AGE_OUT    0xFFFE
-#define TIMEOUT_NOT_USED        0xFFFF
+#define TIMEOUT_DONT_AGE_OUT    0xFFFFFFFE
+#define TIMEOUT_NOT_USED        0xFFFFFFFF
 
 /*********************************************************************
  * TYPEDEFS
  */
+
+typedef struct
+{
+  uint8 endDevCfg;
+  uint32 deviceTimeout;
+} aging_end_device_t;
 
 typedef struct
 {
@@ -101,8 +107,9 @@ typedef struct
   byte assocCnt;
   byte age;
   linkInfo_t linkInfo;
-  uint16 timeoutCounter;
-  uint16 endDevKaTimeout;
+  aging_end_device_t endDev;
+  uint32 timeoutCounter;
+  bool keepaliveRcv;
 } associated_devices_t;
 
 typedef struct
@@ -227,6 +234,8 @@ extern void AssocChildAging( void );
 extern uint8 AssocChildTableUpdateTimeout( uint16 nwkAddr );
 
 extern void AssocChildTableManagement( osal_event_hdr_t *inMsg );
+
+extern uint8 *AssocMakeListOfRfdChild( uint8 *pCount );
 
 /*********************************************************************
 *********************************************************************/

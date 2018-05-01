@@ -1,7 +1,7 @@
 /**************************************************************************************************
   Filename:       mac_pib.h
-  Revised:        $Date: 2014-07-11 13:41:40 -0700 (Fri, 11 Jul 2014) $
-  Revision:       $Revision: 39397 $
+  Revised:        $Date: 2014-11-06 11:03:55 -0800 (Thu, 06 Nov 2014) $
+  Revision:       $Revision: 41021 $
 
   Description:    Internal interface file for the MAC PIB module.
 
@@ -115,9 +115,6 @@ typedef struct
   uint32            diagsTxUcast;
   uint32            diagsTxUcastRetry;
   uint32            diagsTxUcastFail;
-
-  /* Get only PIB attribute, only applicable to CC253x series for CC2530 MacNP */
-  uint8             randomSeed[MAC_RANDOM_SEED_LEN];
 } macPib_t;
 
 
@@ -144,7 +141,7 @@ extern macPib_t* pMacPib;
 MAC_INTERNAL_API void macPibReset(void);
 MAC_INTERNAL_API uint8 macPibIndex(uint8 pibAttribute);
 
-#if defined( FEATURE_MAC_PIB_PTR ) && (defined( CC26XX ) || defined( CC26XX_PG2 ))
+#if defined (FEATURE_MAC_PIB_PTR) && defined (CC26XX)
 #error "ERROR! CC26XX does not support FEATURE_MAC_PIB_PTR."
 #endif
 

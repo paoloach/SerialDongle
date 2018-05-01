@@ -1075,7 +1075,7 @@ static uint8 writeItem( uint8 pg, uint16 id, uint16 len, void *buf, uint8 flag )
 
         if ( chk == hdr.chk )
         {
-          hotItemUpdate(pg, hdrOff, hdr.id);
+          hotItemUpdate(pg, datOff, hdr.id);
           rtrn = TRUE;
         }
       }

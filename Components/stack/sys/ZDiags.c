@@ -515,6 +515,7 @@ uint8 ZDiagsRestoreStatsFromNV( void )
                          &DiagsStatsTable ) == SUCCESS )
   {
     // restore MAC values into the PIB
+    /*
     ZMacSetReq( ZMacDiagsRxCrcPass, (uint8 *)&(DiagsStatsTable.MacRxCrcPass) );
     ZMacSetReq( ZMacDiagsRxCrcFail, (uint8 *)&(DiagsStatsTable.MacRxCrcFail) );
     ZMacSetReq( ZMacDiagsRxBcast, (uint8 *)&(DiagsStatsTable.MacRxBcast) );
@@ -523,7 +524,7 @@ uint8 ZDiagsRestoreStatsFromNV( void )
     ZMacSetReq( ZMacDiagsTxUcast, (uint8 *)&(DiagsStatsTable.MacTxUcast) );
     ZMacSetReq( ZMacDiagsTxUcastRetry, (uint8 *)&(DiagsStatsTable.MacTxUcastRetry) );
     ZMacSetReq( ZMacDiagsTxUcastFail, (uint8 *)&(DiagsStatsTable.MacTxUcastFail) );
-
+*/
     retValue = ZSuccess;
   }
 #endif // FEATURE_SYSTEM_STATS

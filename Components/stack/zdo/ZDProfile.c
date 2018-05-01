@@ -1,12 +1,12 @@
 /**************************************************************************************************
   Filename:       ZDProfile.c
-  Revised:        $Date: 2013-10-02 15:57:50 -0700 (Wed, 02 Oct 2013) $
-  Revision:       $Revision: 35529 $
+  Revised:        $Date: 2015-10-14 11:48:06 -0700 (Wed, 14 Oct 2015) $
+  Revision:       $Revision: 44530 $
 
   Description:    This is the Zigbee Device Profile.
 
 
-  Copyright 2004-2013 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2004-2015 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -52,6 +52,10 @@
 #include "ZDProfile.h"
 #include "ZDObject.h"
 #include "ZDNwkMgr.h"
+
+#if defined( LCD_SUPPORTED )
+  #include "OnBoard.h"
+#endif
 
 #include "nwk_util.h"
 
@@ -127,6 +131,7 @@ typedef struct
  */
 
 byte ZDP_TransID = 0;
+uint8 childIndex = 0;
 
 /*********************************************************************
  * EXTERNAL VARIABLES
@@ -137,6 +142,7 @@ extern endPointDesc_t ZDApp_epDesc;
 /*********************************************************************
  * EXTERNAL FUNCTIONS
  */
+extern void ZDApp_SetParentAnnceTimer( void );
 
 /*********************************************************************
  * LOCAL FUNCTIONS
@@ -172,19 +178,26 @@ CONST zdpMsgProcItem_t zdpMsgProcs[] =
 {
 #if ( RFD_RCVC_ALWAYS_ON==TRUE ) || ( ZG_BUILD_RTR_TYPE )
   // These aren't processed by sleeping end devices.
-  { NWK_addr_req,           zdpProcessAddrReq },
   { Device_annce,           ZDO_ProcessDeviceAnnce },
 #endif
+#if ( ZG_BUILD_RTR_TYPE )
+  // These aren't processed by end devices.
+  { Parent_annce,           ZDO_ProcessParentAnnce },
+  { Parent_annce_rsp,       ZDO_ProcessParentAnnceRsp },
+#endif
+  { NWK_addr_req,           zdpProcessAddrReq },
   { IEEE_addr_req,          zdpProcessAddrReq },
   { Node_Desc_req,          ZDO_ProcessNodeDescReq },
+  { Node_Desc_rsp,          ZDO_ProcessNodeDescRsp },
   { Power_Desc_req,         ZDO_ProcessPowerDescReq },
   { Simple_Desc_req,        ZDO_ProcessSimpleDescReq },
+  { Simple_Desc_rsp,        ZDO_ProcessSimpleDescRsp },
   { Active_EP_req,          ZDO_ProcessActiveEPReq },
   { Match_Desc_req,         ZDO_ProcessMatchDescReq },
 #if defined ( ZDO_MGMT_NWKDISC_RESPONSE )
   { Mgmt_NWK_Disc_req,      ZDO_ProcessMgmtNwkDiscReq },
 #endif
-#if defined ( ZDO_MGMT_LQI_RESPONSE ) && ( ZG_BUILD_RTR_TYPE )
+#if defined ( ZDO_MGMT_LQI_RESPONSE ) && ( ZG_BUILD_RTR_TYPE || ZG_BUILD_ENDDEVICE_TYPE )
   { Mgmt_Lqi_req,           ZDO_ProcessMgmtLqiReq },
 #endif
 #if defined ( ZDO_MGMT_RTG_RESPONSE ) && ( ZG_BUILD_RTR_TYPE )
@@ -211,11 +224,6 @@ CONST zdpMsgProcItem_t zdpMsgProcs[] =
 #if defined ( ZDO_SERVERDISC_RESPONSE )
   { Server_Discovery_req,   ZDO_ProcessServerDiscReq },
 #endif
-#if defined ( ZIGBEE_CHILD_AGING )
-#if defined ( ZDO_ENDDEVICETIMEOUT_REQUEST )
-  { End_Device_Timeout_req, ZDO_ProcessEndDeviceTimeoutReq },
-#endif
-#endif // ZIGBEE_CHILD_AGING
   {0xFFFF, NULL} // Last
 };
 
@@ -577,38 +585,87 @@ afStatus_t ZDP_DeviceAnnce( uint16 nwkAddr, uint8 *IEEEAddr,
   return fillAndSend( &ZDP_TransID, &dstAddr, Device_annce, len );
 }
 
-#if defined ( ZIGBEE_CHILD_AGING )
 /*********************************************************************
- * @fn          ZDP_EndDeviceTimeoutReq
+ * @fn          ZDP_ParentAnnce
  *
- * @brief       This builds and send an End_Device_Timeout_req message.
+ * @brief       This builds and send a Parent_Annce and Parent_Annce_Rsp
+ *              messages, it will depend on the clusterID parameter.
  *
- * @param       parentAddr - destination address
- * @param       reqTimeout - Timeout value the device is requesting
+ * @param       TransSeq - ZDP Transaction Sequence Number
+ * @param       dstAddr - destination address
+ * @param       numberOfChildren - 8 bit number of children
+ * @param       childInfo - list of children information (ExtAddr and Age)
+ * @param       clusterID - Parent_annce or Parent_annce_rsp
  * @param       SecurityEnable - Security Options
  *
  * @return      afStatus_t
  */
-afStatus_t ZDP_EndDeviceTimeoutReq( uint16 parentAddr, uint16 reqTimeout,
-                                    uint8 SecurityEnable )
+afStatus_t ZDP_ParentAnnce( uint8 *TransSeq,
+                            zAddrType_t *dstAddr,
+                            uint8 numberOfChildren,
+                            uint8 *childInfo,
+                            cId_t clusterID,
+                            uint8 SecurityEnable )
 {
   uint8 *pBuf = ZDP_TmpBuf;
-  uint8 len = Z_EXTADDR_LEN + 2;  // Device_IEEEAddress + reqTimeout.
-  zAddrType_t dstAddr;
+  ZDO_ChildInfo_t *pChildInfo;
+  uint8 i, len;
+  uint8 *numOfChild;
 
   (void)SecurityEnable;  // Intentionally unreferenced parameter
 
-  dstAddr.addrMode = Addr16Bit;
-  dstAddr.addr.shortAddr = parentAddr;
+  pChildInfo = (ZDO_ChildInfo_t *)childInfo;
 
-  pBuf = osal_cpyExtAddr( pBuf, saveExtAddr );
+  if ( dstAddr->addrMode == AddrBroadcast )
+  {
+    // Make sure is sent to 0xFFFC
+    dstAddr->addr.shortAddr = NWK_BROADCAST_SHORTADDR_DEVZCZR;
+  }
+  len = 1;
+  if ( clusterID == Parent_annce_rsp )
+  {
+    // + Status Byte
+    len += 1;
+    // Set the status bit to success
+    *pBuf++ = 0;
+  }
+  
+  numOfChild = pBuf;
+  *pBuf++ = numberOfChildren;
 
-  *pBuf++ = LO_UINT16( reqTimeout );
-  *pBuf++ = HI_UINT16( reqTimeout );
+  for ( i = 0; i < MAX_PARENT_ANNCE_CHILD; i++ )
+  {
+    pBuf = osal_cpyExtAddr( pBuf, pChildInfo[childIndex].extAddr );
+    childIndex++;
+    
+    len += Z_EXTADDR_LEN;
+    
+    if ( childIndex == numberOfChildren )
+    {
+      pBuf = numOfChild;
+      *pBuf = i + 1;
+      // All childs are taken, restart index and go out
+      childIndex = 0;
+      return fillAndSend( TransSeq, dstAddr, clusterID, len );
+    }
+  }
+  
+  pBuf = numOfChild;
+  *pBuf = MAX_PARENT_ANNCE_CHILD;
+  if ( childIndex < numberOfChildren )
+  {
+    if ( clusterID == Parent_annce )
+    {
+      ZDApp_SetParentAnnceTimer();
+    }
+    if ( clusterID == Parent_annce_rsp )
+    {
+      osal_start_timerEx( ZDAppTaskID, ZDO_PARENT_ANNCE_EVT, 10 );
+    }
+  }
 
-  return fillAndSend( &ZDP_TransID, &dstAddr, End_Device_Timeout_req, len );
+  return fillAndSend( TransSeq, dstAddr, clusterID, len );
 }
-#endif // ZIGBEE_CHILD_AGING
 
 /*********************************************************************
  * Address Responses
@@ -645,7 +702,7 @@ void zdpProcessAddrReq( zdoIncomingMsg_t *inMsg )
     // Handle response for sleeping end devices
     else if ( (ZSTACK_ROUTER_BUILD)
       && (((pAssoc = AssocGetWithExt( ieee )) != NULL)
-             && (pAssoc->nodeRelation == CHILD_RFD)) )
+             && ((pAssoc->nodeRelation == CHILD_RFD) || (pAssoc->nodeRelation == CHILD_RFD_RX_IDLE)) ) )
     {
       aoi = pAssoc->shortAddr;
       if ( reqType != ZDP_ADDR_REQTYPE_SINGLE )
@@ -689,6 +746,17 @@ void zdpProcessAddrReq( zdoIncomingMsg_t *inMsg )
     {
       stat = ((reqType == ZDP_ADDR_REQTYPE_SINGLE) || (reqType == ZDP_ADDR_REQTYPE_EXTENDED))
                     ? ZDP_SUCCESS : ZDP_INVALID_REQTYPE;
+              
+      if(stat == ZDP_INVALID_REQTYPE)
+      {
+        //R21 Errata update CCB 2111 
+        if(inMsg->wasBroadcast == TRUE)
+        {
+          return;
+        }
+        
+        stat = ZDP_INVALID_REQTYPE;
+      }
     }
     else
     {
@@ -698,11 +766,15 @@ void zdpProcessAddrReq( zdoIncomingMsg_t *inMsg )
       // Fill in the missing field with this device's address
       if ( inMsg->clusterID == NWK_addr_req )
       {
-        aoi = ZDAppNwkAddr.addr.shortAddr;
+        //CCB 2112 Zigbee Core spec
+        aoi = 0xFFFF;
       }
       else
       {
-        ieee = saveExtAddr;
+        //CCB 2113 Zigbee Core spec
+        uint8 invalidIEEEAddr[Z_EXTADDR_LEN];
+        osal_memset(invalidIEEEAddr,0xFF,Z_EXTADDR_LEN);
+        ieee = invalidIEEEAddr;
       }
     }
 
@@ -719,6 +791,8 @@ void zdpProcessAddrReq( zdoIncomingMsg_t *inMsg )
            && (stat == ZDP_SUCCESS) )
       {
         uint8  cnt = 0;
+        
+        //Updated to only search for ZED devices as per R21 spec (2.4.3.1.1.2)
         uint16 *list = AssocMakeList( &cnt );
 
         if ( list != NULL )
@@ -829,18 +903,20 @@ afStatus_t ZDP_NodeDescMsg( zdoIncomingMsg_t *inMsg,
 afStatus_t ZDP_PowerDescMsg( zdoIncomingMsg_t *inMsg,
                      uint16 nwkAddr, NodePowerDescriptorFormat_t *pPowerDesc )
 {
-	uint8 *pBuf = ZDP_TmpBuf;
-	byte len = 1 + 2 + 2;  // Status + nwkAddr + Node Power descriptor.
+  uint8 *pBuf = ZDP_TmpBuf;
+  byte len = 1 + 2 + 2;  // Status + nwkAddr + Node Power descriptor.
 
-	*pBuf++ = ZDP_SUCCESS;
+  *pBuf++ = ZDP_SUCCESS;
 
-	*pBuf++ = LO_UINT16( nwkAddr );
-	*pBuf++ = HI_UINT16( nwkAddr );
+  *pBuf++ = LO_UINT16( nwkAddr );
+  *pBuf++ = HI_UINT16( nwkAddr );
 
-	*pBuf++ = (byte)((pPowerDesc->AvailablePowerSources << 4) | (pPowerDesc->PowerMode & 0x0F));
-	*pBuf++ = (byte)((pPowerDesc->CurrentPowerSourceLevel << 4) | (pPowerDesc->CurrentPowerSource & 0x0F));
+  *pBuf++ = (byte)((pPowerDesc->AvailablePowerSources << 4)
+                    | (pPowerDesc->PowerMode & 0x0F));
+  *pBuf++ = (byte)((pPowerDesc->CurrentPowerSourceLevel << 4)
+                    | (pPowerDesc->CurrentPowerSource & 0x0F));
 
-	return fillAndSend( &(inMsg->TransSeq), &(inMsg->srcAddr), Power_Desc_rsp, len );
+  return fillAndSend( &(inMsg->TransSeq), &(inMsg->srcAddr), Power_Desc_rsp, len );
 }
 
 /*********************************************************************
@@ -877,9 +953,11 @@ afStatus_t ZDP_SimpleDescMsg( zdoIncomingMsg_t *inMsg, byte Status,
   }
 
   *pBuf++ = Status;
-
-  *pBuf++ = LO_UINT16( ZDAppNwkAddr.addr.shortAddr );
-  *pBuf++ = HI_UINT16( ZDAppNwkAddr.addr.shortAddr );
+  
+  //From spec 2.4.3.1.5 The NWKAddrOfInterest field shall match 
+  //that specified in the original Simple_Desc_req command
+  *pBuf++ = inMsg->asdu[0];  
+  *pBuf++ = inMsg->asdu[1];
 
   if ( len > 4 )
   {
@@ -1300,6 +1378,22 @@ afStatus_t ZDP_MgmtPermitJoinReq( zAddrType_t *dstAddr, byte duration,
   // Build buffer
   ZDP_TmpBuf[ZDP_MGMT_PERMIT_JOIN_REQ_DURATION] = duration;
   ZDP_TmpBuf[ZDP_MGMT_PERMIT_JOIN_REQ_TC_SIG]   = TcSignificance;
+
+  // Check of this is a broadcast message
+  if ( (dstAddr) && ((dstAddr->addrMode == Addr16Bit) || (dstAddr->addrMode == AddrBroadcast))
+      && ((dstAddr->addr.shortAddr == NWK_BROADCAST_SHORTADDR_DEVALL)
+          || (dstAddr->addr.shortAddr == NWK_BROADCAST_SHORTADDR_DEVZCZR)
+          || (dstAddr->addr.shortAddr == NWK_BROADCAST_SHORTADDR_DEVRXON)) )
+  {
+    // Send this to our self as well as broadcast to network
+    zAddrType_t tmpAddr;
+
+    tmpAddr.addrMode = Addr16Bit;
+    tmpAddr.addr.shortAddr = NLME_GetShortAddr();
+
+    fillAndSend( &ZDP_TransID, &tmpAddr, Mgmt_Permit_Join_req,
+                      ZDP_MGMT_PERMIT_JOIN_REQ_SIZE );
+  }
 
   // Send the message
   return fillAndSend( &ZDP_TransID, dstAddr, Mgmt_Permit_Join_req,
@@ -1823,7 +1917,8 @@ ZStatus_t ZDO_RegisterForZDOMsg( uint8 taskID, uint16 clusterID )
 
   // Look for duplicate
   pList = pLast = zdoMsgCBs;
-  while ( pList ) {
+  while ( pList )
+  {
     if ( pList->taskID == taskID && pList->clusterID == clusterID )
       return ( ZSuccess );
     pLast = pList;
@@ -1832,17 +1927,20 @@ ZStatus_t ZDO_RegisterForZDOMsg( uint8 taskID, uint16 clusterID )
 
   // Add to the list
   pNew = (ZDO_MsgCB_t *)osal_mem_alloc( sizeof ( ZDO_MsgCB_t ) );
-  if ( pNew ) {
+  if ( pNew )
+  {
     pNew->taskID = taskID;
     pNew->clusterID = clusterID;
     pNew->next = NULL;
-    if ( zdoMsgCBs ) {
+    if ( zdoMsgCBs )
+    {
       pLast->next = pNew;
     }
     else
       zdoMsgCBs = pNew;
     return ( ZSuccess );
-  } else
+  }
+  else
     return ( ZMemError );
 }
 
@@ -1904,7 +2002,6 @@ ZStatus_t ZDO_RemoveRegisteredCB( uint8 taskID, uint16 clusterID )
  */
 uint8 ZDO_SendMsgCBs( zdoIncomingMsg_t *inMsg )
 {
-	
   uint8 ret = FALSE;
   ZDO_MsgCB_t *pList = zdoMsgCBs;
   while ( pList )

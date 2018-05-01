@@ -15,6 +15,7 @@
 // 1 byte  -> data type
 // n bytes -> data values
 void writeAttribute(uint8 * data) {
+	
 	afAddrType_t dstAddr;
 	data++;
 	dstAddr.addr.shortAddr = BUILD_UINT16(data[0], data[1]);

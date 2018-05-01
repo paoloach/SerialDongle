@@ -1,12 +1,12 @@
 /**************************************************************************************************
   Filename:       mac_csp_tx.c
-  Revised:        $Date: 2013-05-17 11:08:52 -0700 (Fri, 17 May 2013) $
-  Revision:       $Revision: 34354 $
+  Revised:        $Date: 2015-02-17 14:17:44 -0800 (Tue, 17 Feb 2015) $
+  Revision:       $Revision: 42683 $
 
   Description:    Describe the purpose and contents of the file.
 
 
-  Copyright 2006-2013 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2006-2015 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -374,7 +374,7 @@ MAC_INTERNAL_API void macCspTxPrepCsmaUnslotted(void)
   /* sample CCA, if it fails exit from here, CSPZ indicates result */
   RFST = SKIP(1, C_CCA_IS_VALID);
   RFST = SSTOP;
-
+  
   /* CSMA has passed so transmit (actual frame starts one backoff from when strobe is sent) */
   RFST = STXON;
 
@@ -837,7 +837,7 @@ MAC_INTERNAL_API void macCspTxRequestAckTimeoutCallback(void)
   startSymbol = CSP_WEVENT_READ_COUNT_SYMBOLS();
 
   /* set symbol timeout from PIB */
-  symbols = macPib.ackWaitDuration;
+  symbols = pMacPib->ackWaitDuration;
 
   /* make sure delay value is not too small for logic to handle */
   MAC_ASSERT(symbols > MAC_A_UNIT_BACKOFF_PERIOD);  /* symbols timeout period must be great than a backoff */
@@ -969,7 +969,7 @@ MAC_INTERNAL_API void macCspTxStopIsr(void)
 
   if (CSPZ == CSPZ_CODE_TX_DONE)
   {
-    macTxDoneCallback();
+    macTxDoneCallback();   
   }
   else if (CSPZ == CSPZ_CODE_CHANNEL_BUSY)
   {

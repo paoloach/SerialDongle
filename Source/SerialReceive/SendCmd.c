@@ -15,6 +15,7 @@
 // 1 byte  -> data value len
 // n bytes -> data values
 void sendCmd(uint8 * data){
+	
 	afAddrType_t dstAddr;
 	data++;
 	dstAddr.addr.shortAddr = BUILD_UINT16(data[0], data[1]);
@@ -27,4 +28,5 @@ void sendCmd(uint8 * data){
 	if (status !=ZSuccess){
 		serialSendWriteAttributeError(dstAddr.addr.shortAddr, dstAddr.endPoint, cluster, cmdId, status);
 	}
+	
 }

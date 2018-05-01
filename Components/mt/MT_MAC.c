@@ -1,7 +1,7 @@
 /**************************************************************************************************
   Filename:       MT_MAC.c
-  Revised:        $Date: 2014-07-25 10:34:31 -0700 (Fri, 25 Jul 2014) $
-  Revision:       $Revision: 39532 $
+  Revised:        $Date: 2014-10-09 12:38:39 -0700 (Thu, 09 Oct 2014) $
+  Revision:       $Revision: 40541 $
 
   Description:    MonitorTest functions for the MAC layer.
 
@@ -63,6 +63,9 @@
   #include "mac_security.h"
 #endif
 
+#ifdef FEATURE_DUAL_MAC
+  #include "dmmgr.h" 
+#endif   
 /***************************************************************************************************
  * MACROS
  ***************************************************************************************************/
@@ -72,7 +75,7 @@
                                         ((((pendAddrSpec) & 0x70) >> 4) * 8))
 
 /* This matches the value used by nwk */
-#define MT_MAC_ED_SCAN_MAXCHANNELS      27
+#define MT_MAC_ED_SCAN_MAXCHANNELS      MAC_CHAN_END + 1
 
 /* Maximum size of pending address spec in beacon notify ind */
 #define MT_MAC_PEND_LEN_MAX             32
@@ -112,8 +115,10 @@
   uint16 _macCallbackSub;
 #endif
 
+#ifndef FEATURE_DUAL_MAC
 /* storage for MAC beacon payload */
 static uint8 mtMacBeaconPayload[MT_MAC_BEACON_PAYLOAD_MAX];
+#endif /* !FEATURE_DUAL_MAC */
 
 /***************************************************************************************************
  * LOCAL FUNCTIONS
@@ -320,7 +325,11 @@ void MT_MacInit(uint8 *pBuf)
   cmdId = pBuf[MT_RPC_POS_CMD1];
   pBuf += MT_RPC_FRAME_HDR_SZ;
 
+#ifdef FEATURE_DUAL_MAC
+  retValue = ZMacDenied;
+#else
   retValue = ZMacInit();
+#endif /* FEATURE_DUAL_MAC */
 
   /* Build and send back the response */
   MT_BuildAndSendZToolResponse(((uint8)MT_RPC_CMD_SRSP | (uint8)MT_RPC_SYS_MAC), cmdId, 1, &retValue );
@@ -348,40 +357,57 @@ void MT_MacStartReq(uint8 *pBuf)
 
 #ifdef RTR_NWK
 
-  /* StartTime */
-  startReq.StartTime = BUILD_UINT32 (pBuf[0], pBuf[1], pBuf[2], pBuf[3]);
-  pBuf += 4;
+#ifdef FEATURE_DUAL_MAC
+  if ( DMMGR_IsDefaultMac() != TRUE )
+  {
+    retValue = ZMacDenied;
+  }
+  else
+  {
+#endif /* FEATURE_DUAL_MAC */
 
-  /* PanID */
-  startReq.PANID = BUILD_UINT16( pBuf[0] , pBuf[1] );
-  pBuf += 2;
+    /* StartTime */
+    startReq.StartTime = BUILD_UINT32 (pBuf[0], pBuf[1], pBuf[2], pBuf[3]);
+    pBuf += 4;
 
-  /* Fill in other fields sequentially incrementing the pointer*/
+    /* PanID */
+    startReq.PANID = BUILD_UINT16( pBuf[0] , pBuf[1] );
+    pBuf += 2;
 
-  startReq.LogicalChannel    =  *pBuf++;
-  startReq.ChannelPage       =  *pBuf++;
-  startReq.BeaconOrder       =  *pBuf++;
-  startReq.SuperframeOrder   =  *pBuf++;
-  startReq.PANCoordinator    =  *pBuf++;
-  startReq.BatteryLifeExt    =  *pBuf++;
-  startReq.CoordRealignment  =  *pBuf++;
+    /* Fill in other fields sequentially incrementing the pointer*/
 
-  /* Realign Security Information */
-  MT_MacSpi2Sec( &startReq.RealignSec, pBuf );
-  pBuf += ZTEST_DEFAULT_SEC_LEN;
+    startReq.LogicalChannel    =  *pBuf++;
+    startReq.ChannelPage       =  *pBuf++;
+    startReq.BeaconOrder       =  *pBuf++;
+    startReq.SuperframeOrder   =  *pBuf++;
+    startReq.PANCoordinator    =  *pBuf++;
+    startReq.BatteryLifeExt    =  *pBuf++;
+    startReq.CoordRealignment  =  *pBuf++;
 
-  /* Beacon Security Information */
-  MT_MacSpi2Sec( &startReq.BeaconSec, pBuf );
+    /* Realign Security Information */
+    MT_MacSpi2Sec( &startReq.RealignSec, pBuf );
+    pBuf += ZTEST_DEFAULT_SEC_LEN;
 
-  /* Call corresponding ZMAC function */
-  retValue = ZMacStartReq( &startReq );
+    /* Beacon Security Information */
+    MT_MacSpi2Sec( &startReq.BeaconSec, pBuf );
+
+    /* Call corresponding ZMAC function */
+    retValue = ZMacStartReq( &startReq );
+
+#ifdef FEATURE_DUAL_MAC
+   if ( ZMAC_SUCCESS == retValue )
+   {
+     DMMGR_SetActivityFlag( START_ACTIVITY );
+   }
+#endif /* FEATURE_DUAL_MAC */
 
 #else
-
-  retValue = ZMacDenied;
-
+   retValue = ZMacDenied;
 #endif
 
+#ifdef FEATURE_DUAL_MAC
+  }
+#endif /* FEATURE_DUAL_MAC */
   /* Build and send back the response */
   MT_BuildAndSendZToolResponse(((uint8)MT_RPC_CMD_SRSP | (uint8)MT_RPC_SYS_MAC), cmdId, 1, &retValue );
 }
@@ -479,8 +505,41 @@ void MT_MacDataReq(uint8 *pBuf)
   dataReq.GpOffset = *pBuf++;
   dataReq.GpDuration = *pBuf;
 
-  /* Call corresponding ZMAC function */
-  retValue = ZMacDataReq( &dataReq );
+#ifdef FEATURE_DUAL_MAC 
+  if (dataReq.TxOptions & MAC_TXOPTION_INDIRECT )
+  {
+    if ( DMMGR_STATUS_FAILURE == DMMGR_AddIndirectMsg(&dataReq) )
+    {
+      retValue = MAC_NO_RESOURCES;
+    }
+    else
+    {
+      retValue = ZMAC_SUCCESS;
+    }
+  }
+
+  if ( ((dataReq.TxOptions & MAC_TXOPTION_INDIRECT) && (dataReq.DstAddr.addr.shortAddr == 0xFFFF))||
+       ((dataReq.TxOptions & MAC_TXOPTION_INDIRECT) == 0) )
+  {
+    if( dataReq.TxOptions & MAC_TXOPTION_INDIRECT )
+    {
+      dataReq.TxOptions ^= MAC_TXOPTION_INDIRECT;
+    }
+
+    macDataReqStatus = MAC_SUCCESS;
+
+#endif /* FEATURE_DUAL_MAC */
+    
+    /* Call corresponding ZMAC function */
+    retValue = ZMacDataReq( &dataReq );
+
+#ifdef FEATURE_DUAL_MAC
+    if ( (ZMAC_SUCCESS == retValue) && ( MAC_SUCCESS == macDataReqStatus) )  
+    {
+      DMMGR_SetActivityFlag( DATA_ACTIVITY );
+    }
+  }
+#endif /* FEATURE_DUAL_MAC */
 
   /* Build and send back the response */
   MT_BuildAndSendZToolResponse(((uint8)MT_RPC_CMD_SRSP | (uint8)MT_RPC_SYS_MAC), cmdId, 1, &retValue );
@@ -530,6 +589,13 @@ void MT_MacAssociateReq(uint8 *pBuf)
   /* Call corresponding ZMAC function */
   retValue = ZMacAssociateReq( &assocReq );
 
+#ifdef FEATURE_DUAL_MAC
+  if ( ZMAC_SUCCESS == retValue )
+  {
+    DMMGR_SetActivityFlag( ASSOC_ACTIVITY );
+  }
+#endif /* FEATURE_DUAL_MAC */
+
   /* Build and send back the response */
   MT_BuildAndSendZToolResponse(((uint8)MT_RPC_CMD_SRSP | (uint8)MT_RPC_SYS_MAC), cmdId, 1, &retValue );
 }
@@ -575,6 +641,13 @@ void MT_MacDisassociateReq(uint8 *pBuf)
   /* Call corresponding ZMAC function */
   retValue = ZMacDisassociateReq( &disassocReq );
 
+#ifdef FEATURE_DUAL_MAC
+  if ( ZMAC_SUCCESS == retValue )
+  {
+    DMMGR_SetActivityFlag( DISASSOC_ACTIVITY );
+  }
+#endif /* FEATURE_DUAL_MAC */
+
   /* Build and send back the response */
   MT_BuildAndSendZToolResponse(((uint8)MT_RPC_CMD_SRSP | (uint8)MT_RPC_SYS_MAC), cmdId, 1, &retValue );
 }
@@ -597,8 +670,8 @@ void MT_MacGetReq(uint8 *pBuf)
   cmdId = pBuf[MT_RPC_POS_CMD1];
   pBuf += MT_RPC_FRAME_HDR_SZ;
 
-  /* TODO - is there an automated way to always find the largest PIB attribute? */
-  respLen = MAC_RANDOM_SEED_LEN + 1;
+  /* Response length is 16 bytes + 1 byte status */
+  respLen = ZTEST_DEFAULT_PARAM_LEN;
 
   /* Allocate */
   pRetBuf = osal_mem_alloc(respLen);
@@ -650,8 +723,13 @@ void MT_MacSetReq(uint8 *pBuf)
   /* special case for beacon payload */
   if ( attr == ZMacBeaconMSDU )
   {
+#ifdef FEATURE_DUAL_MAC
+    retValue = ZMacSetReq( (ZMacAttributes_t)attr ,  
+                           (byte *)DMMGR_MacBeaconPayloadStore(pBuf + 1) );
+#else
     osal_memcpy( mtMacBeaconPayload, pBuf + 1, MT_MAC_BEACON_PAYLOAD_MAX );
     retValue = ZMacSetReq( (ZMacAttributes_t)attr ,  (byte *) &mtMacBeaconPayload );
+#endif 
   }
   else
   {
@@ -972,6 +1050,13 @@ void MT_MacScanReq(uint8 * pBuf)
   /* Call corresponding ZMAC function */
   retValue =  ZMacScanReq( &scanReq );
 
+#ifdef FEATURE_DUAL_MAC
+  if ( ZMAC_SUCCESS == retValue )
+  {
+    DMMGR_SetActivityFlag( SCAN_ACTIVITY );
+  }
+#endif /* FEATURE_DUAL_MAC */
+
   /* Build and send back the response */
   MT_BuildAndSendZToolResponse(((uint8)MT_RPC_CMD_SRSP | (uint8)MT_RPC_SYS_MAC), cmdId, 1, &retValue );
 }
@@ -1011,6 +1096,13 @@ void MT_MacPollReq(uint8 *pBuf)
   /* Call corresponding ZMAC function */
   retValue = ZMacPollReq( &pollReq );
 
+#ifdef FEATURE_DUAL_MAC
+  if ( ZMAC_SUCCESS == retValue )
+  {
+    DMMGR_SetActivityFlag( DATA_POLL_ACTIVITY );
+  }
+#endif /* FEATURE_DUAL_MAC */
+
   /* Build and send back the response */
   MT_BuildAndSendZToolResponse(((uint8)MT_RPC_CMD_SRSP | (uint8)MT_RPC_SYS_MAC), cmdId, 1, &retValue );
 }
@@ -1026,17 +1118,50 @@ void MT_MacPollReq(uint8 *pBuf)
  ***************************************************************************************************/
 void MT_MacPurgeReq(uint8 *pBuf)
 {
-  uint8 retValue, cmdId;
+  uint8 cmdId;
+  uint8 retValue = 1;
 
   /* Parse header */
   cmdId = pBuf[MT_RPC_POS_CMD1];
   pBuf += MT_RPC_FRAME_HDR_SZ;
 
-  /* First and only byte - MsduHandle */
-  retValue = ZMacPurgeReq (*pBuf);
+#ifdef FEATURE_DUAL_MAC
+  if ( DMMGR_IsDefaultMac() )
+  {
+    retValue = DMMGR_PurgeIndirectMsgElem(*pBuf); 
+  }
 
-  /* Build and send back the response */
-  MT_BuildAndSendZToolResponse(((uint8)MT_RPC_CMD_SRSP | (uint8)MT_RPC_SYS_MAC), cmdId, 1, &retValue );
+  if ( ZMAC_SUCCESS == retValue )
+  {
+    uint8 purgeRspData[2];
+    purgeRspData[0] = ZMAC_SUCCESS;
+    purgeRspData[1] = *pBuf;
+
+    /* Build and send back the response */
+    MT_BuildAndSendZToolResponse(((uint8)MT_RPC_CMD_SRSP | (uint8)MT_RPC_SYS_MAC), cmdId, 1, &retValue );
+
+    /* Also send the Purge CNF */
+    MT_BuildAndSendZToolResponse(((uint8)MT_RPC_CMD_SRSP | (uint8)MT_RPC_SYS_MAC), MT_MAC_PURGE_CNF, 2, purgeRspData );
+  }
+  else
+  {
+#endif /* FEATURE_DUAL_MAC */
+    /* First and only byte - MsduHandle */
+    retValue = ZMacPurgeReq (*pBuf);
+
+#ifdef FEATURE_DUAL_MAC
+    if ( ZMAC_SUCCESS == retValue )
+    {
+      DMMGR_SetActivityFlag( DATA_PURGE_ACTIVITY );
+    }
+#endif /* FEATURE_DUAL_MAC */
+
+    /* Build and send back the response */
+    MT_BuildAndSendZToolResponse(((uint8)MT_RPC_CMD_SRSP | (uint8)MT_RPC_SYS_MAC), cmdId, 1, &retValue );
+
+#ifdef FEATURE_DUAL_MAC
+  }
+#endif /* FEATURE_DUAL_MAC */
 }
 
 /***************************************************************************************************
@@ -1095,29 +1220,45 @@ void MT_MacAssociateRsp(uint8 *pBuf)
   pBuf += MT_RPC_FRAME_HDR_SZ;
 
 #ifdef RTR_NWK
+#ifdef FEATURE_DUAL_MAC
+  if ( DMMGR_IsDefaultMac() != TRUE )
+  {
+    retValue = ZMacDenied;
+  }
+  else
+  {
+#endif /* FEATURE_DUAL_MAC */
 
-  /* The address of the device requesting association */
-  MT_MacExtCpy(assocRsp.DeviceAddress, pBuf);
-  pBuf += Z_EXTADDR_LEN;
+    /* The address of the device requesting association */
+    MT_MacExtCpy(assocRsp.DeviceAddress, pBuf);
+    pBuf += Z_EXTADDR_LEN;
 
-  /* The short address allocated to the (associated) device */
-  assocRsp.AssocShortAddress = BUILD_UINT16(pBuf[0],pBuf[1]);
-  pBuf += 2;
+    /* The short address allocated to the (associated) device */
+    assocRsp.AssocShortAddress = BUILD_UINT16(pBuf[0],pBuf[1]);
+    pBuf += 2;
 
-  /* Status of the association */
-  assocRsp.Status = *pBuf++;
+    /* Status of the association */
+    assocRsp.Status = *pBuf++;
 
-  /* Security Information */
-  MT_MacSpi2Sec( &assocRsp.Sec, pBuf );
+    /* Security Information */
+    MT_MacSpi2Sec( &assocRsp.Sec, pBuf );
 
-  /* Call corresponding ZMAC function */
-  retValue = ZMacAssociateRsp( &assocRsp );
+    /* Call corresponding ZMAC function */
+    retValue = ZMacAssociateRsp( &assocRsp );
+#ifdef FEATURE_DUAL_MAC
+    if ( ZMAC_SUCCESS == retValue )
+    {
+      DMMGR_SetActivityFlag( ASSOC_ACTIVITY );
+    }
+#endif /* FEATURE_DUAL_MAC */
 
 #else
-
   retValue = ZMacDenied;
-
 #endif
+
+#ifdef FEATURE_DUAL_MAC
+  }
+#endif /* FEATURE_DUAL_MAC */
 
   /* Build and send back the response */
   MT_BuildAndSendZToolResponse(((uint8)MT_RPC_CMD_SRSP | (uint8)MT_RPC_SYS_MAC), cmdId, 1, &retValue);
@@ -1158,6 +1299,12 @@ void MT_MacOrphanRsp(uint8 *pBuf)
   /* Call corresponding ZMAC function */
   retValue = ZMacOrphanRsp( &orphanRsp );
 
+#ifdef FEATURE_DUAL_MAC
+  if ( ZMAC_SUCCESS == retValue )
+  {
+    DMMGR_SetActivityFlag( ORPHAN_ACTIVITY );
+  }
+#endif /* FEATURE_DUAL_MAC */
   /* Build and send back the response */
   MT_BuildAndSendZToolResponse(((uint8)MT_RPC_CMD_SRSP | (uint8)MT_RPC_SYS_MAC), cmdId, 1, &retValue);
 }
@@ -1208,6 +1355,13 @@ void MT_MacEnhancedActiveScanReq(uint8 * pBuf)
   
   /* Call corresponding ZMAC function */
   retValue =  ZMacEnhancedActiveScanReq( &scanReq );
+
+#ifdef FEATURE_DUAL_MAC
+  if ( ZMAC_SUCCESS == retValue )
+  {
+    DMMGR_SetActivityFlag( SCAN_ACTIVITY );
+  }
+#endif /* FEATURE_DUAL_MAC */
 
   /* Build and send back the response */
   MT_BuildAndSendZToolResponse(((uint8)MT_RPC_CMD_SRSP | (uint8)MT_RPC_SYS_MAC), cmdId, 1, &retValue );
@@ -1499,7 +1653,7 @@ void nwk_MTCallbackSubNwkDataInd( ZMacDataInd_t *param )
   uint8 respLen, tempLen;
   uint8 *pRetBuf, *tp;
 
-  /* Packet length is 44 + 102 data */
+  /* Packet length is 44 + 117 data */
   respLen = MT_MAC_LEN_DATA_IND + ZTEST_DEFAULT_DATA_LEN;
 
   pRetBuf = osal_mem_alloc (respLen);
@@ -1519,7 +1673,8 @@ void nwk_MTCallbackSubNwkDataInd( ZMacDataInd_t *param )
     else
     {
       /* No address */
-      for ( uint8 i = 0; i< Z_EXTADDR_LEN; i++ )
+      uint8 i;
+      for ( i = 0; i< Z_EXTADDR_LEN; i++ )
       {
         tp[i] = 0x00;
       }
@@ -1576,8 +1731,15 @@ void nwk_MTCallbackSubNwkDataInd( ZMacDataInd_t *param )
     /* Length */
     *tp++ = tempLen;
 
+#ifdef MT_FIXED_LENGTH_DATA_INDICATION
     /* Copy the data according to Len, the rest are zeroed out */
     osal_memset( tp, 0, ZTEST_DEFAULT_DATA_LEN );
+#else
+    /* Override respLen with the actual packet length */
+    respLen = (uint8)(tp - pRetBuf) + tempLen;
+#endif /* MT_FIXED_LENGTH_DATA_INDICATION */
+    
+    /* Copy the data according to Len */
     osal_memcpy( tp, param->msdu, tempLen );
 
     /* Build and send back the response */
@@ -2086,14 +2248,16 @@ static void MT_MacAddr2Spi( uint8 *pDst, zAddrType_t *pSrc )
   }
   else if ( pSrc->addrMode == Addr64Bit )
   {
-    for ( uint8 i = 0; i< Z_EXTADDR_LEN; i++ )
+    uint8 i;
+    for ( i = 0; i< Z_EXTADDR_LEN; i++ )
     {
      *pDst++ = pSrc->addr.extAddr[i];
     }
   }
   else
   {
-    for ( uint8 i = 0; i< Z_EXTADDR_LEN; i++ )
+    uint8 i;
+    for ( i = 0; i< Z_EXTADDR_LEN; i++ )
     {
      *pDst++ = pSrc->addr.extAddr[i];
     }

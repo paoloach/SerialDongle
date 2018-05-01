@@ -48,6 +48,11 @@ extern "C" {
  * INCLUDES
  */
 
+#include "mac_api.h"
+#include "ZMAC.h"
+#include "APSMEDE.h"
+#include "AF.h"
+
 /*********************************************************************
  * MACROS
  */

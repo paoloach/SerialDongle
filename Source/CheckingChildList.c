@@ -16,6 +16,7 @@
 #include "SerialSend/SendMethods.h"
 #include "osal_memory.h"
 #include "string.h"
+#include "ZDSecMgr.h"	
 
 static uint8 actualIndex;
 static void callingLoop(uint16 mainTaskId);
@@ -33,6 +34,7 @@ void nextCheckRequest(uint16 mainTaskID  ) {
 
   extern void _itoa( uint16 num, uint8 *buf, uint8 radix );
 void callingLoop(uint16 mainTaskId) {
+	
     AddrMgrEntry_t entry;
 	while(true){
 		entry.index = actualIndex;
@@ -54,5 +56,6 @@ void callingLoop(uint16 mainTaskId) {
 				break;
 		}
 	}
+
 }
 

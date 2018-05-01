@@ -1,7 +1,7 @@
 /**************************************************************************************************
   Filename:       zmac.c
-  Revised:        $Date: 2014-07-22 11:05:31 -0700 (Tue, 22 Jul 2014) $
-  Revision:       $Revision: 39478 $
+  Revised:        $Date: 2014-06-20 15:25:38 -0700 (Fri, 20 Jun 2014) $
+  Revision:       $Revision: 39136 $
 
 
   Description:    This file contains the ZStack MAC Porting Layer
@@ -55,6 +55,9 @@
   #include "ssp.h"
 #endif
 
+#ifdef FEATURE_DUAL_MAC
+  #include "dmmgr.h"
+#endif /* FEATURE_DUAL_MAC */
 /********************************************************************************************************
  *                                                 MACROS
  ********************************************************************************************************/
@@ -64,15 +67,14 @@
  ********************************************************************************************************/
 #define MAX_SECURITY_PIB_SET_ENTRY  sizeof(deviceDescriptor_t)
 
-const uint8 UsePrimaryExtAddr[Z_EXTADDR_LEN] = {0};
-const uint8 UseSecondaryExtAddr[Z_EXTADDR_LEN] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-
 /********************************************************************************************************
  *                                               GLOBALS
  ********************************************************************************************************/
 uint32 _ScanChannels;
 
-extern uint8 aExtendedAddress[Z_EXTADDR_LEN];
+#ifndef FEATURE_DUAL_MAC   
+extern uint8 aExtendedAddress[];
+#endif /* FEATURE_DUAL_MAC */
 
 /**************************************************************************************************
  * @fn          MAC_SetRandomSeedCB
@@ -167,7 +169,17 @@ uint8 ZMacReset( uint8 SetDefaultPIB )
   // Don't send PAN ID conflict
   value = FALSE;
   MAC_MlmeSetReq( MAC_ASSOCIATED_PAN_COORD, &value );
+#ifdef FEATURE_DUAL_MAC
+  {
+    uint8 aExtendedAddress[8] = { 0};
+    if ( SUCCESS == DMMGR_GetExtAddr( aExtendedAddress) ) 
+    {
+      MAC_MlmeSetReq( MAC_EXTENDED_ADDRESS, &aExtendedAddress );
+    }
+  }
+#else
   MAC_MlmeSetReq( MAC_EXTENDED_ADDRESS, &aExtendedAddress );
+#endif /* FEATURE_DUAL_MAC */
 
   if (ZMac_ScanBuf)
   {
@@ -193,8 +205,19 @@ uint8 ZMacGetReq( uint8 attr, uint8 *value )
 {
   if ( attr == ZMacExtAddr )
   {
+#ifdef FEATURE_DUAL_MAC
+    /**
+     * Provide the local copy if we have one, or let it read from
+     * macPib.
+     */
+    if ( SUCCESS == DMMGR_GetExtAddr(value) )
+    {             
+      return ZMacSuccess;
+    }
+#else
     osal_cpyExtAddr( value, &aExtendedAddress );
     return ZMacSuccess;
+#endif /* FEATURE_DUAL_MAC */
   }
 
   return (ZMacStatus_t) MAC_MlmeGetReq( attr, value );
@@ -215,29 +238,14 @@ uint8 ZMacSetReq( uint8 attr, byte *value )
 {
   if ( attr == ZMacExtAddr )
   {
-#if defined ( HAL_INFOP_IEEE_OSET )
-    if (!memcmp(value, (void *)UsePrimaryExtAddr, Z_EXTADDR_LEN))
-    {
-      // Read the extended address from the designated location in the Info-A Page.
-      osal_cpyExtAddr(aExtendedAddress, (uint8 *)(P_INFOPAGE+HAL_INFOP_IEEE_OSET));
-    }
-    else if (!memcmp(value, (void *)UseSecondaryExtAddr, Z_EXTADDR_LEN))
-    {
-      // Read the extended address from the location on the lock bits page where
-      // the programming tools know how to program and preserve it during download.
-      HalFlashRead(HAL_FLASH_IEEE_PAGE, HAL_FLASH_IEEE_OSET, aExtendedAddress, Z_EXTADDR_LEN);
-    }
-    else  // Use this valid extended address value.
-#endif
-    {
-      osal_cpyExtAddr(aExtendedAddress, value);
-    }
-    return (ZMacStatus_t) MAC_MlmeSetReq( attr, aExtendedAddress );
+#ifdef FEATURE_DUAL_MAC
+    DMMGR_SetExtAddr( value );
+#else
+    osal_cpyExtAddr( aExtendedAddress, value );
+#endif /* FEATURE_DUAL_MAC */
   }
-  else
-  {
-    return (ZMacStatus_t) MAC_MlmeSetReq( attr, value );
-  }
+
+  return (ZMacStatus_t) MAC_MlmeSetReq( attr, value );
 }
 
 #ifdef FEATURE_MAC_SECURITY
@@ -978,3 +986,23 @@ uint8 ZMacEnhancedActiveScanReq( ZMacScanReq_t *pData )
 
   return ZMacSuccess;
 }
+
+#ifdef FEATURE_DUAL_MAC
+/********************************************************************************************************
+ * @fn      ZMacFreeScanBuf
+ *
+ * @brief   This function free's the scan buffer.
+ *
+ * @param   None
+ *
+ * @return  None
+ ********************************************************************************************************/
+void ZMacFreeScanBuf( void )
+{
+  if ( ZMac_ScanBuf )
+  {
+    osal_mem_free( ZMac_ScanBuf );
+    ZMac_ScanBuf = NULL;
+  }
+}
+#endif /* FEATURE_DUAL_MAC */

@@ -64,6 +64,7 @@
 #include "ZDProfile.h"
 #include "ZDObject.h"
 #include "hal_led.h"
+#include "hal_key.h"
 #include "sapi.h"
 #include "MT_SAPI.h"
 
@@ -841,10 +842,18 @@ UINT16 SAPI_ProcessEvent( byte task_id, UINT16 events )
     zb_HandleOsalEvent( ZB_ENTRY_EVENT );
 #endif
 
+    // LED off cancels HOLD_AUTO_START blink set in the stack
+    HalLedSet (HAL_LED_4, HAL_LED_MODE_OFF);
+
     zb_ReadConfiguration( ZCD_NV_STARTUP_OPTION, sizeof(uint8), &startOptions );
     if ( startOptions & ZCD_STARTOPT_AUTO_START )
     {
       zb_StartRequest();
+    }
+    else
+    {
+      // blink leds and wait for external input to config and restart
+      HalLedBlink(HAL_LED_2, 0, 50, 500);
     }
 
     return (events ^ ZB_ENTRY_EVENT );
@@ -882,7 +891,11 @@ void SAPI_ProcessZDOMsgs( zdoIncomingMsg_t *inMsg )
       {
         // Send find device callback to application
         ZDO_NwkIEEEAddrResp_t *pNwkAddrRsp = ZDO_ParseAddrRsp( inMsg );
-        SAPI_FindDeviceConfirm( ZB_IEEE_SEARCH, (uint8*)&pNwkAddrRsp->nwkAddr, pNwkAddrRsp->extAddr );
+		if(pNwkAddrRsp)
+		{
+			SAPI_FindDeviceConfirm( ZB_IEEE_SEARCH, (uint8*)&pNwkAddrRsp->nwkAddr, pNwkAddrRsp->extAddr );
+			osal_mem_free(pNwkAddrRsp);
+		}
       }
       break;
 
@@ -891,30 +904,34 @@ void SAPI_ProcessZDOMsgs( zdoIncomingMsg_t *inMsg )
         zAddrType_t dstAddr;
         ZDO_ActiveEndpointRsp_t *pRsp = ZDO_ParseEPListRsp( inMsg );
 
-        if ( sapi_bindInProgress != 0xffff )
-        {
-          // Create a binding table entry
-          dstAddr.addrMode = Addr16Bit;
-          dstAddr.addr.shortAddr = pRsp->nwkAddr;
+		if(pRsp)
+		{
+			if ( sapi_bindInProgress != 0xffff )
+			{
+			  // Create a binding table entry
+			  dstAddr.addrMode = Addr16Bit;
+			  dstAddr.addr.shortAddr = pRsp->nwkAddr;
 
-          if ( APSME_BindRequest( sapi_epDesc.simpleDesc->EndPoint,
-                     sapi_bindInProgress, &dstAddr, pRsp->epList[0] ) == ZSuccess )
-          {
-            osal_stop_timerEx(sapi_TaskID,  ZB_BIND_TIMER);
-            osal_start_timerEx( ZDAppTaskID, ZDO_NWK_UPDATE_NV, 250 );
+			  if ( APSME_BindRequest( sapi_epDesc.simpleDesc->EndPoint,
+						 sapi_bindInProgress, &dstAddr, pRsp->epList[0] ) == ZSuccess )
+			  {
+				osal_stop_timerEx(sapi_TaskID,  ZB_BIND_TIMER);
+				osal_start_timerEx( ZDAppTaskID, ZDO_NWK_UPDATE_NV, 250 );
 
-            // Find IEEE addr
-            ZDP_IEEEAddrReq( pRsp->nwkAddr, ZDP_ADDR_REQTYPE_SINGLE, 0, 0 );
-#if defined ( MT_SAPI_CB_FUNC )
-            zb_MTCallbackBindConfirm( sapi_bindInProgress, ZB_SUCCESS );
-#endif              
-            // Send bind confirm callback to application
-#if ( SAPI_CB_FUNC )
-            zb_BindConfirm( sapi_bindInProgress, ZB_SUCCESS );
-#endif
-            sapi_bindInProgress = 0xffff;
-          }
-        }
+				// Find IEEE addr
+				ZDP_IEEEAddrReq( pRsp->nwkAddr, ZDP_ADDR_REQTYPE_SINGLE, 0, 0 );
+	#if defined ( MT_SAPI_CB_FUNC )
+				zb_MTCallbackBindConfirm( sapi_bindInProgress, ZB_SUCCESS );
+	#endif              
+				// Send bind confirm callback to application
+	#if ( SAPI_CB_FUNC )
+				zb_BindConfirm( sapi_bindInProgress, ZB_SUCCESS );
+	#endif
+				sapi_bindInProgress = 0xffff;
+			  }
+			}
+		osal_mem_free(pRsp);
+		}
       }
       break;
   }
@@ -960,6 +977,19 @@ void SAPI_Init( byte task_id )
   ZDO_RegisterForZDOMsg( sapi_TaskID, Match_Desc_rsp );
 
 #if ( SAPI_CB_FUNC )
+#if (defined HAL_KEY) && (HAL_KEY == TRUE)
+  // Register for HAL events
+  RegisterForKeys( sapi_TaskID );
+
+  if ( HalKeyRead () == HAL_KEY_SW_5)
+  {
+    // If SW5 is pressed and held while powerup, force auto-start and nv-restore off and reset
+    uint8 startOptions = ZCD_STARTOPT_CLEAR_STATE | ZCD_STARTOPT_CLEAR_CONFIG;
+    zb_WriteConfiguration( ZCD_NV_STARTUP_OPTION, sizeof(uint8), &startOptions );
+    zb_SystemReset();
+  }
+#endif // HAL_KEY
+
   // Set an event to start the application
   osal_set_event(task_id, ZB_ENTRY_EVENT);
 #endif

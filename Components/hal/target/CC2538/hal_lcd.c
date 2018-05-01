@@ -143,7 +143,10 @@ void HalLcdWriteString ( char *str, uint8 line)
   debug_str( (uint8*)str );
 #endif
 #endif
-  HalLcd_HW_WriteLine (str, line - 1);
+  if (line != HAL_LCD_SERIAL_DEBUG_ONLY)
+  {
+    HalLcd_HW_WriteLine (str, line - 1);
+  }
 #endif
 }
 
@@ -181,8 +184,8 @@ void HalLcdWriteValue ( uint32 value, const uint8 radix, uint8 option)
 void HalLcdWriteScreen( char *line1, char *line2 )
 {
 #if (HAL_LCD == TRUE)
-  HalLcdWriteString( line1, 1 );
-  HalLcdWriteString( line2, 2 );
+  HalLcdWriteString( line1, HAL_LCD_DEBUG_LINE_1 );
+  HalLcdWriteString( line2, HAL_LCD_DEBUG_LINE_2 );
 #endif /* HAL_LCD */
 }
 
@@ -302,6 +305,33 @@ void HalLcdDisplayPercentBar( char *title, uint8 value )
   HalLcdWriteString( (char*)buf, HAL_LCD_LINE_2 );
 #endif /* HAL_LCD */
 }
+
+/**************************************************************************************************
+ * @fn      HalLcd_HW_Clear
+ *
+ * @brief   Clear the HW LCD
+ *
+ * @param   None
+ *
+ * @return  None
+ **************************************************************************************************/
+void HalLcd_HW_Clear(void)
+{
+#if (HAL_LCD == TRUE)
+  tLcdPage i;
+  uint8 buf[] = "                     ";  
+
+  for (i = eLcdPage0; i <= eLcdPage7; i++)
+  {
+    /* Copy into the default buffer */
+    lcdBufferPrintString((char *)HAL_LCD_DEF_BUF, (char const *)buf, 0, i); 
+  }
+  
+  /* Flush the default buffer to the LCD */
+  lcdSendBuffer(HAL_LCD_DEF_BUF);                       
+#endif /* HAL_LCD */
+}
+
 
 #if (HAL_LCD == TRUE)
 /**************************************************************************************************

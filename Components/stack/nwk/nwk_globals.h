@@ -1,12 +1,12 @@
 /**************************************************************************************************
   Filename:       nwk_globals.h
-  Revised:        $Date: 2014-05-05 20:49:07 -0700 (Mon, 05 May 2014) $
-  Revision:       $Revision: 38411 $
+  Revised:        $Date: 2015-01-08 16:32:12 -0800 (Thu, 08 Jan 2015) $
+  Revision:       $Revision: 41678 $
 
   Description:    User definable Network Parameters.
 
 
-  Copyright 2004-2014 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2004-2015 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -54,6 +54,7 @@ extern "C" {
 #include "BindingTable.h"
 #include "ZGlobals.h"
 
+
 /*********************************************************************
  * MACROS
  */
@@ -66,35 +67,15 @@ extern "C" {
 #endif
 
 // If ZIGBEEPRO is defined - define all the features for Zigbee Pro
-//#define ZIGBEE_MULTICAST
 #if defined ( ZIGBEEPRO )
-  #if !defined ( ZIGBEE_STOCHASTIC_ADDRESSING )
-    #define ZIGBEE_STOCHASTIC_ADDRESSING
-    #define ZIGBEE_NWK_UNIQUE_ADDR_CHECK
-  #endif
   #if !defined ( NWK_LINK_STATUS_PERIOD )
     #define NWK_LINK_STATUS_PERIOD 15       // 15 seconds
-  #endif
-  #if !defined ( ZIGBEE_MULTICAST )
-    #define ZIGBEE_MULTICAST
-  #endif
-  #if !defined ( ZIGBEE_MANY_TO_ONE )
-    #define ZIGBEE_MANY_TO_ONE
-  #endif
-  #if !defined ( ZIGBEE_SOURCE_ROUTING )
-    #define ZIGBEE_SOURCE_ROUTING
   #endif
   #if !defined ( ZIGBEE_COMMISSIONING )
     #define ZIGBEE_COMMISSIONING
   #endif
-  #if !defined ( NWK_MANAGER )
-    //#define NWK_MANAGER // WARNING: this should be enabled only for one device per network
-  #endif
   #if !defined ( ZIGBEE_FRAGMENTATION )
     #define ZIGBEE_FRAGMENTATION
-  #endif
-  #if !defined ( ZIGBEE_CHILD_AGING )
-    #define ZIGBEE_CHILD_AGING
   #endif
 #else
   #define NWK_LINK_STATUS_PERIOD  0
@@ -235,7 +216,7 @@ extern "C" {
 
 // Maximum number in tables
 #if !defined( NWK_MAX_DEVICE_LIST )
-  #define NWK_MAX_DEVICE_LIST     40  // Maximum number of devices in the
+#define NWK_MAX_DEVICE_LIST     20  // Maximum number of devices in the
                                     // Assoc/Device list.
 #endif
 
@@ -250,10 +231,6 @@ extern "C" {
 // It is recommemded to keep this values to a fraction of gNWK_MAX_SLEEPING_END_DEVICES value
 // which is the value of the table in the radio
 #define MAX_NOT_MYCHILD_DEVICES  5
-
-// Child table Management timeout values
-#define KEEPALIVE_TIMEOUT_MAX     60    // Maximum Keepalive time in Minutes
-#define TIMEOUT_COUNTER_MAX       KEEPALIVE_TIMEOUT_MAX    // Maximum time in minutes
 
 // Number of reserved places for router and end device children, to be used in stochastic addressing.
 #if !defined ( NWK_MIN_ROUTER_CHILDREN )
@@ -287,9 +264,18 @@ extern "C" {
 #endif
 
 // Maxiumum number of secure partners(Commercial mode only).
+#if ZG_BUILD_COORDINATOR_TYPE
+// Adding 5 entries to allow up to 5 legacy devices join concurrently when the rest of the 
+// table is filled with ZigBee 3.0 devices, binding table related addresses, association 
+// table related addresses, etc. the usage of these 5 entries is just temporary during joining
+// of the legacy devices. A few seconds (BDB_DEFAULT_TC_NODE_JOIN_TIMEOUT) after they joined,
+// these entries are released and can be used for joining more legacy devices.
+  #define NWK_MAX_SECURE_PARTNERS (5 + ZDSECMGR_TC_DEVICE_MAX)
+#else
 // Add 1 for the Trust Center(Coordinator) if it is not the parent.
-#define NWK_MAX_SECURE_PARTNERS 1
-
+  #define NWK_MAX_SECURE_PARTNERS 1
+#endif
+  
 // Maximum number of addresses managed by the Address Manager
 #define NWK_MAX_ADDRESSES (uint16)                          \
                           ( ( NWK_MAX_DEVICES           ) +   \
@@ -379,9 +365,23 @@ extern "C" {
   #define MAX_PASSIVE_ACK_CNT 8
 #endif
 
-// ZigBee Alliance Pre-configured TC Link Key - 'ZigBeeAlliance09'
+// ZigBee Alliance Pre-configured Distributed Link Key (for Distributed networks)
+#define DISTRIBUTED_GLOBAL_LINK_KEY     { 0xD0, 0xD1, 0xD2, 0xD3, 0xD4, 0xD5, 0xD6, 0xD7,\
+                                          0xD8, 0xD9, 0xDA, 0xDB, 0xDC, 0xDD, 0xDE, 0xDF }
+                            
+// ZigBee Alliance Pre-configured TC Link Key - 'ZigBeeAlliance09' (for Centralized networks)
 #define DEFAULT_TC_LINK_KEY             { 0x5a, 0x69, 0x67, 0x42, 0x65, 0x65, 0x41, 0x6c,\
                                           0x6c, 0x69, 0x61, 0x6e, 0x63, 0x65, 0x30, 0x39 }
+
+//Define the number of network security material entries that this device can have.
+//The first MAX_NWK_SEC_MATERIAL_TABLE_ENTRIES-1 networks will be stored, while the last 
+//will be used for the remaining networks joined
+#define MAX_NWK_SEC_MATERIAL_TABLE_ENTRIES   2
+
+#if (MAX_NWK_SEC_MATERIAL_TABLE_ENTRIES > (ZCD_NV_NWK_SEC_MATERIAL_TABLE_END - ZCD_NV_NWK_SEC_MATERIAL_TABLE_START))
+#warning Warning! MAX_NWK_SEC_MATERIAL_TABLE_ENTRIES exceeds the available NvIDs for this tables
+#endif
+
 
 /*********************************************************************
  * TYPEDEFS
@@ -477,6 +477,11 @@ extern byte CskipChldrn[];
 extern byte gMIN_TREE_LQI;
 
 extern CONFIG_ITEM byte defaultKey[];
+
+#if (ZG_BUILD_JOINING_TYPE) 
+extern CONFIG_ITEM byte distributedDefaultKey[];
+#endif
+
 extern CONST byte defaultTCLinkKey[];
 
 extern CONST uint8 gMAX_SOURCE_ROUTE;
@@ -505,9 +510,7 @@ extern CONST uint16 gLINK_STATUS_JITTER_MASK;
 
 extern CONST uint8 gMAX_NOT_MYCHILD_DEVICES;
 
-extern CONST uint16 gKEEPALIVE_TIMEOUT_MAX;
-
-extern CONST uint16 gTIMEOUT_COUNTER_MAX;
+extern CONST uint32 timeoutValue[];
 
 extern CONST uint32 gMAX_NWK_FRAMECOUNTER_CHANGES;
 

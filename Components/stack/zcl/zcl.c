@@ -1,22 +1,22 @@
 /**************************************************************************************************
   Filename:       zcl.c
-  Revised:        $Date: 2014-06-25 18:07:01 -0700 (Wed, 25 Jun 2014) $
-  Revision:       $Revision: 39221 $
+  Revised:        $Date: 2015-09-09 11:51:49 -0700 (Wed, 09 Sep 2015) $
+  Revision:       $Revision: 44489 $
 
   Description:    This file contains the Zigbee Cluster Library Foundation functions.
 
 
-  Copyright 2006-2014 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2006-2015 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
   who downloaded the software, his/her employer (which must be your employer)
-  and Texas Instruments Incorporated (the "License"). You may not use this
+  and Texas Instruments Incorporated (the "License").  You may not use this
   Software unless you agree to abide by the terms of the License. The License
   limits your use, and you acknowledge, that the Software may not be modified,
   copied or distributed unless embedded on a Texas Instruments microcontroller
   or used solely and exclusively in conjunction with a Texas Instruments radio
-  frequency transceiver, which is integrated into your product. Other than for
+  frequency transceiver, which is integrated into your product.  Other than for
   the foregoing purpose, you may not use, reproduce, copy, prepare derivative
   works of, modify, distribute, perform, display or sell this Software and/or
   its documentation for any purpose.
@@ -49,7 +49,15 @@
 #if defined ( INTER_PAN )
   #include "stub_aps.h"
 #endif
+   
+#ifdef BDB_REPORTING
+  #include "bdb_Reporting.h"
+#endif
+#include "bdb_interface.h"
 
+#include "zcl_green_power.h"
+
+   
 /*********************************************************************
  * MACROS
  */
@@ -65,6 +73,7 @@
 #define zcl_AccessCtrlCmd( a )        ( (a) & ACCESS_CONTROL_CMD )
 #define zcl_AccessCtrlAuthRead( a )   ( (a) & ACCESS_CONTROL_AUTH_READ )
 #define zcl_AccessCtrlAuthWrite( a )  ( (a) & ACCESS_CONTROL_AUTH_WRITE )
+#define zcl_AccessClient( a )         ( (a) & ACCESS_CLIENT )
 
 #define zclParseCmd( a, b )           zclCmdTable[(a)].pfnParseInProfile( (b) )
 #define zclProcessCmd( a, b )         zclCmdTable[(a)].pfnProcessInProfile( (b) )
@@ -73,10 +82,11 @@
                                         (zclHdr).fc.manuSpecific == 0          && \
                                         (zclHdr).commandID == ZCL_CMD_DEFAULT_RSP )
 
-// Commands that have corresponding responses
+// Commands that have corresponding responses (ZCL_CMD_WRITE_NO_RSP, does not have response, but must not send default response)
 #define CMD_HAS_RSP( cmd )            ( (cmd) == ZCL_CMD_READ                   || \
                                         (cmd) == ZCL_CMD_WRITE                  || \
                                         (cmd) == ZCL_CMD_WRITE_UNDIVIDED        || \
+                                        (cmd) == ZCL_CMD_WRITE_NO_RSP           || \
                                         (cmd) == ZCL_CMD_CONFIG_REPORT          || \
                                         (cmd) == ZCL_CMD_READ_REPORT_CFG        || \
                                         (cmd) == ZCL_CMD_DISCOVER_ATTRS         || \
@@ -84,6 +94,7 @@
                                         (cmd) == ZCL_CMD_DISCOVER_CMDS_GEN      || \
                                         (cmd) == ZCL_CMD_DISCOVER_ATTRS_EXT     || \
                                         (cmd) == ZCL_CMD_DEFAULT_RSP ) // exception
+#define  ZCL_VALID_MIN_HEADER_LEN  3
 
 /*********************************************************************
  * CONSTANTS
@@ -109,16 +120,6 @@ typedef struct zclCmdRecsList
   CONST zclCommandRec_t *pCmdRecs;
 } zclCmdRecsList_t;
 
-// Attribute record list item
-typedef struct zclAttrRecsList
-{
-  struct zclAttrRecsList *next;
-  uint8                  endpoint;      // Used to link it into the endpoint descriptor
-  zclReadWriteCB_t       pfnReadWriteCB;// Read or Write attribute value callback function
-  zclAuthorizeCB_t       pfnAuthorizeCB;// Authorize Read or Write operation
-  uint8                  numAttributes; // Number of the following records
-  CONST zclAttrRec_t     *attrs;        // attribute records
-} zclAttrRecsList;
 
 // Cluster option list item
 typedef struct zclClusterOptionList
@@ -139,23 +140,29 @@ typedef struct
 } zclCmdItems_t;
 
 
+// List record for external handler for unhandled ZCL Foundation commands/rsps
+typedef struct zclExternalFoundationHandlerList
+{
+    struct zclExternalFoundationHandlerList *next;
+    uint8 zcl_ExternalTaskID;
+    uint8 zcl_ExternalEndPoint;
+} zclExternalFoundationHandlerList;
+
+
 /*********************************************************************
  * GLOBAL VARIABLES
  */
 
 #if !defined ( ZCL_STANDALONE )
   uint8 zcl_TaskID;
-
-  // The task Id of the Application where the unprocessed Foundation
-  // Command/Response messages will be sent to.
-  uint8 zcl_RegisteredMsgTaskID = TASK_NO_TASK;
 #endif
 
 // The Application should register its attribute data validation function
 zclValidateAttrData_t zcl_ValidateAttrDataCB = (zclValidateAttrData_t)NULL;
 
 // ZCL Sequence number
-uint8 zcl_SeqNum = 0x00;
+//uint8 zcl_SeqNum = 0x00;  //Not longer used, refer to bdb_getZCLFrameCounter() in bdb_interface.h
+uint8 zcl_InSeqNum = 0x00;
 
 uint8 zcl_TransID = 0;  // This is the unique message ID (counter)
 
@@ -183,6 +190,10 @@ static zclClusterOptionList *clusterOptionList = (zclClusterOptionList *)NULL;
 
 static afIncomingMSGPacket_t *rawAFMsg = (afIncomingMSGPacket_t *)NULL;
 
+#if !defined ( ZCL_STANDALONE )
+static zclExternalFoundationHandlerList *externalEndPointHandlerList = (zclExternalFoundationHandlerList *)NULL;
+#endif
+
 /*********************************************************************
  * LOCAL FUNCTIONS
  */
@@ -190,11 +201,16 @@ static uint8 *zclBuildHdr( zclFrameHdr_t *hdr, uint8 *pData );
 static uint8 zclCalcHdrSize( zclFrameHdr_t *hdr );
 static zclLibPlugin_t *zclFindPlugin( uint16 clusterID, uint16 profileID );
 
+#if !defined ( ZCL_STANDALONE )
+static uint8 zcl_addExternalFoundationHandler( uint8 taskId, uint8 endPointId );
+static uint8 zcl_getExternalFoundationHandler( afIncomingMSGPacket_t *pInMsg );
+#endif // !defined ( ZCL_STANDALONE )
+
 #if defined ( ZCL_DISCOVER )
   static zclCmdRecsList_t *zclFindCmdRecsList( uint8 endpoint );
 #endif
 
-static zclAttrRecsList *zclFindAttrRecsList( uint8 endpoint );
+zclAttrRecsList *zclFindAttrRecsList( uint8 endpoint );
 static zclOptionRec_t *zclFindClusterOption( uint8 endpoint, uint16 clusterID );
 static uint8 zclGetClusterOption( uint8 endpoint, uint16 clusterID );
 static void zclSetSecurityOption( uint8 endpoint, uint16 clusterID, uint8 enable );
@@ -227,10 +243,10 @@ static uint8 zclProcessInWriteCmd( zclIncoming_t *pInMsg );
 static uint8 zclProcessInWriteUndividedCmd( zclIncoming_t *pInMsg );
 #endif // ZCL_WRITE
 
-#ifdef ZCL_REPORT
+#ifdef ZCL_REPORT_CONFIGURING_DEVICE
 static void *zclParseInConfigReportRspCmd( zclParseCmd_t *pCmd );
 static void *zclParseInReadReportCfgRspCmd( zclParseCmd_t *pCmd );
-#endif // ZCL_REPORT
+#endif
 
 static void *zclParseInDefaultRspCmd( zclParseCmd_t *pCmd );
 
@@ -272,19 +288,35 @@ static CONST zclCmdItems_t zclCmdTable[] =
   /* ZCL_CMD_WRITE_NO_RSP */        { (zclParseInProfileCmd_t)NULL,  (zclProcessInProfileCmd_t)NULL  },
 #endif // ZCL_WRITE
 
-#ifdef ZCL_REPORT
-  /* ZCL_CMD_CONFIG_REPORT */       { zclParseInConfigReportCmd,     zcl_HandleExternal              },
-  /* ZCL_CMD_CONFIG_REPORT_RSP */   { zclParseInConfigReportRspCmd,  zcl_HandleExternal              },
-  /* ZCL_CMD_READ_REPORT_CFG */     { zclParseInReadReportCfgCmd,    zcl_HandleExternal              },
-  /* ZCL_CMD_READ_REPORT_CFG_RSP */ { zclParseInReadReportCfgRspCmd, zcl_HandleExternal              },
-  /* ZCL_CMD_REPORT */              { zclParseInReportCmd,           zcl_HandleExternal              },
+#ifdef ZCL_REPORTING_DEVICE
+    /* ZCL_CMD_CONFIG_REPORT */       { zclParseInConfigReportCmd,     zcl_HandleExternal              },
 #else
-  /* ZCL_CMD_CONFIG_REPORT */       { (zclParseInProfileCmd_t)NULL,  (zclProcessInProfileCmd_t)NULL  },
-  /* ZCL_CMD_CONFIG_REPORT_RSP */   { (zclParseInProfileCmd_t)NULL,  (zclProcessInProfileCmd_t)NULL  },
-  /* ZCL_CMD_READ_REPORT_CFG */     { (zclParseInProfileCmd_t)NULL,  (zclProcessInProfileCmd_t)NULL  },
-  /* ZCL_CMD_READ_REPORT_CFG_RSP */ { (zclParseInProfileCmd_t)NULL,  (zclProcessInProfileCmd_t)NULL  },
-  /* ZCL_CMD_REPORT */              { (zclParseInProfileCmd_t)NULL,  (zclProcessInProfileCmd_t)NULL  },
-#endif // ZCL_REPORT
+    /* ZCL_CMD_CONFIG_REPORT */       { (zclParseInProfileCmd_t)NULL,  (zclProcessInProfileCmd_t)NULL  },
+#endif
+
+#ifdef ZCL_REPORT_CONFIGURING_DEVICE
+    /* ZCL_CMD_CONFIG_REPORT_RSP */   { zclParseInConfigReportRspCmd,  zcl_HandleExternal              },
+#else
+    /* ZCL_CMD_CONFIG_REPORT_RSP */   { (zclParseInProfileCmd_t)NULL,  (zclProcessInProfileCmd_t)NULL  },
+#endif
+
+#ifdef ZCL_REPORTING_DEVICE
+    /* ZCL_CMD_READ_REPORT_CFG */     { zclParseInReadReportCfgCmd,    zcl_HandleExternal              },
+#else
+    /* ZCL_CMD_READ_REPORT_CFG */     { (zclParseInProfileCmd_t)NULL,  (zclProcessInProfileCmd_t)NULL  },
+#endif
+
+#ifdef ZCL_REPORT_CONFIGURING_DEVICE
+    /* ZCL_CMD_READ_REPORT_CFG_RSP */ { zclParseInReadReportCfgRspCmd, zcl_HandleExternal              },
+#else
+    /* ZCL_CMD_READ_REPORT_CFG_RSP */ { (zclParseInProfileCmd_t)NULL,  (zclProcessInProfileCmd_t)NULL  },
+#endif
+
+#ifdef ZCL_REPORT_DESTINATION_DEVICE
+    /* ZCL_CMD_REPORT */              { zclParseInReportCmd,           zcl_HandleExternal              },
+#else
+    /* ZCL_CMD_REPORT */              { (zclParseInProfileCmd_t)NULL,  (zclProcessInProfileCmd_t)NULL  },
+#endif
 
   /* ZCL_CMD_DEFAULT_RSP */         { zclParseInDefaultRspCmd,       zcl_HandleExternal              },
 
@@ -363,11 +395,17 @@ uint16 zcl_event_loop( uint8 task_id, uint16 events )
       {
         zcl_ProcessMessageMSG( (afIncomingMSGPacket_t *)msgPtr );
       }
-      else if ( zcl_RegisteredMsgTaskID != TASK_NO_TASK )
+      else
       {
-        // send it to another task to process.
-        osal_msg_send( zcl_RegisteredMsgTaskID, msgPtr );
-        dealloc = FALSE;
+        uint8 taskID;
+        taskID = zcl_getExternalFoundationHandler( (afIncomingMSGPacket_t *)msgPtr );
+
+        if ( taskID != TASK_NO_TASK )
+        {
+          // send it to another task to process.
+          osal_msg_send( taskID, msgPtr );
+          dealloc = FALSE;
+        }
       }
 
       // Release the memory
@@ -383,6 +421,61 @@ uint16 zcl_event_loop( uint8 task_id, uint16 events )
     // return unprocessed events
     return (events ^ SYS_EVENT_MSG);
   }
+
+#if !defined (DISABLE_GREENPOWER_BASIC_PROXY) && (ZG_BUILD_RTR_TYPE)
+  if ( events & ZCL_DATABUF_SEND )
+  {
+    gpNotificationMsg_t *gpNotification = NULL;
+    gpCmdPayloadMsg_t *pCmdPayloadMsgCurr = NULL;
+    uint8 appId;
+    uint8 nwkSeqNum;
+    uint16 nwkAddr;
+    
+    gpNotification = gp_GetHeadNotificationMsg( );
+    
+    if ( gpNotification == NULL )
+    {
+      return 0;
+    }
+    
+    pCmdPayloadMsgCurr = ( gpCmdPayloadMsg_t* ) gpNotification->pMsg ;
+    appId = PROXY_TBL_GET_APPLICTION_ID((uint16)*pCmdPayloadMsgCurr->pMsg);
+    
+    // To save the NIB nwk sequense number and use the GP alias nwk sequence number
+    // for the GP notification
+    nwkSeqNum = _NIB.SequenceNum;
+    _NIB.SequenceNum = pCmdPayloadMsgCurr->secNum;
+    
+    // To save the NIB nwk address and use the GP alias nwk address for the GP notification
+    nwkAddr = _NIB.nwkDevAddress;
+    
+    if( appId == GP_OPT_APP_ID_GPD )
+    {
+      osal_memcpy( &_NIB.nwkDevAddress,( pCmdPayloadMsgCurr->pMsg + sizeof( uint16 ) ), sizeof(uint16) );
+    }
+    else if( appId == GP_OPT_APP_ID_IEEE )
+    {
+      osal_revmemcpy( &_NIB.nwkDevAddress,(pCmdPayloadMsgCurr->pMsg + Z_EXTADDR_LEN), sizeof(uint16) );
+    }
+    
+    zcl_SendCommand( GREEN_POWER_INTERNAL_ENDPOINT, &gpNotification->addr, ZCL_CLUSTER_ID_GREEN_POWER,
+                          COMMAND_GP_NOTIFICATION, TRUE, ZCL_FRAME_CLIENT_SERVER_DIR,
+                          TRUE, 0,  bdb_getZCLFrameCounter(), pCmdPayloadMsgCurr->lenght, pCmdPayloadMsgCurr->pMsg );
+    
+    // Restore the NIB nwk sequence number
+    _NIB.SequenceNum = nwkSeqNum;
+    
+    // Restore the NIB nwk address
+    _NIB.nwkDevAddress = nwkAddr;
+    
+    gp_NotificationMsgClean( gp_GetPHeadNotification ( ) );
+    
+    if ( gp_GetHeadNotificationMsg ( ) != NULL )
+    {
+      osal_start_timerEx( zcl_TaskID, ZCL_DATABUF_SEND, 50 );
+    }
+  }
+#endif
 
   // Discard unknown events
   return 0;
@@ -403,15 +496,132 @@ uint16 zcl_event_loop( uint8 task_id, uint16 events )
  *********************************************************************/
 uint8 zcl_registerForMsg( uint8 taskId )
 {
-  // Allow only the first task
-  if ( zcl_RegisteredMsgTaskID == TASK_NO_TASK )
-  {
-    zcl_RegisteredMsgTaskID = taskId;
+  return zcl_addExternalFoundationHandler( taskId, AF_BROADCAST_ENDPOINT );
+}
 
-    return ( true );
+/*********************************************************************
+ * @fn      zcl_registerForMsgExt
+ *
+ * @brief   This function enables a Task to register to recieve all
+ *          incoming Foundation Command/Response messages, for a particular
+ *          End Point, that aren't processed by ZCL.
+ *
+ *          NOTE: Any Task registered for a unique end point will take
+ *          priority over any Task registered with the AF_BROADCAST_ENDPOINT
+ *          value.  ie. If task A registers for End Point 1, task B registers
+ *          for AF_BROADCAST_ENDPOINT,  commands addressed to End Point 1 will be
+ *          sent to Task A and NOT Task B.
+ *
+ * @param   taskId - task Id of the Application where commands will be sent to
+ * @param   endPointId - end point Id of interest
+ *
+ * @return  TRUE if task registeration successful, FALSE otherwise
+ *********************************************************************/
+uint8 zcl_registerForMsgExt( uint8 taskId, uint8 endPointId  )
+{
+  return ( zcl_addExternalFoundationHandler( taskId, endPointId  ) );
+}
+
+/*********************************************************************
+ * @fn      zcl_addExternalFoundationHandler
+ *
+ * @brief   This function adds a record to the internal list of external
+ *          handlers of unhandled incoming Foundation Command/Response messages.
+ *
+ * @param   taskId - task Id of the Application where commands will be sent to
+ * @param   endPointId - end point Id of interest
+ *
+ * @return  TRUE if task registeration successful, FALSE otherwise
+ *********************************************************************/
+uint8 zcl_addExternalFoundationHandler( uint8 taskId, uint8 endPointId  )
+{
+  zclExternalFoundationHandlerList *pNewItem;
+  zclExternalFoundationHandlerList *pLoop;
+  zclExternalFoundationHandlerList *pLoopPrev;
+
+  // Fill in the new endpoint registrant list
+  pNewItem = zcl_mem_alloc( sizeof( zclExternalFoundationHandlerList ) );
+  if ( pNewItem == NULL )
+  {
+    return ( false );
   }
 
-  return ( false );
+  pNewItem->zcl_ExternalEndPoint = endPointId;
+  pNewItem->zcl_ExternalTaskID = taskId;
+  pNewItem->next = NULL;
+
+  // Add to the list
+  if ( externalEndPointHandlerList == NULL )
+  {
+    externalEndPointHandlerList = pNewItem;
+  }
+  else
+  {
+    // make sure no one else tried to register for this endpoint
+    pLoop = externalEndPointHandlerList;
+    pLoopPrev = externalEndPointHandlerList;
+
+    while ( pLoop != NULL )
+    {
+      if ( ( pLoop->zcl_ExternalEndPoint ) == endPointId )
+      {
+        zcl_mem_free(pNewItem);
+        return ( false );
+      }
+      pLoopPrev = pLoop;
+      pLoop = pLoop->next;
+    }
+
+    if ( endPointId == AF_BROADCAST_ENDPOINT )
+    {
+      // put new registration at the end of the list
+      pLoopPrev->next = pNewItem;
+      pNewItem->next = NULL;
+    }
+    else
+    {
+      // put new registration at the front of the list
+      zclExternalFoundationHandlerList *temp = externalEndPointHandlerList;
+      externalEndPointHandlerList = pNewItem;
+      pNewItem->next = temp;
+    }
+  }
+
+  return ( true );
+
+}
+
+/*********************************************************************
+ * @fn      zcl_getExternalFoundationHandler
+ *
+ * @brief   This function retrieves the Task ID of the task registered
+ *          to received unhandled incoming Foundation Command/Response messages
+ *          for a particular End Point ID.
+ *
+ * @param   pInMsg - recevied ZCL command
+ *
+ * @return  TASK ID of registered task.  If no task is reigistered, it returns
+ *          TASK_NO_TASK.
+ *********************************************************************/
+static uint8 zcl_getExternalFoundationHandler( afIncomingMSGPacket_t *pInMsg )
+{
+  zclExternalFoundationHandlerList *pLoop;
+  uint8 addressedEndPointId = pInMsg->endPoint;
+
+  // make sure no one else tried to register for this endpoint
+  pLoop = externalEndPointHandlerList;
+
+  while ( pLoop != NULL )
+  {
+    if ( ( ( pLoop->zcl_ExternalEndPoint ) == addressedEndPointId ) ||
+         ( ( pLoop->zcl_ExternalEndPoint ) == AF_BROADCAST_ENDPOINT ) )
+    {
+      return ( pLoop->zcl_ExternalTaskID );
+    }
+    pLoop = pLoop->next;
+  }
+
+  return ( TASK_NO_TASK );
 }
 #endif
 
@@ -428,8 +638,11 @@ uint8 zcl_registerForMsg( uint8 taskId )
 uint8 zcl_HandleExternal( zclIncoming_t *pInMsg )
 {
   zclIncomingMsg_t *pCmd;
+  uint8 taskID;
 
-  if ( zcl_RegisteredMsgTaskID == TASK_NO_TASK )
+  taskID = zcl_getExternalFoundationHandler( pInMsg->msg );
+
+  if ( taskID == TASK_NO_TASK )
   {
     return ( TRUE );
   }
@@ -444,12 +657,24 @@ uint8 zcl_HandleExternal( zclIncoming_t *pInMsg )
     pCmd->srcAddr   = pInMsg->msg->srcAddr;
     pCmd->endPoint  = pInMsg->msg->endPoint;
     pCmd->attrCmd   = pInMsg->attrCmd;
-
+    
+#ifdef BDB_REPORTING
+    if(pCmd->zclHdr.commandID == ZCL_CMD_CONFIG_REPORT)
+    {
+      bdb_ProcessInConfigReportCmd(pCmd);
+      return TRUE;          
+    }
+    if(pCmd->zclHdr.commandID == ZCL_CMD_READ_REPORT_CFG)
+    {
+      bdb_ProcessInReadReportCfgCmd(pCmd);
+      return TRUE;
+    }
+#endif
     // Application will free the attrCmd buffer
     pInMsg->attrCmd = NULL;
 
     /* send message through task message */
-    osal_msg_send( zcl_RegisteredMsgTaskID, (uint8 *)pCmd );
+    osal_msg_send( taskID, (uint8 *)pCmd );
   }
 
   return ( TRUE );
@@ -479,7 +704,7 @@ afIncomingMSGPacket_t *zcl_getRawAFMsg( void )
 /*********************************************************************
  * @fn          zcl_getParsedTransSeqNum
  *
- * @brief       Call to the get the transaction sequence number from 
+ * @brief       Call to the get the transaction sequence number from
  *              the incoming message.
  *
  *   NOTE:  This function can only be called during a ZCL callback function
@@ -831,7 +1056,8 @@ static uint8 zcl_DeviceOperational( uint8 srcEP, uint16 clusterID,
 ZStatus_t zcl_SendCommand( uint8 srcEP, afAddrType_t *destAddr,
                            uint16 clusterID, uint8 cmd, uint8 specific, uint8 direction,
                            uint8 disableDefaultRsp, uint16 manuCode, uint8 seqNum,
-                           uint16 cmdFormatLen, uint8 *cmdFormat ){
+                           uint16 cmdFormatLen, uint8 *cmdFormat )
+{
   endPointDesc_t *epDesc;
   zclFrameHdr_t hdr;
   uint8 *msgBuf;
@@ -841,12 +1067,14 @@ ZStatus_t zcl_SendCommand( uint8 srcEP, afAddrType_t *destAddr,
   ZStatus_t status;
 
   epDesc = afFindEndPointDesc( srcEP );
-  if ( epDesc == NULL )  {
+  if ( epDesc == NULL )
+  {
     return ( ZInvalidParameter ); // EMBEDDED RETURN
   }
 
 #if defined ( INTER_PAN )
-  if ( StubAPS_InterPan( destAddr->panId, destAddr->endPoint ) ) {
+  if ( StubAPS_InterPan( destAddr->panId, destAddr->endPoint ) )
+  {
     options = AF_TX_OPTIONS_NONE;
   }
   else
@@ -857,10 +1085,12 @@ ZStatus_t zcl_SendCommand( uint8 srcEP, afAddrType_t *destAddr,
     // The cluster might not have been defined to use security but if this message
     // is in response to another message that was using APS security this message
     // will be sent with APS security
-    if ( !( options & AF_EN_SECURITY ) ) {
+    if ( !( options & AF_EN_SECURITY ) )
+    {
       afIncomingMSGPacket_t *origPkt = zcl_getRawAFMsg();
 
-      if ( ( origPkt != NULL ) && ( origPkt->SecurityUse == TRUE ) ) {
+      if ( ( origPkt != NULL ) && ( origPkt->SecurityUse == TRUE ) )
+      {
         options |= AF_EN_SECURITY;
       }
     }
@@ -869,33 +1099,46 @@ ZStatus_t zcl_SendCommand( uint8 srcEP, afAddrType_t *destAddr,
   zcl_memset( &hdr, 0, sizeof( zclFrameHdr_t ) );
 
   // Not Profile wide command (like READ, WRITE)
-  if ( specific ){
+  if ( specific )
+  {
     hdr.fc.type = ZCL_FRAME_TYPE_SPECIFIC_CMD;
-  } else{
+  }
+  else
+  {
     hdr.fc.type = ZCL_FRAME_TYPE_PROFILE_CMD;
   }
 
-  if ( ( epDesc->simpleDesc == NULL ) || ( zcl_DeviceOperational( srcEP, clusterID, hdr.fc.type,  cmd, epDesc->simpleDesc->AppProfId ) == FALSE ) ) {
+  if ( ( epDesc->simpleDesc == NULL ) ||
+       ( zcl_DeviceOperational( srcEP, clusterID, hdr.fc.type,
+                                cmd, epDesc->simpleDesc->AppProfId ) == FALSE ) )
+  {
     return ( ZFailure ); // EMBEDDED RETURN
   }
 
   // Fill in the Maufacturer Code
-  if ( manuCode != 0 ) {
+  if ( manuCode != 0 )
+  {
     hdr.fc.manuSpecific = 1;
     hdr.manuCode = manuCode;
   }
 
   // Set the Command Direction
-  if ( direction ) {
+  if ( direction )
+  {
     hdr.fc.direction = ZCL_FRAME_SERVER_CLIENT_DIR;
-  } else {
+  }
+  else
+  {
     hdr.fc.direction = ZCL_FRAME_CLIENT_SERVER_DIR;
   }
 
   // Set the Disable Default Response field
-  if ( disableDefaultRsp ) {
+  if ( disableDefaultRsp )
+  {
     hdr.fc.disableDefaultRsp = 1;
-  } else {
+  }
+  else
+  {
     hdr.fc.disableDefaultRsp = 0;
   }
 
@@ -911,16 +1154,20 @@ ZStatus_t zcl_SendCommand( uint8 srcEP, afAddrType_t *destAddr,
 
   // Allocate the buffer needed
   msgBuf = zcl_mem_alloc( msgLen );
-  if ( msgBuf != NULL ) {
+  if ( msgBuf != NULL )
+  {
     // Fill in the ZCL Header
     pBuf = zclBuildHdr( &hdr, msgBuf );
 
     // Fill in the command frame
     zcl_memcpy( pBuf, cmdFormat, cmdFormatLen );
 
-    status = AF_DataRequest( destAddr, epDesc, clusterID, msgLen, msgBuf, &zcl_TransID, options, AF_DEFAULT_RADIUS );
+    status = AF_DataRequest( destAddr, epDesc, clusterID, msgLen, msgBuf,
+                             &zcl_TransID, options, AF_DEFAULT_RADIUS );
     zcl_mem_free ( msgBuf );
-  }  else {
+  }
+  else
+  {
     status = ZMemError;
   }
 
@@ -950,8 +1197,7 @@ ZStatus_t zcl_SendRead( uint8 srcEP, afAddrType_t *dstAddr,
   uint8 *buf;
   uint8 *pBuf;
   ZStatus_t status;
-  
-  
+
   dataLen = readCmd->numAttr * 2; // Attribute ID
 
   buf = zcl_mem_alloc( dataLen );
@@ -1190,7 +1436,7 @@ ZStatus_t zcl_SendWriteRsp( uint8 srcEP, afAddrType_t *dstAddr,
 }
 #endif // ZCL_WRITE
 
-#ifdef ZCL_REPORT
+#ifdef ZCL_REPORT_CONFIGURING_DEVICE
 /*********************************************************************
  * @fn      zcl_SendConfigReportCmd
  *
@@ -1281,7 +1527,9 @@ ZStatus_t zcl_SendConfigReportCmd( uint8 srcEP, afAddrType_t *dstAddr,
 
   return ( status );
 }
+#endif
 
+#ifdef ZCL_REPORTING_DEVICE
 /*********************************************************************
  * @fn      zcl_SendConfigReportRspCmd
  *
@@ -1340,7 +1588,9 @@ ZStatus_t zcl_SendConfigReportRspCmd( uint8 srcEP, afAddrType_t *dstAddr,
 
   return ( status );
 }
+#endif
 
+#ifdef ZCL_REPORT_CONFIGURING_DEVICE
 /*********************************************************************
  * @fn      zcl_SendReadReportCfgCmd
  *
@@ -1389,7 +1639,9 @@ ZStatus_t zcl_SendReadReportCfgCmd( uint8 srcEP, afAddrType_t *dstAddr,
 
   return ( status );
 }
+#endif
 
+#ifdef ZCL_REPORTING_DEVICE
 /*********************************************************************
  * @fn      zcl_SendReadReportCfgRspCmd
  *
@@ -1551,7 +1803,7 @@ ZStatus_t zcl_SendReportCmd( uint8 srcEP, afAddrType_t *dstAddr,
 
   return ( status );
 }
-#endif // ZCL_REPORT
+#endif
 
 /*********************************************************************
  * @fn      zcl_SendDefaultRspCmd
@@ -1876,126 +2128,151 @@ ZStatus_t zcl_SendDiscoverAttrsExtRsp( uint8 srcEP, afAddrType_t *dstAddr,
  *
  * @return  zclProcMsgStatus_t
  */
-zclProcMsgStatus_t zcl_ProcessMessageMSG( afIncomingMSGPacket_t *pkt ){
-	endPointDesc_t *epDesc;
-	zclIncoming_t inMsg;
-	zclLibPlugin_t *pInPlugin;
-	zclDefaultRspCmd_t defautlRspCmd;
-	uint8 options;
-	uint8 securityEnable;
-	uint8 interPanMsg;
-	ZStatus_t status = ZFailure;
-	uint8 defaultResponseSent = FALSE;
+zclProcMsgStatus_t zcl_ProcessMessageMSG( afIncomingMSGPacket_t *pkt )
+{
+  endPointDesc_t *epDesc;
+  zclIncoming_t inMsg;
+  zclLibPlugin_t *pInPlugin;
+  zclDefaultRspCmd_t defautlRspCmd;
+  uint8 options;
+  uint8 securityEnable;
+  uint8 interPanMsg;
+  ZStatus_t status = ZFailure;
+  uint8 defaultResponseSent = FALSE;
 
-	if ( pkt->cmd.DataLength == 0 ) {
-		return ( ZCL_PROC_INVALID );   // Error, ignore the message
-	}
+  if ( pkt->cmd.DataLength < ZCL_VALID_MIN_HEADER_LEN  )
+  {
+    return ( ZCL_PROC_INVALID );   // Error, ignore the message
+  }
 
-	// Initialize
-	rawAFMsg = (afIncomingMSGPacket_t *)pkt;
-	inMsg.msg = pkt;
-	inMsg.attrCmd = NULL;
-	inMsg.pData = NULL;
-	inMsg.pDataLen = 0;
+  // Initialize
+  rawAFMsg = (afIncomingMSGPacket_t *)pkt;
+  inMsg.msg = pkt;
+  inMsg.attrCmd = NULL;
+  inMsg.pData = NULL;
+  inMsg.pDataLen = 0;
 
-	inMsg.pData = zclParseHdr( &(inMsg.hdr), pkt->cmd.Data );
-	inMsg.pDataLen = pkt->cmd.DataLength;
-	inMsg.pDataLen -= (uint16)(inMsg.pData - pkt->cmd.Data);
+  inMsg.pData = zclParseHdr( &(inMsg.hdr), pkt->cmd.Data );
+  inMsg.pDataLen = pkt->cmd.DataLength;
+  inMsg.pDataLen -= (uint16)(inMsg.pData - pkt->cmd.Data);
 
-	// Temporary workaround to allow callback functions access to the 
-	// transaction sequence number.  Callback functions will call 
-	// zcl_getParsedTransSeqNum() to retrieve this number.
-	savedZCLTransSeqNum = inMsg.hdr.transSeqNum;
-  
-	
-	// Find the wanted endpoint
-	epDesc = afFindEndPointDesc( pkt->endPoint );
-	if ( epDesc == NULL ) {
-		rawAFMsg = NULL;
-		return ( ZCL_PROC_EP_NOT_FOUND );   // Error, ignore the message
-	}
+  // Temporary workaround to allow callback functions access to the
+  // transaction sequence number.  Callback functions will call
+  // zcl_getParsedTransSeqNum() to retrieve this number.
+  savedZCLTransSeqNum = inMsg.hdr.transSeqNum;
 
-	if ( ( epDesc->simpleDesc == NULL ) ||  ( zcl_DeviceOperational( pkt->endPoint, pkt->clusterId, inMsg.hdr.fc.type,  inMsg.hdr.commandID, epDesc->simpleDesc->AppProfId ) == FALSE ) ) {
-		rawAFMsg = NULL;
-		return ( ZCL_PROC_NOT_OPERATIONAL ); // Error, ignore the message
-	}
+  // Find the wanted endpoint
+  epDesc = afFindEndPointDesc( pkt->endPoint );
+  if ( epDesc == NULL )
+  {
+    rawAFMsg = NULL;
+    return ( ZCL_PROC_EP_NOT_FOUND );   // Error, ignore the message
+  }
+
+  if ( ( epDesc->simpleDesc == NULL ) ||
+       ( zcl_DeviceOperational( pkt->endPoint, pkt->clusterId, inMsg.hdr.fc.type,
+                                inMsg.hdr.commandID, epDesc->simpleDesc->AppProfId ) == FALSE ) )
+  {
+    rawAFMsg = NULL;
+    return ( ZCL_PROC_NOT_OPERATIONAL ); // Error, ignore the message
+  }
 
 #if defined ( INTER_PAN )
-	if ( StubAPS_InterPan( pkt->srcAddr.panId, pkt->srcAddr.endPoint ) ){
-	// No foundation command is supported thru Inter-PAN communication.
-	// But the Light Link cluster uses a different Frame Control format
-	// for it's Inter-PAN messages, where the messages could be confused
-	// with the foundation commands.
-	if ( zcl_ProfileCmd( inMsg.hdr.fc.type ) ){
-		rawAFMsg = NULL;
-		return ( ZCL_PROC_INTERPAN_FOUNDATION_CMD );
-	}
+  if ( StubAPS_InterPan( pkt->srcAddr.panId, pkt->srcAddr.endPoint ) )
+  {
+    // No foundation command is supported thru Inter-PAN communication.
+    // But the Light Link cluster uses a different Frame Control format
+    // for it's Inter-PAN messages, where the messages could be confused
+    // with the foundation commands.
+    if ( zcl_ProfileCmd( inMsg.hdr.fc.type ) )
+    {
+      rawAFMsg = NULL;
+      return ( ZCL_PROC_INTERPAN_FOUNDATION_CMD );
+    }
 
-	interPanMsg = TRUE;
-	options = AF_TX_OPTIONS_NONE;
-	} else
+    interPanMsg = TRUE;
+    options = AF_TX_OPTIONS_NONE;
+  }
+  else
 #endif
-	{
-		interPanMsg = FALSE;
-		options = zclGetClusterOption( pkt->endPoint, pkt->clusterId );
-	}
+  {
+    interPanMsg = FALSE;
+    options = zclGetClusterOption( pkt->endPoint, pkt->clusterId );
+  }
 
- 	 // Find the appropriate plugin
- 	 pInPlugin = zclFindPlugin( pkt->clusterId, epDesc->simpleDesc->AppProfId );
+  // Find the appropriate plugin
+  pInPlugin = zclFindPlugin( pkt->clusterId, epDesc->simpleDesc->AppProfId );
 
   // Local and remote Security options must match except for Default Response command
-	if ( ( pInPlugin != NULL ) && !zcl_DefaultRspCmd( inMsg.hdr ) )	{
-		securityEnable = ( options & AF_EN_SECURITY ) ? TRUE : FALSE;
+  if ( ( pInPlugin != NULL ) && !zcl_DefaultRspCmd( inMsg.hdr ) )
+  {
+    securityEnable = ( options & AF_EN_SECURITY ) ? TRUE : FALSE;
 
-		// Make sure that Clusters specifically defined to use security are received secure, any other cluster that wants to use APS security will be allowed
-		if ( ( securityEnable == TRUE ) && ( pkt->SecurityUse == FALSE ) ){
-			if ( UNICAST_MSG( inMsg.msg ) ){
-				// Send a Default Response command back with no Application Link Key security
-				zclSetSecurityOption( pkt->endPoint, pkt->clusterId, FALSE );
+    // Make sure that Clusters specifically defined to use security are received secure,
+    // any other cluster that wants to use APS security will be allowed
+    if ( ( securityEnable == TRUE ) && ( pkt->SecurityUse == FALSE ) )
+    {
+      if ( UNICAST_MSG( inMsg.msg ) )
+      {
+        // Send a Default Response command back with no Application Link Key security
+        zclSetSecurityOption( pkt->endPoint, pkt->clusterId, FALSE );
 
-				defautlRspCmd.statusCode = status;
-				defautlRspCmd.commandID = inMsg.hdr.commandID;
-				zcl_SendDefaultRspCmd( inMsg.msg->endPoint, &(inMsg.msg->srcAddr), inMsg.msg->clusterId, &defautlRspCmd,  !inMsg.hdr.fc.direction, true,   inMsg.hdr.manuCode, inMsg.hdr.transSeqNum );
-				zclSetSecurityOption( pkt->endPoint, pkt->clusterId, TRUE );
-			}
+        defautlRspCmd.statusCode = status;
+        defautlRspCmd.commandID = inMsg.hdr.commandID;
+        zcl_SendDefaultRspCmd( inMsg.msg->endPoint, &(inMsg.msg->srcAddr),
+                               inMsg.msg->clusterId, &defautlRspCmd,
+                               !inMsg.hdr.fc.direction, true,
+                               inMsg.hdr.manuCode, inMsg.hdr.transSeqNum );
 
-			rawAFMsg = NULL;
-			return ( ZCL_PROC_NOT_SECURE );   // Error, ignore the message
-		}
-	}
+        zclSetSecurityOption( pkt->endPoint, pkt->clusterId, TRUE );
+      }
 
-	// Is this a foundation type message
-	if ( !interPanMsg && zcl_ProfileCmd( inMsg.hdr.fc.type ) ) {
-    	if ( inMsg.hdr.fc.manuSpecific ) {
-			// We don't support any manufacturer specific command
-			status = ZCL_STATUS_UNSUP_MANU_GENERAL_COMMAND;
-    	} else if ( ( inMsg.hdr.commandID <= ZCL_CMD_MAX ) && ( zclCmdTable[inMsg.hdr.commandID].pfnParseInProfile != NULL ) ) {
-			zclParseCmd_t parseCmd;
+      rawAFMsg = NULL;
+      return ( ZCL_PROC_NOT_SECURE );   // Error, ignore the message
+    }
+  }
 
-			parseCmd.endpoint = pkt->endPoint;
-			parseCmd.dataLen = inMsg.pDataLen;
-			parseCmd.pData = inMsg.pData;
+  // Is this a foundation type message
+  if ( !interPanMsg && zcl_ProfileCmd( inMsg.hdr.fc.type ) )
+  {
+    if ( inMsg.hdr.fc.manuSpecific )
+    {
+      // We don't support any manufacturer specific command
+      status = ZCL_STATUS_UNSUP_MANU_GENERAL_COMMAND;
+    }
+    else if ( ( inMsg.hdr.commandID <= ZCL_CMD_MAX ) &&
+              ( zclCmdTable[inMsg.hdr.commandID].pfnParseInProfile != NULL ) )
+    {
+      zclParseCmd_t parseCmd;
 
-			// Parse the command, remember that the return value is a pointer to allocated memory
-			inMsg.attrCmd = zclParseCmd( inMsg.hdr.commandID, &parseCmd );
-			if ( (inMsg.attrCmd != NULL) && (zclCmdTable[inMsg.hdr.commandID].pfnProcessInProfile != NULL) ){
-				// Process the command
-				if ( zclProcessCmd( inMsg.hdr.commandID, &inMsg ) == FALSE ){
-				  // Couldn't find attribute in the table.
-				}
-			}
+      parseCmd.endpoint = pkt->endPoint;
+      parseCmd.dataLen = inMsg.pDataLen;
+      parseCmd.pData = inMsg.pData;
 
-			// Free the buffer
-			if ( inMsg.attrCmd ){
-				zcl_mem_free( inMsg.attrCmd );
-			}
+      // Parse the command, remember that the return value is a pointer to allocated memory
+      inMsg.attrCmd = zclParseCmd( inMsg.hdr.commandID, &parseCmd );
+      if ( (inMsg.attrCmd != NULL) && (zclCmdTable[inMsg.hdr.commandID].pfnProcessInProfile != NULL) )
+      {
+        // Process the command
+        if ( zclProcessCmd( inMsg.hdr.commandID, &inMsg ) == FALSE )
+        {
+          // Couldn't find attribute in the table.
+        }
+      }
 
-			if ( CMD_HAS_RSP( inMsg.hdr.commandID ) ){
-				rawAFMsg = NULL;
-				return ( ZCL_PROC_SUCCESS ); // We're done
-			}
+      // Free the buffer
+      if ( inMsg.attrCmd )
+      {
+        zcl_mem_free( inMsg.attrCmd );
+      }
 
-			status = ZSuccess;
+      if ( CMD_HAS_RSP( inMsg.hdr.commandID ) )
+      {
+        rawAFMsg = NULL;
+        return ( ZCL_PROC_SUCCESS ); // We're done
+      }
+
+      status = ZSuccess;
     }
     else
     {
@@ -2174,11 +2451,13 @@ static uint8 *zclBuildHdr( zclFrameHdr_t *hdr, uint8 *pData )
  *
  * @return  returns the number of bytes needed
  */
-static uint8 zclCalcHdrSize( zclFrameHdr_t *hdr ){
+static uint8 zclCalcHdrSize( zclFrameHdr_t *hdr )
+{
   uint8 needed = (1 + 1 + 1); // frame control + transaction seq num + cmd ID
 
   // Add the manfacturer code
-  if ( hdr->fc.manuSpecific ){
+  if ( hdr->fc.manuSpecific )
+  {
     needed += 2;
   }
 
@@ -2284,7 +2563,7 @@ uint8 zclFindCmdRec( uint8 endpoint, uint16 clusterID, uint8 cmdID, zclCommandRe
  *
  * @return  pointer to record list, NULL if not found
  */
-static zclAttrRecsList *zclFindAttrRecsList( uint8 endpoint )
+zclAttrRecsList *zclFindAttrRecsList( uint8 endpoint )
 {
   zclAttrRecsList *pLoop = attrList;
 
@@ -2333,6 +2612,38 @@ uint8 zclFindAttrRec( uint8 endpoint, uint16 clusterID, uint16 attrId, zclAttrRe
 
   return ( FALSE );
 }
+
+#if defined ( ZCL_STANDALONE )
+/*********************************************************************
+ * @fn      zclSetAttrRecList
+ *
+ * @brief   Set attribute record list for end point
+ *
+ * @param   endpoint - endpoint the attribute list belongs to
+ * @param   numAttr - number of attributes in list
+ * @param   attrList - array of attribute records.
+ *                     NOTE: THE ATTRIBUTE IDs (FOR A CLUSTER) MUST BE
+ *                     IN ASCENDING ORDER. OTHERWISE, THE DISCOVERY
+ *                     RESPONSE COMMAND WILL NOT HAVE THE RIGHT
+ *                     ATTRIBUTE INFO
+ *
+ * @return  TRUE if successful, FALSE otherwise.
+ */
+uint8 zclSetAttrRecList( uint8 endpoint, uint8 numAttr, CONST zclAttrRec_t attrList[] )
+{
+  zclAttrRecsList *pRecsList = zclFindAttrRecsList( endpoint );
+
+  if ( pRecsList != NULL )
+  {
+    pRecsList->numAttributes = numAttr;
+    pRecsList->attrs = attrList;
+    return ( TRUE );
+  }
+
+  return ( FALSE );
+}
+
+#endif // ZCL_STANDALONE
 
 #if defined ( ZCL_READ ) || defined ( ZCL_WRITE )
 /*********************************************************************
@@ -2582,7 +2893,7 @@ static uint8 zclFindNextAttrRec( uint8 endpoint, uint16 clusterID, uint8 directi
       {
         // also make sure direction is right
         attrDir = (pRec->attrs[x].attr.accessControl & ACCESS_CLIENT) ? 1 : 0;
-        if ( attrDir == direction )
+        if ( (attrDir == direction) || (pRec->attrs[x].attr.accessControl & ACCESS_GLOBAL))
         {
           // return attribute and found attribute ID
           *pAttr = pRec->attrs[x];
@@ -2666,16 +2977,27 @@ uint8 *zclSerializeData( uint8 dataType, void *attrData, uint8 *buf )
       break;
 
     case ZCL_DATATYPE_UINT40:
+    case ZCL_DATATYPE_INT40:
       pStr = (uint8*)attrData;
       buf = zcl_memcpy( buf, pStr, 5 );
       break;
 
     case ZCL_DATATYPE_UINT48:
+    case ZCL_DATATYPE_INT48:
       pStr = (uint8*)attrData;
       buf = zcl_memcpy( buf, pStr, 6 );
       break;
 
+    case ZCL_DATATYPE_UINT56:
+    case ZCL_DATATYPE_INT56:
+      pStr = (uint8*)attrData;
+      buf = zcl_memcpy( buf, pStr, 7 );
+      break;
+
+    case ZCL_DATATYPE_DOUBLE_PREC:
     case ZCL_DATATYPE_IEEE_ADDR:
+    case ZCL_DATATYPE_UINT64:
+    case ZCL_DATATYPE_INT64:
       pStr = (uint8*)attrData;
       buf = zcl_memcpy( buf, pStr, 8 );
       break;
@@ -2710,7 +3032,7 @@ uint8 *zclSerializeData( uint8 dataType, void *attrData, uint8 *buf )
   return ( buf );
 }
 
-#ifdef ZCL_REPORT
+#if defined ZCL_REPORTING_DEVICE || defined ZCL_REPORT_CONFIGURING_DEVICE
 /*********************************************************************
  * @fn      zclAnalogDataType
  *
@@ -2812,7 +3134,7 @@ static void zcl_BuildAnalogData( uint8 dataType, uint8 *pData, uint8 *pBuf )
     current_byte_index += step;
   }
 }
-#endif // ZCL_REPORT
+#endif
 
 /*********************************************************************
  * @fn      zclGetDataTypeLength
@@ -3264,6 +3586,7 @@ static void *zclParseInReadRspCmd( zclParseCmd_t *pCmd )
   uint8 hdrLen;
   uint16 dataLen = 0;
   uint16 attrDataLen;
+
   // find out the number of attributes and the length of attribute data
   while ( pBuf < ( pCmd->pData + pCmd->dataLen ) )
   {
@@ -3289,8 +3612,7 @@ static void *zclParseInReadRspCmd( zclParseCmd_t *pCmd )
       dataLen += attrDataLen;
     }
   }
-  
-  
+
   // calculate the length of the response header
   hdrLen = sizeof( zclReadRspCmd_t ) + ( numAttr * sizeof( zclReadRspStatus_t ) );
 
@@ -3462,7 +3784,7 @@ static void *zclParseInWriteRspCmd( zclParseCmd_t *pCmd )
 }
 #endif // ZCL_WRITE
 
-#ifdef ZCL_REPORT
+#ifdef ZCL_REPORTING_DEVICE
 /*********************************************************************
  * @fn      zclParseInConfigReportCmd
  *
@@ -3583,7 +3905,9 @@ void *zclParseInConfigReportCmd( zclParseCmd_t *pCmd )
 
   return ( (void *)cfgReportCmd );
 }
+#endif
 
+#ifdef ZCL_REPORT_CONFIGURING_DEVICE
 /*********************************************************************
  * @fn      zclParseInConfigReportRspCmd
  *
@@ -3621,7 +3945,9 @@ static void *zclParseInConfigReportRspCmd( zclParseCmd_t *pCmd )
 
   return ( (void *)cfgReportRspCmd );
 }
+#endif
 
+#ifdef ZCL_REPORTING_DEVICE
 /*********************************************************************
  * @fn      zclParseInReadReportCfgCmd
  *
@@ -3658,7 +3984,9 @@ void *zclParseInReadReportCfgCmd( zclParseCmd_t *pCmd )
 
   return ( (void *)readReportCfgCmd );
 }
+#endif
 
+#ifdef ZCL_REPORT_CONFIGURING_DEVICE
 /*********************************************************************
  * @fn      zclParseInReadReportCfgRspCmd
  *
@@ -3778,7 +4106,9 @@ static void *zclParseInReadReportCfgRspCmd( zclParseCmd_t *pCmd )
 
   return ( (void *)readReportCfgRspCmd );
 }
+#endif
 
+#ifdef ZCL_REPORT_DESTINATION_DEVICE
 /*********************************************************************
  * @fn      zclParseInReportCmd
  *
@@ -3859,7 +4189,7 @@ void *zclParseInReportCmd( zclParseCmd_t *pCmd )
 
   return ( (void *)reportCmd );
 }
-#endif // ZCL_REPORT
+#endif
 
 /*********************************************************************
  * @fn      zclParseInDefaultRspCmd
@@ -4079,6 +4409,7 @@ static uint8 zclProcessInReadCmd( zclIncoming_t *pInMsg )
   zclAttrRec_t attrRec;
   uint16 len;
   uint8 i;
+  uint8 attrFound;
 
   readCmd = (zclReadCmd_t *)pInMsg->attrCmd;
 
@@ -4097,9 +4428,13 @@ static uint8 zclProcessInReadCmd( zclIncoming_t *pInMsg )
     zclReadRspStatus_t *statusRec = &(readRspCmd->attrList[i]);
 
     statusRec->attrID = readCmd->attrID[i];
-
-    if ( zclFindAttrRec( pInMsg->msg->endPoint, pInMsg->msg->clusterId,
-                         readCmd->attrID[i], &attrRec ) )
+    
+    attrFound = zclFindAttrRec( pInMsg->msg->endPoint, pInMsg->msg->clusterId, readCmd->attrID[i], &attrRec );
+    
+    //Validate the attribute is found and the access control
+    if ( ( attrFound == TRUE ) && 
+         (  (attrRec.attr.accessControl & ACCESS_GLOBAL) || 
+            (GET_BIT( &attrRec.attr.accessControl, ACCESS_CONTROL_MASK ) == pInMsg->hdr.fc.direction ) ) )
     {
       if ( zcl_AccessCtrlRead( attrRec.attr.accessControl ) )
       {
@@ -4172,6 +4507,12 @@ static uint8 zclProcessInWriteCmd( zclIncoming_t *pInMsg )
     if ( zclFindAttrRec( pInMsg->msg->endPoint, pInMsg->msg->clusterId,
                          statusRec->attrID, &attrRec ) )
     {
+      if ( GET_BIT( &attrRec.attr.accessControl, ACCESS_CONTROLEXT_MASK ) != pInMsg->hdr.fc.direction )
+      {
+        writeRspCmd->attrList[j].status = ZCL_STATUS_UNSUPPORTED_ATTRIBUTE;
+        writeRspCmd->attrList[j++].attrID = statusRec->attrID;
+        break;
+      }
       if ( statusRec->dataType == attrRec.attr.dataType )
       {
         uint8 status;
@@ -4179,8 +4520,22 @@ static uint8 zclProcessInWriteCmd( zclIncoming_t *pInMsg )
         // Write the new attribute value
         if ( attrRec.attr.dataPtr != NULL )
         {
-          status = zclWriteAttrData( pInMsg->msg->endPoint, &(pInMsg->msg->srcAddr),
-                                     &attrRec, statusRec );
+          //Handle special case for Identify
+          if((pInMsg->msg->clusterId == ZCL_CLUSTER_ID_GEN_IDENTIFY) && (statusRec->attrID == ATTRID_IDENTIFY_TIME))
+          {
+            uint16 identifyTime; 
+                  
+            osal_memcpy((uint8*)&identifyTime,statusRec->attrData,sizeof(uint16));
+                        
+            bdb_ZclIdentifyCmdInd(identifyTime, pInMsg->msg->endPoint);
+            
+            status = ZCL_STATUS_SUCCESS;
+          }          
+          else
+          {                
+            status = zclWriteAttrData( pInMsg->msg->endPoint, &(pInMsg->msg->srcAddr),
+                                       &attrRec, statusRec );
+          }
         }
         else // Use CB
         {
@@ -4718,6 +5073,7 @@ static uint8 zclProcessInDiscCmd( zclIncoming_t *pInMsg )
 }
 
 #endif // ZCL_DISCOVER
+
 
 /*********************************************************************
 *********************************************************************/

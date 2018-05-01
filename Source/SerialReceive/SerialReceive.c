@@ -14,14 +14,12 @@ uint16 rxDataError=0;
 uint8 rxData[RX_BUFFER_SIZE];
 uint8 *rxDataIter;
 uint8 rxDataTmp[RX_DATA_TMP_LEN];
-volatile uint16 rxDataUsed=0;
+uint16 rxDataUsed=0;
 uint16 rxDataUsedMax=0;
-volatile uint8 * rxDataTmpWRIter = rxDataTmp;
+uint8 * rxDataTmpWRIter = rxDataTmp;
 uint8 * rxDataTmpRDIter=rxDataTmp;
 uint8 errorData[20];
 uint8 errorDataIndex=0;
-uint8 sizeData[10];
-uint8 sizeDataIndex=0;
 uint8 size=0;
 uint8 rxReady=0;
 
@@ -42,10 +40,9 @@ enum StatusReceive {
 enum StatusReceive statusReceived=Header1;
 
 static void addErrorData(uint8 c);
-static void addSizeData(uint8 c);
-
 
 void serialReceiveLoop(void) {
+	
 	while (rxDataTmpRDIter != rxDataTmpWRIter){
 		char c = *rxDataTmpRDIter;
 		rxDataTmpRDIter++;
@@ -73,7 +70,6 @@ void serialReceiveLoop(void) {
 				break;	
 			case Size:
 				size=c;
-				addSizeData(c);
 				if (size <  RX_BUFFER_SIZE){
 					statusReceived = Payload;
 					rxDataIter	= rxData;
@@ -103,6 +99,7 @@ void serialReceiveLoop(void) {
 		serialProcessEvent(rxData);
 		rxReady=0;
 	}
+	
 }
 
 HAL_ISR_FUNCTION( usart0RXIsr, URX0_VECTOR ){
@@ -129,11 +126,5 @@ static void addErrorData(uint8 c) {
 		errorDataIndex=19;
 }
 
-static void addSizeData(uint8 c){
-	sizeData[sizeDataIndex]=size;
-	sizeDataIndex++;
-	if (sizeDataIndex>=10)
-		sizeDataIndex=9;
-}
 
 

@@ -1,7 +1,7 @@
 /**************************************************************************************************
   Filename:       mac_api.h
-  Revised:        $Date: 2014-07-11 13:41:40 -0700 (Fri, 11 Jul 2014) $
-  Revision:       $Revision: 39397 $
+  Revised:        $Date: 2014-11-06 11:03:55 -0800 (Thu, 06 Nov 2014) $
+  Revision:       $Revision: 41021 $
 
   Description:    Public interface file for 802.15.4 MAC.
 
@@ -217,9 +217,16 @@ extern "C" {
 #define MAC_CHAN_26                 26
 #define MAC_CHAN_27                 27
 #define MAC_CHAN_28                 28
+#define MAC_CHAN_29                 29 
+  
 #define MAC_CHAN_BEG                MAC_CHAN_11
+  
+#if (defined(CC26XX) && !(FEATURE_EXTENDED_CHAN29)) 
 #define MAC_CHAN_END                MAC_CHAN_28
-
+#else
+#define MAC_CHAN_END                MAC_CHAN_29
+#endif
+  
 /* This macro converts a channel to a mask */
 #define MAC_CHAN_MASK(chan)         ((uint32) 1 << (chan))
 
@@ -242,6 +249,7 @@ extern "C" {
 #define MAC_CHAN_26_MASK            MAC_CHAN_MASK(MAC_CHAN_26)
 #define MAC_CHAN_27_MASK            MAC_CHAN_MASK(MAC_CHAN_27)
 #define MAC_CHAN_28_MASK            MAC_CHAN_MASK(MAC_CHAN_28)
+#define MAC_CHAN_29_MASK            MAC_CHAN_MASK(MAC_CHAN_29)
 
 /* Channel Page */
 #define MAC_CHANNEL_PAGE_0          0     /* 2.4 GHz band using O-QPSK */
@@ -361,9 +369,8 @@ extern "C" {
 #define MAC_DIAGS_TX_UCAST_RETRY          0xED  /* Transmitted unicast retry counter */
 #define MAC_DIAGS_TX_UCAST_FAIL           0xEE  /* Transmitted unicast fail counter */
 
-/* Proprietary PIB Get-only Attributes */
-#define MAC_RANDOM_SEED                   0xEF  /* An array of MAC_RANDOM_SEED_LEN bytes of random bits */
-
+#define MAC_SUPERFRAME_PAN_COORD          0xF0  /* pib Attribute ID to modify PAN Coordinator field in superframe*/
+#define MAC_RX_ON_OFF                     0xF1  /* ID to enable or disable the receiver */  
 
 /* Disassociate Reason */
 #define MAC_DISASSOC_COORD          1     /* The coordinator wishes the device to disassociate */
@@ -418,6 +425,7 @@ extern "C" {
 #define MAC_MCPS_PURGE_CNF          14    /* Purge confirm */
 #define MAC_PWR_ON_CNF              15    /* Power on confirm */
 #define MAC_MLME_POLL_IND           16    /* Poll indication */
+#define MAC_MCPS_GREEN_PWR_DATA_CNF 17    /* Data confirm for Green Power frames */                                       
 
 /* The length of the random seed is set for maximum requirement which is
  * 32 for ZigBeeIP
@@ -602,11 +610,9 @@ typedef struct
   uint8             mpduLinkQuality;
   uint8             correlation;
   int8              rssi;
-#ifdef FEATURE_GREEN_POWER
   uint8             gpDuration;
   uint8             gpNumOfTx;
   uint8             gpInterframeDelay;
-#endif
 } macTxIntData_t;
 
 /* For internal use only */
@@ -627,10 +633,8 @@ typedef struct
   uint16          txOptions;    /* TX options bit mask */
   uint8           channel;      /* Transmit the data frame on this channel */
   uint8           power;        /* Transmit the data frame at this power level */
-#ifdef FEATURE_GREEN_POWER
   uint8           gpOffset;     /* Transmit Delay for Green Power */
   uint8           gpDuration;   /* Transmit Window for Green Power */
-#endif
 } macDataReq_t;
 
 /* MCPS data request type */

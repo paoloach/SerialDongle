@@ -103,7 +103,16 @@ extern "C"
 #define NV_OPER_FAILED            0x0A
 #define INVALID_MEM_SIZE          0x0B
 #define NV_BAD_ITEM_LEN           0x0C
+#define NV_INVALID_DATA           0x0D
 
+/*** NV Error Mask ***/
+#define NV_NIB_INIT_FAILURE       0x01
+#define NV_ADDR_MGR_INIT_FAILURE  0x02 
+#define NV_ASSOC_INIT_FAILURE     0x04  
+#define NV_BIND_TBL_INIT_FAILURE  0x08
+#define NV_GRPS_INIT_FAILURE      0x10
+#define NV_SEC_MGR_FAILURE        0x20
+  
 /*********************************************************************
  * TYPEDEFS
  */

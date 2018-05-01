@@ -1,7 +1,7 @@
 /**************************************************************************************************
   Filename:       mac_radio_defs.c
-  Revised:        $Date: 2014-05-21 13:24:18 -0700 (Wed, 21 May 2014) $
-  Revision:       $Revision: 38605 $
+  Revised:        $Date: 2014-10-07 12:55:35 -0700 (Tue, 07 Oct 2014) $
+  Revision:       $Revision: 40482 $
 
   Description:    Describe the purpose and contents of the file.
 
@@ -328,9 +328,9 @@ MAC_INTERNAL_API void macRadioTurnOnPower(void)
   if (macChipVersion <= REV_B)
   {
     /* radio initializations for disappearing RAM; PG1.0 and before only */
-    MAC_RADIO_SET_PAN_ID(macPib.panId);
-    MAC_RADIO_SET_SHORT_ADDR(macPib.shortAddress);
-    MAC_RADIO_SET_IEEE_ADDR(macPib.extendedAddress.addr.extAddr);
+    MAC_RADIO_SET_PAN_ID(pMacPib->panId);
+    MAC_RADIO_SET_SHORT_ADDR(pMacPib->shortAddress);
+    MAC_RADIO_SET_IEEE_ADDR(pMacPib->extendedAddress.addr.extAddr);
   }
 
   /* Turn on frame filtering */

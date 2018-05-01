@@ -1,12 +1,12 @@
 /**************************************************************************************************
   Filename:       hal_board_cfg.h
-  Revised:        $Date: 2014-06-11 17:10:29 -0700 (Wed, 11 Jun 2014) $
-  Revision:       $Revision: 38979 $
+  Revised:        $Date: 2015-02-17 14:17:44 -0800 (Tue, 17 Feb 2015) $
+  Revision:       $Revision: 42683 $
 
   Description:    Declarations for the CC2530EM used on the SmartRF05EB.
 
 
-  Copyright 2006-2014 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2009-2015 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -116,17 +116,35 @@
 #define HAL_LED_BLINK_DELAY()   st( { volatile uint32 i; for (i=0; i<0x5800; i++) { }; } )
 
 /* 1 - Green */
-#define LED2_BV           BV(0)
-#define LED2_SBIT         P1_1
-#define LED2_DDR          P1DIR
-#define LED2_POLARITY     ACTIVE_HIGH
+#define LED1_BV           BV(0)
+#define LED1_SBIT         P1_0
+#define LED1_DDR          P1DIR
+#define LED1_POLARITY     ACTIVE_HIGH
 
+#if defined (HAL_BOARD_CC2530EB_REV17)
   /* 2 - Red */
-  #define LED1_BV           BV(1)
-  #define LED1_SBIT         P0_0
-  #define LED1_DDR          P0DIR
-  #define LED1_POLARITY     ACTIVE_LOW
+  #define LED2_BV           BV(1)
+  #define LED2_SBIT         P1_1
+  #define LED2_DDR          P1DIR
+  #define LED2_POLARITY     ACTIVE_HIGH
 
+  /* 3 - Yellow */
+  #define LED3_BV           BV(4)
+  #define LED3_SBIT         P1_4
+  #define LED3_DDR          P1DIR
+  #define LED3_POLARITY     ACTIVE_HIGH
+
+#ifdef ENABLE_LED4_DISABLE_S1
+  /* 4 - Orange */
+  #define LED4_BV             BV(1)
+  #define LED4_SBIT           P0_1
+  #define LED4_DDR            P0DIR
+  #define LED4_POLARITY       ACTIVE_HIGH
+  #define LED4_SET_DIR()      do {LED4_DDR |= LED4_BV;} while (0)
+#else
+  #define LED4_SET_DIR()
+#endif
+#endif
 
 /* ------------------------------------------------------------------------------------------------
  *                                    Push Button Configuration
@@ -222,7 +240,7 @@
  *                                            Macros
  * ------------------------------------------------------------------------------------------------
  */
-
+   
 /* ----------- RF-frontend Connection Initialization ---------- */
 #if defined HAL_PA_LNA || defined HAL_PA_LNA_CC2590 || \
     defined HAL_PA_LNA_SE2431L || defined HAL_PA_LNA_CC2592
@@ -260,7 +278,10 @@ extern void MAC_RfFrontendSetup(void);
   LED1_DDR |= LED1_BV;                                           \
   HAL_TURN_OFF_LED2();                                           \
   LED2_DDR |= LED2_BV;                                           \
-						                                         \
+  HAL_TURN_OFF_LED3();                                           \
+  LED3_DDR |= LED3_BV;                                           \
+  HAL_TURN_OFF_LED4();                                           \
+  LED4_SET_DIR();                                                \
                                                                  \
   /* configure tristates */                                      \
   P0INP |= PUSH2_BV;                                             \
@@ -318,6 +339,7 @@ extern void MAC_RfFrontendSetup(void);
   /* For CC2592 this enables LNA */                              \
   P1DIR |= BV(0);                                                \
                                                                  \
+  LED3_DDR |= LED3_BV;                                           \
                                                                  \
   /* Set PA/LNA HGM control P0_7 */                              \
   P0DIR |= BV(7);                                                \
@@ -341,27 +363,91 @@ extern void MAC_RfFrontendSetup(void);
 #define HAL_PUSH_BUTTON5()        (0)
 #define HAL_PUSH_BUTTON6()        (0)
 
+/* ----------- LED's ---------- */
+#if defined (HAL_BOARD_CC2530EB_REV17) && !defined (HAL_PA_LNA) && \
+    !defined (HAL_PA_LNA_CC2590) && !defined (HAL_PA_LNA_SE2431L) && \
+    !defined (HAL_PA_LNA_CC2592)
 
   #define HAL_TURN_OFF_LED1()       st( LED1_SBIT = LED1_POLARITY (0); )
   #define HAL_TURN_OFF_LED2()       st( LED2_SBIT = LED2_POLARITY (0); )
+  #define HAL_TURN_OFF_LED3()       st( LED3_SBIT = LED3_POLARITY (0); )
+#ifdef ENABLE_LED4_DISABLE_S1
+  #define HAL_TURN_OFF_LED4()       st( LED4_SBIT = LED4_POLARITY (0); )
+#else
+  #define HAL_TURN_OFF_LED4()       HAL_TURN_OFF_LED1()
+#endif
+
+  #define HAL_TURN_ON_LED1()        st( LED1_SBIT = LED1_POLARITY (1); )
+  #define HAL_TURN_ON_LED2()        st( LED2_SBIT = LED2_POLARITY (1); )
+  #define HAL_TURN_ON_LED3()        st( LED3_SBIT = LED3_POLARITY (1); )
+#ifdef ENABLE_LED4_DISABLE_S1
+  #define HAL_TURN_ON_LED4()        st( LED4_SBIT = LED4_POLARITY (1); )
+#else
+  #define HAL_TURN_ON_LED4()        HAL_TURN_ON_LED1()
+#endif
+
+  #define HAL_TOGGLE_LED1()         st( if (LED1_SBIT) { LED1_SBIT = 0; } else { LED1_SBIT = 1;} )
+  #define HAL_TOGGLE_LED2()         st( if (LED2_SBIT) { LED2_SBIT = 0; } else { LED2_SBIT = 1;} )
+  #define HAL_TOGGLE_LED3()         st( if (LED3_SBIT) { LED3_SBIT = 0; } else { LED3_SBIT = 1;} )
+#ifdef ENABLE_LED4_DISABLE_S1
+  #define HAL_TOGGLE_LED4()         st( if (LED4_SBIT) { LED4_SBIT = 0; } else { LED4_SBIT = 1;} )
+#else
+  #define HAL_TOGGLE_LED4()         HAL_TOGGLE_LED1()
+#endif
+
+  #define HAL_STATE_LED1()          (LED1_POLARITY (LED1_SBIT))
+  #define HAL_STATE_LED2()          (LED2_POLARITY (LED2_SBIT))
+  #define HAL_STATE_LED3()          (LED3_POLARITY (LED3_SBIT))
+#ifdef ENABLE_LED4_DISABLE_S1
+  #define HAL_STATE_LED4()          (LED4_POLARITY (LED4_SBIT))
+#else
+  #define HAL_STATE_LED4()          HAL_STATE_LED1()
+#endif
+      
+#elif defined (HAL_PA_LNA_SE2431L) || defined (HAL_PA_LNA_CC2592)
+  #define HAL_TURN_OFF_LED3()       st( LED3_SBIT = LED3_POLARITY (0); )
+  #define HAL_TURN_OFF_LED1()       HAL_TURN_OFF_LED3()
+  #define HAL_TURN_OFF_LED2()       HAL_TURN_OFF_LED3()
+  #define HAL_TURN_OFF_LED4()       HAL_TURN_OFF_LED3()
+
+  #define HAL_TURN_ON_LED3()        st( LED3_SBIT = LED3_POLARITY (1); )
+  #define HAL_TURN_ON_LED1()        HAL_TURN_ON_LED3()
+  #define HAL_TURN_ON_LED2()        HAL_TURN_ON_LED3()
+  #define HAL_TURN_ON_LED4()        HAL_TURN_ON_LED3()
+
+  #define HAL_TOGGLE_LED3()         st( if (LED3_SBIT) { LED3_SBIT = 0; } else { LED3_SBIT = 1;} )
+  #define HAL_TOGGLE_LED1()         HAL_TOGGLE_LED3()
+  #define HAL_TOGGLE_LED2()         HAL_TOGGLE_LED3()
+  #define HAL_TOGGLE_LED4()         HAL_TOGGLE_LED3()
+
+  #define HAL_STATE_LED3()          (LED3_POLARITY (LED3_SBIT))
+  #define HAL_STATE_LED1()          HAL_STATE_LED3()     
+  #define HAL_STATE_LED2()          HAL_STATE_LED3()
+  #define HAL_STATE_LED4()          HAL_STATE_LED3()
+
+#elif defined (HAL_BOARD_CC2530EB_REV13) || defined (HAL_PA_LNA) || \
+      defined (HAL_PA_LNA_CC2590)
+  #define HAL_TURN_OFF_LED1()       st( LED1_SBIT = LED1_POLARITY (0); )
+  #define HAL_TURN_OFF_LED2()       HAL_TURN_OFF_LED1()
   #define HAL_TURN_OFF_LED3()       HAL_TURN_OFF_LED1()
   #define HAL_TURN_OFF_LED4()       HAL_TURN_OFF_LED1()
 
   #define HAL_TURN_ON_LED1()        st( LED1_SBIT = LED1_POLARITY (1); )
-  #define HAL_TURN_ON_LED2()        st( LED2_SBIT = LED2_POLARITY (1); )
+  #define HAL_TURN_ON_LED2()        HAL_TURN_ON_LED1()
   #define HAL_TURN_ON_LED3()        HAL_TURN_ON_LED1()
   #define HAL_TURN_ON_LED4()        HAL_TURN_ON_LED1()
 
   #define HAL_TOGGLE_LED1()         st( if (LED1_SBIT) { LED1_SBIT = 0; } else { LED1_SBIT = 1;} )
-  #define HAL_TOGGLE_LED2()         st( if (LED2_SBIT) { LED2_SBIT = 0; } else { LED2_SBIT = 1;} )
+  #define HAL_TOGGLE_LED2()         HAL_TOGGLE_LED1()
   #define HAL_TOGGLE_LED3()         HAL_TOGGLE_LED1()
   #define HAL_TOGGLE_LED4()         HAL_TOGGLE_LED1()
 
   #define HAL_STATE_LED1()          (LED1_POLARITY (LED1_SBIT))
-  #define HAL_STATE_LED2()          (LED2_POLARITY (LED2_SBIT))
+  #define HAL_STATE_LED2()          HAL_STATE_LED1()
   #define HAL_STATE_LED3()          HAL_STATE_LED1()
   #define HAL_STATE_LED4()          HAL_STATE_LED1()
 
+#endif
 
 /* ----------- XNV ---------- */
 #define XNV_SPI_BEGIN()             st(P1_3 = 0;)

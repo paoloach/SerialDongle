@@ -1,10 +1,9 @@
 /**************************************************************************************************
   Filename:       zcl_key_establish.h
-  Revised:        $Date: 2014-06-25 18:07:01 -0700 (Wed, 25 Jun 2014) $
-  Revision:       $Revision: 39221 $
+  Revised:        $Date: 2014-11-06 23:59:26 -0800 (Thu, 06 Nov 2014) $
+  Revision:       $Revision: 41038 $
 
-  Description:    This file contains the ZCL General Function Domain, key
-                  establishment cluster definitions.
+  Description:    This file contains the ZCL (Smart Energy) Key Establishment definitions.
 
 
   Copyright 2007-2014 Texas Instruments Incorporated. All rights reserved.
@@ -45,251 +44,159 @@ extern "C"
 {
 #endif
 
-/*********************************************************************
+
+/**************************************************************************************************
  * INCLUDES
  */
-#include "zcl.h"
-#include "eccapi.h"
 
-/*********************************************************************
+#include "hal_types.h"
+#include "OSAL.h"
+#include "zcl.h"
+
+
+/**************************************************************************************************
  * CONSTANTS
  */
 
-#define ZCL_KEY_ESTABLISHMENT_ENDPOINT                  10  // Reserved endpoint for key establishment cluster
+// KE task endpoint
+#define ZCL_KE_ENDPOINT  10
 
-// Key Establishment Task Events
-#define KEY_ESTABLISHMENT_REC_AGING_EVT                 0x01
-#define KEY_ESTABLISHMENT_CMD_PROCESS_EVT               0x02
-#define KEY_ESTABLISHMENT_RSP_PROCESS_EVT               0x04
-#define KEY_ESTABLISHMENT_REC_AGING_INTERVAL            1000  // in ms
-#define KEY_ESTABLISHMENT_WAIT_PERIOD                   500
+// ZCL Attribute constants
+#define ATTRID_KE_SUITE  0x0000
+#define ZCL_KE_SUITE_1   0x0001
+#define ZCL_KE_SUITE_2   0x0002
 
-// Key Establishment Cluster Attributes
-#define ATTRID_KEY_ESTABLISH_SUITE                       0x0000
-#define CERTIFICATE_BASED_KEY_ESTABLISHMENT              0x0000
+// ZCL_KE_NOTIFY_STATUS
+#define ZCL_KE_NOTIFY_SUCCESS         0x00 // Key establishment successful
+#define ZCL_KE_NOTIFY_TIMEOUT         0x01 // Timeout
+#define ZCL_KE_NOTIFY_TERMINATE_RCVD  0x02 // Terminate command recieved from partner
+#define ZCL_KE_NOTIFY_TERMINATE_SENT  0x03 // Terminate command sent to partner
+#define ZCL_KE_NOTIFY_BUSY            0x04 // Client/server connections busy OR no resources
+#define ZCL_KE_NOTIFY_NO_EXT_ADDR     0x05 // Partner extended address not found
+#define ZCL_KE_NOTIFY_BAD_SUITE       0x06 // Suite not supported on device
+#define ZCL_KE_NOTIFY_NO_CERTS        0x07 // No certs installed
+#define ZCL_KE_NOTIFY_NO_EP_MATCH     0x08 // Partner's Match_Desc_rsp has no CBKE endpoint
+#define ZCL_KE_NOTIFY_NO_SUITE_MATCH  0x09 // Partner's supported suites do not match device's
 
-// Key Establishment Cluster Command ID
-#define COMMAND_INITIATE_KEY_ESTABLISHMENT               0x00
-#define COMMAND_EPHEMERAL_DATA_REQUEST                   0x01
-#define COMMAND_CONFIRM_KEY                              0x02
-#define COMMAND_TERMINATE_KEY_ESTABLISHMENT              0x03
-#define COMMAND_INITIATE_KEY_ESTABLISHMENT_RESPONSE      0x00
-#define COMMAND_EPHEMERAL_DATA_RESPONSE                  0x01
-#define COMMAND_CONFIRM_KEY_RESPONSE                     0x02
+// ZCL_KE_TERMINATE_ERROR
+#define ZCL_KE_TERMINATE_ERROR_NONE          0x00
+#define ZCL_KE_TERMINATE_UNKNOWN_ISSUER      0x01
+#define ZCL_KE_TERMINATE_BAD_KEY_CONFIRM     0x02
+#define ZCL_KE_TERMINATE_BAD_MESSAGE         0x03
+#define ZCL_KE_TERMINATE_NO_RESOURCES        0x04
+#define ZCL_KE_TERMINATE_UNSUPPORTED_SUITE   0x05
+#define ZCL_KE_TERMINATE_INVALID_CERTIFICATE 0x06
 
-#define COMMAND_GET_LINK_KEY                             0x04
 
-// Command Packet Length
-#define PACKET_LEN_INITIATE_KEY_EST_REQ                 (4+ZCL_KE_IMPLICIT_CERTIFICATE_LEN)
-#define PACKET_LEN_INITIATE_KEY_EST_RSP                 (4+ZCL_KE_IMPLICIT_CERTIFICATE_LEN)
-
-// Length of the implicit certificate
-#define KEY_ESTABLISH_SHARED_SECRET_LENGTH               21
-#define KEY_ESTABLISH_KEY_DATA_LENGTH                    16
-#define KEY_ESTABLISH_MAC_KEY_LENGTH                     16
-#define KEY_ESTABLISH_MAC_LENGTH                         16
-#define KEY_ESTABLISH_POINT_ORDER_SIZE                   21
-#define KEY_ESTABLISH_AES_MMO_HASH_SIZE                  16
-
-#define KEY_ESTABLISH_CERT_EXT_ADDR_IDX                  22
-#define KEY_ESTABLISH_CERT_ISSUER_IDX                    30
-#define KEY_ESTABLISH_CERT_IDX                           4
-#define KEY_ESTABLISH_CERT_ISSUER_LENTGH                 Z_EXTADDR_LEN
-
-// Max number of entries in the Key Establishment Rec Table
-#define MAX_KEY_ESTABLISHMENT_REC_ENTRY                  2
-
-#define INVALID_PARTNER_ADDR                             0xFFFE
-
-// Key Establishment Device Role
-#define KEY_ESTABLISHMENT_INITIATOR                      0
-#define KEY_ESTABLISHMENT_RESPONDER                      1
-
-#define KEY_ESTABLISHMENT_REC_EXPIRY_TIME                0xFF  // In seconds
-#define KEY_ESTABLISHMENT_EPH_DATA_GEN_INVALID_TIME      0xFF  // In seconds
-#define KEY_ESTABLISHMENT_CONF_KEY_GEN_INVALID_TIME      0xFF  // In seconds
-
-// The time out for generating the key bits and mac (in sec)
-#if !defined ( ZCL_KEY_ESTABLISHMENT_KEY_GENERATE_TIMEOUT )
-#define ZCL_KEY_ESTABLISHMENT_KEY_GENERATE_TIMEOUT       4
-#endif
-#if !defined ( ZCL_KEY_ESTABLISHMENT_MAC_GENERATE_TIMEOUT )
-#define ZCL_KEY_ESTABLISHMENT_MAC_GENERATE_TIMEOUT       1
-#endif
-#if !defined ( ZCL_KEY_ESTABLISHMENT_EKEY_GENERATE_TIMEOUT )
-#define ZCL_KEY_ESTABLISHMENT_EKEY_GENERATE_TIMEOUT      1
-#endif
-
-// The poll rate for end device is set to this value
-// during the key establishment procedure
-#if !defined (ZCL_KEY_ESTABLISH_POLL_RATE)
-#define ZCL_KEY_ESTABLISH_POLL_RATE                      1000
-#endif
-
-/*********************************************************************
+/**************************************************************************************************
  * TYPEDEFS
  */
 
-// The format of a Key Establishment Record
+// ZCL_KEY_ESTABLISH_IND message payload
 typedef struct
 {
-  afAddrType_t dstAddr;             // Partner Address
-  uint8  lastSeqNum;
-  uint8  appTaskID;                 // Task ID of the application that initiates key establishment
-  uint8  partnerExtAddr[Z_EXTADDR_LEN];
-  uint8  role;                      // 0 @ initiator
-                                    // 1 @ responder
-  uint8  age;                       // Age in seconds
-  uint8  state;                     // State
-
-  // Key information
-  uint8  *pLocalEPrivateKey;
-  uint8  *pLocalEPublicKey;
-  uint8  *pRemotePublicKey;
-  uint8  *pRemoteCertificate;
-
-  uint8  *pKey;
-  uint8  *pMacKey;
-
-  uint8  remoteEphDataGenTime;      // partner Ephemeral Data Generate Time
-  uint8  remoteConfKeyGenTime;      // partner Confirm Key Generate Time
-
-} zclKeyEstablishRec_t;
-
-// Key Establishment Procedure internal State
-typedef enum
-{
-  KeyEstablishState_Idle = 0,
-  KeyEstablishState_InitiatePending,   // Waiting for Initiate Key Establishment Rsp
-  KeyEstablishState_EDataPending,      // Waiting for the Ephemeral data
-  KeyEstablishState_KeyCalculatePending,// Waiting for the key to be calcuated
-  KeyEstablishState_ConfirmPending,     // Waiting for Confirm Response
-  KeyEstablishState_TerminationPending // Waiting for Terminate command
-} KeyEstablishState_t;
-
-// Terminate Key Establishment Status
-typedef enum
-{
-  TermKeyStatus_Success = 0,
-  TermKeyStatus_UnknowIssuer,
-  TermKeyStatus_BadKeyConfirm,
-  TermKeyStatus_BadMessage,
-  TermKeyStatus_NoResources,
-  TermKeyStatus_UnSupportedSuite
-} TermKeyStatus_t;
+  osal_event_hdr_t hdr; //hdr::status -- see ZCL_KE_NOTIFY_STATUS
+  uint16 partnerNwkAddr;
+  uint8 terminateError; // see ZCL_KE_TERMINATE_ERROR
+  uint16 suites; // only valid if terminateError set
+  uint8 waitTime; // only valid if terminateError set
+} zclKE_StatusInd_t;
 
 
-// Osal message format of indication for key establishment completion
-typedef struct
-{
-  osal_event_hdr_t hdr;
-  uint8 waitTime;
-  uint16 keyEstablishmentSuite;
-} keyEstablishmentInd_t;
-
-
-/*********************************************************************
- * FUNCTION MACROS
+/**************************************************************************************************
+ * PUBLIC FUNCTIONS
  */
 
+/**************************************************************************************************
+ * @fn      zclKE_HdlGeneralCmd
+ *
+ * @brief   Handle general cluster commands in ZCL_STANDALONE mode.
+ *
+ * @param   pInMsg - incoming message to process
+ *
+ * @return  void
+ */
+extern void zclKE_HdlGeneralCmd( zclIncoming_t *pInMsg );
 
-/*********************************************************************
- * FUNCTIONS
+/**************************************************************************************************
+ * @fn      zclKE_ECDSASignGetLen
+ *
+ * @brief   Returns length required for zclKE_ECDSASign "pOutBuf" field.
+ *
+ * @param   suite - selected security suite
+ *
+ * @return  uint8 - length for zclKE_ECDSASign "pOutBuf" field
  */
-/*
- * Key Establishment Task initialization function
- */
-extern void zclGeneral_KeyEstablish_Init( uint8 task_id );
+extern uint8 zclKE_ECDSASignGetLen( uint16 suite );
 
-/*
- * Event process for Key Establishment Task
+/**************************************************************************************************
+ * @fn      zclKE_ECDSASign
+ *
+ * @brief   Creates an ECDSA signature of a message digest.
+ *
+ * @param   suite - selected security suite
+ * @param   pInBuf - input buffer
+ * @param   inBufLen - input buffer length
+ * @param   pOutBuf - output buffer ( length == zclKE_ECDSASignGetLen )
+ *
+ * @return  ZStatus_t - status
  */
-extern uint16 zclKeyEstablish_event_loop( uint8 task_id, uint16 events );
+extern ZStatus_t zclKE_ECDSASign( uint16 suite, uint8 *pInBuf, uint8 inBufLen, uint8 *pOutBuf );
 
-/*
- * Call to initiate key establishment procedure with partner device
+/**************************************************************************************************
+ * @fn      zclKE_Start
+ *
+ * @brief   Start key establishment with selected partner at the nwkAddr.
+ *
+ * @param   taskID - OSAL task ID of requesting task
+ * @param   partnerNwkAddr - partner network address
+ * @param   transSeqNum - starting transaction sequence number
+ *
+ * @return  ZStatus_t - status
  */
-extern ZStatus_t zclGeneral_KeyEstablish_InitiateKeyEstablishment(uint8 appTaskID,
-                                                           afAddrType_t *partnerAddr,
-                                                           uint8 seqNum);
-/*
- * Send Initiate Key Establishment Command
- */
-extern ZStatus_t zclGeneral_KeyEstablish_Send_InitiateKeyEstablishment( uint8 srcEP, afAddrType_t *dstAddr,
-                                             uint16 keyEstablishmentSuite,
-                                             uint8  keyGenerateTime,
-                                             uint8  macGenerateTime,
-                                             uint8 *certificate,
-                                             uint8 disableDefaultRsp, uint8 seqNum );
+extern ZStatus_t zclKE_Start( uint8 taskID, uint16 partnerNwkAddr, uint8 transSeqNum );
 
-/*
- * Send Ephemeral Data Request
+/**************************************************************************************************
+ * @fn      zclKE_StartDirect
+ *
+ * @brief   Start key establishment directly with partner at the pPartnerAddr.
+ *
+ * @param   taskID - OSAL task ID of requesting task
+ * @param   pPartnerAddr - valid partner short address and end point
+ * @param   transSeqNum - starting transaction sequence number
+ * @param   suite - selected security suite
+ *
+ * @return  ZStatus_t - status
  */
-extern ZStatus_t zclGeneral_KeyEstablish_Send_EphemeralDataReq( uint8 srcEP, afAddrType_t *dstAddr,
-                                             uint8 *eData,
-                                             uint8 disableDefaultRsp, uint8 seqNum );
+extern ZStatus_t zclKE_StartDirect( uint8 taskID, afAddrType_t *pPartnerAddr,
+                                    uint8 transSeqNum, uint16 suite );
 
-/*
- * Send Confirm Key Command
+/**************************************************************************************************
+ * @fn      zclKE_Init
+ *
+ * @brief   Initialization function for the application.
+ *
+ * @param   taskID - OSAL task ID
+ *
+ * @return  void
  */
-extern ZStatus_t zclGeneral_KeyEstablish_Send_ConfirmKey( uint8 srcEP, afAddrType_t *dstAddr,
-                                             uint8 *mac,
-                                             uint8 disableDefaultRsp, uint8 seqNum );
+void zclKE_Init( uint8 taskID );
 
-/*
- * Send Terminate Key Establishment Command
+/**************************************************************************************************
+ * @fn      zclKE_ProcessEvent
+ *
+ * @brief   Process all events for the task.
+ *
+ * @param   taskID - OSAL task ID
+ * @param   events - OSAL event mask
+ *
+ * @return  uint16 - OSAL events not process
  */
-extern ZStatus_t zclGeneral_KeyEstablish_Send_TerminateKeyEstablishment( uint8 srcEP,
-                                             afAddrType_t *dstAddr,
-                                             TermKeyStatus_t status,
-                                             uint8 waitTime,
-                                             uint16 keyEstablishmentSuite, uint8 direction,
-                                             uint8 disableDefaultRsp, uint8 seqNum );
+extern uint16 zclKE_ProcessEvent( uint8 taskID, uint16 events );
 
-/*
- * Send Initiate Key Establishment Response
- */
-extern ZStatus_t zclGeneral_KeyEstablish_Send_InitiateKeyEstablishmentRsp( uint8 srcEP, afAddrType_t *dstAddr,
-                                             uint16 keyEstablishmentSuite,
-                                             uint8  keyGenerateTime,
-                                             uint8  macGenerateTime,
-                                             uint8 *certificate,
-                                             uint8 disableDefaultRsp, uint8 seqNum );
 
-/*
- * Send Ephemeral Data Response
- */
-extern ZStatus_t zclGeneral_KeyEstablish_Send_EphemeralDataRsp( uint8 srcEP, afAddrType_t *dstAddr,
-                                             uint8 *eData,
-                                             uint8 disableDefaultRsp, uint8 seqNum );
-
-/*
- * Send Confirm Key Response
- */
-extern ZStatus_t zclGeneral_KeyEstablish_Send_ConfirmKeyRsp( uint8 srcEP, afAddrType_t *dstAddr,
-                                             uint8 *mac,
-                                             uint8 disableDefaultRsp, uint8 seqNum );
-
-/*
- * Sign the message using static private key
- */
-extern ZStatus_t zclGeneral_KeyEstablishment_ECDSASign( uint8 *input,  uint8 inputLen,
-                                             uint8 *output);
-
-/*
- * Verify the signature of the message digest
- */
-extern ZStatus_t zclGeneral_KeyEstablishment_ECDSAVerify( uint8 *input,  uint8 inputLen,
-                                             uint8 *signature);
-
-/*
- * Register the user defined yielding function
- */
-extern void zclGeneral_KeyEstablishment_RegYieldCB( YieldFunc *pFnYield,
-                                                        uint8 yieldLevel );
-
-/*********************************************************************
-*********************************************************************/
+/**************************************************************************************************
+**************************************************************************************************/
 
 #ifdef __cplusplus
 }

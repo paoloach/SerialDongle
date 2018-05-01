@@ -1,13 +1,13 @@
 /**************************************************************************************************
   Filename:       zcl_general.c
-  Revised:        $Date: 2014-06-06 07:08:25 -0700 (Fri, 06 Jun 2014) $
-  Revision:       $Revision: 38850 $
+  Revised:        $Date: 2015-09-10 09:36:48 -0700 (Thu, 10 Sep 2015) $
+  Revision:       $Revision: 44493 $
 
   Description:    Zigbee Cluster Library - General.  This application receives all
                   ZCL messages and initially parses them before passing to application.
 
 
-  Copyright 2006-2014 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2006-2015 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -45,11 +45,11 @@
 #include "zcl.h"
 #include "zcl_general.h"
 //#include "ZDApp.h"
-#include "zcl_ezmode.h"
 
 #if defined ( INTER_PAN )
   #include "stub_aps.h"
 #endif
+#include "bdb.h"
 
 /*********************************************************************
  * MACROS
@@ -1743,15 +1743,11 @@ static ZStatus_t zclGeneral_ProcessInIdentity( zclIncoming_t *pInMsg,
   {
     if ( pInMsg->hdr.commandID == COMMAND_IDENTIFY )
     {
-      if ( pCBs->pfnIdentify )
-      {
-        zclIdentify_t cmd;
-
-        cmd.srcAddr = &(pInMsg->msg->srcAddr);
-        cmd.identifyTime = BUILD_UINT16( pInMsg->pData[0], pInMsg->pData[1] );
-
-        pCBs->pfnIdentify( &cmd );
-      }
+      uint16 identifyTime;
+      
+      identifyTime = BUILD_UINT16( pInMsg->pData[0], pInMsg->pData[1] );
+      
+      bdb_ZclIdentifyCmdInd( identifyTime, pInMsg->msg->endPoint);
     }
     else if ( pInMsg->hdr.commandID == COMMAND_IDENTIFY_QUERY )
     {
@@ -1766,33 +1762,9 @@ static ZStatus_t zclGeneral_ProcessInIdentity( zclIncoming_t *pInMsg,
       {
         zclGeneral_SendIdentifyQueryResponse( pInMsg->msg->endPoint, &pInMsg->msg->srcAddr,
                                               identifyTime, true, pInMsg->hdr.transSeqNum );
-#ifdef ZCL_EZMODE
-        zcl_EZModeAction( EZMODE_ACTION_IDENTIFY_QUERY, NULL );
-#endif
         return ( ZCL_STATUS_CMD_HAS_RSP );
       }
     }
-#ifdef ZCL_EZMODE
-    else if ( pInMsg->hdr.commandID == COMMAND_IDENTIFY_EZMODE_INVOKE )
-    {
-      if ( pCBs->pfnIdentifyEZModeInvoke )
-      {
-        pCBs->pfnIdentifyEZModeInvoke( pInMsg->pData[0] );
-      }
-    }
-    else if ( pInMsg->hdr.commandID == COMMAND_IDENTIFY_UPDATE_COMMISSION_STATE )
-    {
-      if ( pCBs->pfnIdentifyUpdateCommState )
-      {
-        zclIdentifyUpdateCommState_t cmd;
-
-        cmd.action = pInMsg->pData[0];
-        cmd.commissionStateMask = pInMsg->pData[1];
-
-        pCBs->pfnIdentifyUpdateCommState( &cmd );
-      }
-    }
-#endif
 
 #ifdef ZCL_LIGHT_LINK_ENHANCE
     else if ( pInMsg->hdr.commandID == COMMAND_IDENTIFY_TRIGGER_EFFECT )
@@ -1819,17 +1791,13 @@ static ZStatus_t zclGeneral_ProcessInIdentity( zclIncoming_t *pInMsg,
     if ( pInMsg->hdr.commandID > COMMAND_IDENTIFY_QUERY_RSP )
       return ( ZFailure );   // Error ignore the command
 
-    if ( pCBs->pfnIdentifyQueryRsp )
-    {
-      zclIdentifyQueryRsp_t rsp;
-
-      rsp.srcAddr = &(pInMsg->msg->srcAddr);
-      rsp.timeout = BUILD_UINT16( pInMsg->pData[0], pInMsg->pData[1] );
-
-      pCBs->pfnIdentifyQueryRsp( &rsp );
-    }
+    zclIdentifyQueryRsp_t rsp;
+    
+    rsp.srcAddr = &(pInMsg->msg->srcAddr);
+    rsp.timeout = BUILD_UINT16( pInMsg->pData[0], pInMsg->pData[1] );
+    
+    bdb_ZclIdentifyQueryCmdInd( &rsp );
   }
-
   return ( ZSuccess );
 }
 #endif // ZCL_IDENTIFY
@@ -1998,8 +1966,9 @@ static ZStatus_t zclGeneral_ProcessInGroupsServer( zclIncoming_t *pInMsg )
       break;
 
     case COMMAND_GROUP_REMOVE:
+#if defined ( ZCL_SCENES )
       zclGeneral_RemoveAllScenes( pInMsg->msg->endPoint, group.ID );
-
+#endif
       if ( aps_RemoveGroup( pInMsg->msg->endPoint, group.ID ) )
       {
         status = ZCL_STATUS_SUCCESS;
@@ -2028,7 +1997,9 @@ static ZStatus_t zclGeneral_ProcessInGroupsServer( zclIncoming_t *pInMsg )
         {
           for ( i = 0; i < numGroups; i++ )
           {
+#if defined ( ZCL_SCENES )
             zclGeneral_RemoveAllScenes( pInMsg->msg->endPoint, groupList[i] );
+#endif
           }
 
           aps_RemoveAllGroup( pInMsg->msg->endPoint );

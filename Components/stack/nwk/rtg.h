@@ -1,12 +1,12 @@
 /**************************************************************************************************
   Filename:       rtg.h
-  Revised:        $Date: 2014-03-26 10:01:05 -0700 (Wed, 26 Mar 2014) $
-  Revision:       $Revision: 37899 $
+  Revised:        $Date: 2014-11-18 14:45:15 -0800 (Tue, 18 Nov 2014) $
+  Revision:       $Revision: 41167 $
 
   Description:    Interface to mesh routing functions
 
 
-  Copyright 2004-2010 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2004-2014 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -22,8 +22,8 @@
   its documentation for any purpose.
 
   YOU FURTHER ACKNOWLEDGE AND AGREE THAT THE SOFTWARE AND DOCUMENTATION ARE
-  PROVIDED �AS IS� WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
-  INCLUDING WITHOUT LIMITATION, ANY WARRANTY OF MERCHANTABILITY, TITLE, 
+  PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS OR IMPLIED,
+  INCLUDING WITHOUT LIMITATION, ANY WARRANTY OF MERCHANTABILITY, TITLE,
   NON-INFRINGEMENT AND FITNESS FOR A PARTICULAR PURPOSE. IN NO EVENT SHALL
   TEXAS INSTRUMENTS OR ITS LICENSORS BE LIABLE OR OBLIGATED UNDER CONTRACT,
   NEGLIGENCE, STRICT LIABILITY, CONTRIBUTION, BREACH OF WARRANTY, OR OTHER
@@ -34,7 +34,7 @@
   (INCLUDING BUT NOT LIMITED TO ANY DEFENSE THEREOF), OR OTHER SIMILAR COSTS.
 
   Should you have any questions regarding your right to use this Software,
-  contact Texas Instruments Incorporated at www.TI.com. 
+  contact Texas Instruments Incorporated at www.TI.com.
 **************************************************************************************************/
 
 #ifndef RTG_H
@@ -71,19 +71,19 @@ extern "C"
 #define MTO_ROUTE_RC        0x08       // Sender has route cache. Used in option of rtgTable[]
 #define MTO_ROUTE_NRC       0x10       // Sender doesn't have route cache. Used in option of rtgTable[]
 #define DEST_IEEE_ADDR      0x20       // Used in option of route request command frame
-#define MULTICAST_ROUTE     0x40       // Ued in all three places 
+#define MULTICAST_ROUTE     0x40       // Ued in all three places
 #define RREQ_OPTIONS_MASK   0x78       // b'0111,1000   0-2, 7 are reserved bits
 
 #define RTG_MTO_DEST_ADDRESS   NWK_BROADCAST_SHORTADDR_DEVZCZR  //0xFFFC
-  
+
 #define RREP_ORI_IEEE       0x10
-#define RREP_RES_IEEE       0x20 
+#define RREP_RES_IEEE       0x20
 #define RREP_MULTICAST      0x40
 #define RREP_OPTIONS_MASK   (RREP_ORI_IEEE | RREP_RES_IEEE | RREP_MULTICAST)
 
 #define RTG_END_DEVICE_ADDR_TYPE 0
 #define RTG_ROUTER_ADDR_TYPE     1
-  
+
 #define RTG_NO_EXPIRY_TIME  0xFF
 
 /*********************************************************************
@@ -150,7 +150,7 @@ typedef struct
 {
   uint8    expiryTime;
   uint8    relayCount;
-  uint16   dstAddress; 
+  uint16   dstAddress;
   uint16*  relayList;
 } rtgSrcEntry_t;
 /*********************************************************************
@@ -172,7 +172,7 @@ extern rtgEntry_t *RTG_GetRtgEntry( uint16 DstAddress, uint8 options);
 
 extern RTG_Status_t RTG_RemoveRtgEntry( uint16 DstAddress, uint8 options );
 
-extern uint16 RTG_GetNextHop( uint16 DstAddress, uint16 avoidAddr, 
+extern uint16 RTG_GetNextHop( uint16 DstAddress, uint16 avoidAddr,
                              uint16 avoidAddr2, uint16 avoidAddr3, uint8 options );
 
 extern byte RTG_ProcessRreq(
@@ -222,9 +222,7 @@ extern void RTG_FillCSkipTable( byte *children, byte *routers,
                                 byte depth, uint16 *pTbl );
 
 
-extern uint8 RTG_IsAncestor( uint16 deviceAddress  );
-
-extern void RTG_SendBrokenRoute( uint16 nwkSrcAddr, uint16 nwkDstAddr, 
+extern void RTG_SendBrokenRoute( uint16 nwkSrcAddr, uint16 nwkDstAddr,
                    uint8 srcRouteSet, uint16 macSrcAddr, uint16 macDstAddr );
 
 extern uint16 RTG_CalcTreeAddress(  byte deviceType );
@@ -241,16 +239,7 @@ extern void RTG_nextHopIsBad( uint16 nextHop );
 
 extern ZStatus_t RTG_SendRErr( uint16 SrcAddress, uint16 DstAddress, byte ErrorCode );
 
-
 extern RTG_Status_t RTG_AddSrcRtgEntry_Guaranteed( uint16 srcAddr, uint8 relayCnt, uint16* pRelayList );
-
-// Functions pointers for addressing schemes
-extern uint16 (*pRTG_FinishGetNextHop)( uint16 DstAddress );
-extern uint16 (*pRTG_GetNextTreeHop)( uint16 dstAddress );
-extern uint16 (*pRTG_CalcAddress)( byte deviceType );
-extern uint16 (*pRTG_GetTreeRoute)(uint16 dstAddress );
-extern void (*pRTG_DeAllocAddress)( uint16 shortAddr );
-extern uint8 (*pRTG_GetAncestors)( uint16 dstAddr, uint16 ancestorAddr, uint16 *pRtgDst );
 
 extern void RTG_initRtgTable( void );
 

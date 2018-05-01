@@ -1,11 +1,11 @@
 /***************************************************************************************************
   Filename:       MT_APP.c
-  Revised:        $Date: 2014-06-25 18:07:01 -0700 (Wed, 25 Jun 2014) $
-  Revision:       $Revision: 39221 $
+  Revised:        $Date: 2015-01-26 08:25:50 -0800 (Mon, 26 Jan 2015) $
+  Revision:       $Revision: 42025 $
 
   Description:    MonitorTest processing for APP commands
 
-  Copyright 2007-2014 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2007-2015 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -58,9 +58,13 @@
  * LOCAL FUNCTIONS
  ***************************************************************************************************/
 #if defined (MT_APP_FUNC)
-void MT_AppMsg(uint8 *pBuf);
-void MT_AppUserCmd(byte *pData);
-#endif
+static void MT_AppMsg(uint8 *pBuf);
+static void MT_AppUserCmd(byte *pData);
+#if defined ( MT_APP_PB_ZCL_FUNC )
+static void MT_AppPB_ZCLMsg(byte *pData);
+static void MT_AppPB_ZCLCfg(byte *pData);
+#endif // MT_APP_PB_ZCL_FUNC
+#endif // MT_APP_FUNC
 
 #if defined (MT_APP_FUNC)
 /***************************************************************************************************
@@ -86,6 +90,16 @@ uint8 MT_AppCommandProcessing(uint8 *pBuf)
       MT_AppUserCmd(pBuf);
       break;
 
+#if defined ( MT_APP_PB_ZCL_FUNC )
+    case MT_APP_PB_ZCL_MSG:
+      MT_AppPB_ZCLMsg(pBuf);
+      break;
+
+    case MT_APP_PB_ZCL_CFG:
+      MT_AppPB_ZCLCfg(pBuf);
+      break;
+#endif // MT_APP_PB_ZCL_FUNC
+
     default:
       status = MT_RPC_ERR_COMMAND_ID;
       break;
@@ -103,7 +117,7 @@ uint8 MT_AppCommandProcessing(uint8 *pBuf)
  *
  * @return  void
  ***************************************************************************************************/
-void MT_AppMsg(uint8 *pBuf)
+static void MT_AppMsg(uint8 *pBuf)
 {
   uint8 retValue = ZFailure;
   uint8 endpoint;
@@ -155,7 +169,7 @@ void MT_AppMsg(uint8 *pBuf)
  *
  * @return  void
  ***************************************************************************************************/
-void MT_AppUserCmd(uint8 *pBuf)
+static void MT_AppUserCmd(uint8 *pBuf)
 {
 
   uint8 retValue, cmdId;
@@ -180,13 +194,13 @@ void MT_AppUserCmd(uint8 *pBuf)
 
   srcEp = *pBuf++;
 
-  app_cmd = BUILD_UINT16( pBuf[0] , pBuf[1] );
+  app_cmd = osal_build_uint16( pBuf );
   pBuf = pBuf + sizeof( uint16 );
 
-  param1 = BUILD_UINT16( pBuf[0] , pBuf[1] );
+  param1 = osal_build_uint16( pBuf );
   pBuf = pBuf + sizeof( uint16 );
 
-  param2 = BUILD_UINT16( pBuf[0] , pBuf[1] );
+  param2 = osal_build_uint16( pBuf );
 
   switch ( app_cmd )
   {
@@ -457,8 +471,12 @@ void MT_AppUserCmd(uint8 *pBuf)
       break;
 
   case TP_SEND_REJOIN_REQ_SECURE:
-      retValue = TestProfileApp_SendRejoinReqSecurity( param1, param2 );
+      retValue = TestProfileApp_SendRejoinReqSecurity( param1, param2 , TRUE);
       break;
+      
+  case TP_SEND_REJOIN_REQ_UNSECURE:
+      retValue = TestProfileApp_SendRejoinReqSecurity( param1, param2, FALSE );
+    break;
 #endif // APP_TP2
 
 #endif  // APP_TP || APP_TP2
@@ -502,6 +520,208 @@ void MT_AppUserCmd(uint8 *pBuf)
 
   /* Build and send back the response */
   MT_BuildAndSendZToolResponse(((uint8)MT_RPC_CMD_SRSP | (uint8)MT_RPC_SYS_APP), cmdId, 1, &retValue);
+}
+
+#if defined ( MT_APP_PB_ZCL_FUNC )
+/***************************************************************************************************
+ * @fn      MT_AppPB_ZCLMsg
+ *
+ * @brief   Process MT_APP_PB_ZCL_MSG command
+ *
+ * @param   pBuf - pointer to the received buffer
+ *
+ * @return  void
+ ***************************************************************************************************/
+static void MT_AppPB_ZCLMsg( uint8 *pBuf )
+{
+  uint8 retValue = ZFailure;
+  uint8 appEP;
+  endPointDesc_t *epDesc;
+  mtAppPB_ZCLMsg_t *cmd;
+  uint8 cmdId;
+  uint8 dataLen;
+
+  /* Parse the RPC header */
+  dataLen = pBuf[MT_RPC_POS_LEN] - MT_APP_PB_ZCL_MSG_HDR_LEN;
+  cmdId = pBuf[MT_RPC_POS_CMD1];
+  pBuf += MT_RPC_FRAME_HDR_SZ;
+
+  /* Application End Point */
+  appEP = *pBuf++;
+
+  /* Look up the endpoint */
+  epDesc = afFindEndPointDesc( appEP );
+
+  if ( epDesc )
+  {
+    /* Build and send the message to the APP */
+    cmd = (mtAppPB_ZCLMsg_t *)osal_msg_allocate( sizeof( mtAppPB_ZCLMsg_t ) + dataLen );
+    if ( cmd )
+    {
+      /* Build and send message to the app */
+      cmd->hdr.event = MT_SYS_APP_PB_ZCL_CMD;
+
+      /* PB ZCL command type */
+      cmd->type = MT_APP_PB_ZCL_CMD_MSG;
+
+      /* Application End Point */
+      cmd->appEP = appEP;
+
+      /* Destination Address */
+      cmd->dstAddr.addr.shortAddr = osal_build_uint16( pBuf );
+      pBuf += sizeof(uint16);
+
+      /* Destination Address Mode */
+      cmd->dstAddr.addrMode = afAddr16Bit;
+
+      /* Destination End Point */
+      cmd->dstAddr.endPoint = *pBuf++;;
+
+      /* Use Default PAN ID */
+      cmd->dstAddr.panId = 0xFFFF;
+
+      /* Cluster ID */
+      cmd->clusterID = osal_build_uint16( pBuf );
+      pBuf += sizeof( uint16 );
+
+      /* Command ID */
+      cmd->commandID = *pBuf++;
+
+      /* Cluster Specific Command */
+      cmd->specific = *pBuf++;
+
+      /* Command Direction */
+      cmd->direction = *pBuf++;
+
+      /* Disable Default Response */
+      cmd->disableDefRsp = *pBuf++;
+
+      /* Manufacturer Code */
+      cmd->manuCode = osal_build_uint16( pBuf );
+      pBuf += sizeof( uint16 );
+
+      /* ZCL Transaction Sequence Number */
+      cmd->transSeqNum  = *pBuf++;
+
+      /* Application Data Length */
+      cmd->appPBDataLen = dataLen;
+
+      /* Application Data */
+      cmd->appPBData = (uint8 *)( cmd + 1 );
+      osal_memcpy( cmd->appPBData, pBuf, dataLen );
+
+      /* Send the message */
+      osal_msg_send( *(epDesc->task_id), (uint8 *)cmd );
+
+      /* Info for response */
+      retValue = ZSuccess;
+    }
+  }
+
+  /* Build and send back the response */
+  MT_BuildAndSendZToolResponse( ( (uint8)MT_RPC_CMD_SRSP | (uint8)MT_RPC_SYS_APP ),
+                                cmdId, 1, &retValue);
+}
+#endif
+
+#if defined ( MT_APP_PB_ZCL_FUNC )
+/***************************************************************************************************
+ * @fn      MT_AppPB_ZCLCfg
+ *
+ * @brief   Process MT_APP_PB_ZCL_CFG command
+ *
+ * @param   pBuf - pointer to the received buffer
+ *
+ * @return  void
+ ***************************************************************************************************/
+static void MT_AppPB_ZCLCfg( uint8 *pBuf )
+{
+  uint8 retValue = ZFailure;
+  uint8 appEP;
+  endPointDesc_t *epDesc;
+  mtAppPB_ZCLCfg_t *cmd;
+  uint8 cmdId;
+
+  /* Parse the RPC header */
+  cmdId = pBuf[MT_RPC_POS_CMD1];
+  pBuf += MT_RPC_FRAME_HDR_SZ;
+
+  /* Application End Point */
+  appEP = *pBuf++;
+
+  /* Look up the endpoint */
+  epDesc = afFindEndPointDesc( appEP );
+
+  if ( epDesc )
+  {
+    /* Build and send the message to the APP */
+    cmd = (mtAppPB_ZCLCfg_t *)osal_msg_allocate( sizeof( mtAppPB_ZCLCfg_t ) );
+
+    if ( cmd )
+    {
+      /* Build and send message to the app */
+      cmd->hdr.event = MT_SYS_APP_PB_ZCL_CMD;
+
+      /* PB ZCL command type*/
+      cmd->type = MT_APP_PB_ZCL_CMD_CFG;
+
+      /* PB ZCL Config Mode */
+      cmd->mode = *pBuf++;
+
+      /* Send the message */
+      osal_msg_send( *(epDesc->task_id), (uint8 *)cmd );
+
+      /* Info for response */
+      retValue = ZSuccess;
+    }
+  }
+
+  /* Build and send back the response */
+  MT_BuildAndSendZToolResponse( ( (uint8)MT_RPC_CMD_SRSP | (uint8)MT_RPC_SYS_APP ),
+                                cmdId, 1, &retValue );
+}
+#endif
+
+/***************************************************************************************************
+ * @fn      MT_AppPB_ZCLInd
+ *
+ * @brief   Send an MT_APP_PB_ZCL_IND command
+ *
+ * @param   pInd - pointer to the indication
+ *
+ * @return  void
+ ***************************************************************************************************/
+void MT_AppPB_ZCLInd( mtAppPB_ZCLInd_t *pInd )
+{
+  uint8 *pData;
+  uint8 *pBuf;
+  uint8 len;
+
+  len = MT_APP_PB_ZCL_IND_HDR_LEN + pInd->appPBDataLen;
+
+  pData = (uint8 *)osal_mem_alloc( len );
+  if ( pData != NULL )
+  {
+    pBuf = pData;
+    *pBuf++ = pInd->appEP;
+    *pBuf++ = LO_UINT16( pInd->srcAddr );
+    *pBuf++ = HI_UINT16( pInd->srcAddr );
+    *pBuf++ = pInd->srcEP;
+    *pBuf++ = LO_UINT16( pInd->clusterID );
+    *pBuf++ = HI_UINT16( pInd->clusterID );
+    *pBuf++ = pInd->commandID;
+    *pBuf++ = pInd->specific;
+    *pBuf++ = pInd->direction;
+    *pBuf++ = pInd->disableDefRsp;
+    *pBuf++ = LO_UINT16( pInd->manuCode );
+    *pBuf++ = HI_UINT16( pInd->manuCode );
+    *pBuf++ = pInd->transSeqNum;
+    osal_memcpy( pBuf, pInd->appPBData, pInd->appPBDataLen );
+
+    MT_BuildAndSendZToolResponse( ( (uint8)MT_RPC_CMD_AREQ | (uint8)MT_RPC_SYS_APP ),
+                                  MT_APP_PB_ZCL_IND, len, pData );
+    osal_mem_free( pData );
+  }
 }
 
 #endif /* MT_APP_FUNC */

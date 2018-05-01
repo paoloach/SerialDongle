@@ -1,7 +1,7 @@
 /**************************************************************************************************
   Filename:       ZMAC.h
-  Revised:        $Date: 2013-05-17 11:08:52 -0700 (Fri, 17 May 2013) $
-  Revision:       $Revision: 34354 $
+  Revised:        $Date: 2014-06-20 15:25:38 -0700 (Fri, 20 Jun 2014) $
+  Revision:       $Revision: 39136 $
 
   Description:    This file contains the ZStack MAC Porting Layer.
 
@@ -661,6 +661,31 @@ typedef enum
    * This function sends out an enhanced active scan request
    */
   extern ZMacStatus_t ZMacEnhancedActiveScanReq( ZMacScanReq_t *param );
+
+  #ifdef FEATURE_DUAL_MAC
+  /*
+   * This function is the MAC Event callback handler.
+   */
+  extern void ZMacCbackEventHdlr( macCbackEvent_t *pData );
+
+  /*
+   * This functions free's the scan buffer. 
+   */
+  extern void ZMacFreeScanBuf( void );
+
+  /*
+   * This function is the MAC Retransmit query call back
+   */
+  extern uint8 ZMacCbackQueryRetransmit(void);
+
+  /*
+   * This function is the MAC Retransmit query call back
+   */
+  extern uint8 ZMacCbackCheckPending(void);
+
+
+  #endif /* FEATURE_DUAL_MAC */  
+
 /*********************************************************************
 *********************************************************************/
 

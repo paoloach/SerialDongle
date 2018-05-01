@@ -119,6 +119,7 @@ static ZStatus_t zclClosures_ProcessInDoorLockCmds( zclIncoming_t *pInMsg,
                                                     zclClosures_DoorLockAppCallbacks_t *pCBs );
 static ZStatus_t zclClosures_ProcessInDoorLock( zclIncoming_t *pInMsg,
                                                 zclClosures_DoorLockAppCallbacks_t *pCBs );
+#ifdef ZCL_DOORLOCK_EXT
 static ZStatus_t zclClosures_ProcessInDoorLockUnlockWithTimeout( zclIncoming_t *pInMsg,
                                                                  zclClosures_DoorLockAppCallbacks_t *pCBs );
 static ZStatus_t zclClosures_ProcessInDoorLockGetLogRecord( zclIncoming_t *pInMsg,
@@ -215,6 +216,7 @@ static ZStatus_t zclClosures_ProcessInDoorLockOperationEventNotification( zclInc
                                                                           zclClosures_DoorLockAppCallbacks_t *pCBs );
 static ZStatus_t zclClosures_ProcessInDoorLockProgrammingEventNotification( zclIncoming_t *pInMsg,
                                                                             zclClosures_DoorLockAppCallbacks_t *pCBs );
+#endif //ZCL_DOORLOCK_EXT
 #endif //ZCL_DOORLOCK
 
 #ifdef ZCL_WINDOWCOVERING
@@ -517,7 +519,8 @@ static ZStatus_t zclClosures_ProcessInDoorLockCmds( zclIncoming_t *pInMsg,
       case COMMAND_CLOSURES_TOGGLE_DOOR:
         stat = zclClosures_ProcessInDoorLock( pInMsg, pCBs );
         break;
-
+        
+#ifdef ZCL_DOORLOCK_EXT
       case COMMAND_CLOSURES_UNLOCK_WITH_TIMEOUT:
         stat = zclClosures_ProcessInDoorLockUnlockWithTimeout( pInMsg, pCBs );
         break;
@@ -609,7 +612,7 @@ static ZStatus_t zclClosures_ProcessInDoorLockCmds( zclIncoming_t *pInMsg,
       case COMMAND_CLOSURES_CLEAR_ALL_RFID_CODES:
         stat = zclClosures_ProcessInDoorLockClearAllRFIDCodes( pInMsg, pCBs );
         break;
-
+#endif
       default:
         // Unknown command
         stat = ZFailure;
@@ -626,7 +629,9 @@ static ZStatus_t zclClosures_ProcessInDoorLockCmds( zclIncoming_t *pInMsg,
       case COMMAND_CLOSURES_TOGGLE_DOOR_RSP:
         stat = zclClosures_ProcessInDoorLock( pInMsg, pCBs );
         break;
-
+        
+#ifdef ZCL_DOORLOCK_EXT
+        
       case COMMAND_CLOSURES_UNLOCK_WITH_TIMEOUT_RSP:
         stat = zclClosures_ProcessInDoorLockUnlockWithTimeoutRsp( pInMsg, pCBs );
         break;
@@ -726,6 +731,8 @@ static ZStatus_t zclClosures_ProcessInDoorLockCmds( zclIncoming_t *pInMsg,
       case COMMAND_CLOSURES_PROGRAMMING_EVENT_NOTIFICATION:
         stat = zclClosures_ProcessInDoorLockProgrammingEventNotification( pInMsg, pCBs );
         break;
+        
+#endif //ZCL_DOORLOCK_EXT
 
       default:
         // Unknown command
@@ -815,6 +822,7 @@ static ZStatus_t zclClosures_ProcessInDoorLock( zclIncoming_t *pInMsg,
   }
 }
 
+#ifdef ZCL_DOORLOCK_EXT
 /*********************************************************************
  * @fn      zclClosures_ProcessInDoorLockUnlockWithTimeout
  *
@@ -2181,6 +2189,8 @@ static ZStatus_t zclClosures_ProcessInDoorLockProgrammingEventNotification( zclI
 
  return ( ZFailure );
 }
+
+#endif //ZCL_DOORLOCK_EXT
 
 /*********************************************************************
  * @fn      zclClosures_SendDoorLockRequest

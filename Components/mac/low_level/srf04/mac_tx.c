@@ -1,12 +1,12 @@
 /**************************************************************************************************
   Filename:       mac_tx.c
-  Revised:        $Date: 2014-05-16 10:22:59 -0700 (Fri, 16 May 2014) $
-  Revision:       $Revision: 38564 $
+  Revised:        $Date: 2015-02-17 14:17:44 -0800 (Tue, 17 Feb 2015) $
+  Revision:       $Revision: 42683 $
 
   Description:    Describe the purpose and contents of the file.
 
 
-  Copyright 2006-2014 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2006-2015 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -65,6 +65,7 @@
 
 /* target specific */
 #include "mac_radio_defs.h"
+#include "mac_main.h"
 
 /* debug */
 #include "mac_assert.h"
@@ -143,7 +144,7 @@ static uint8 txRetransmitFlag;
  * ------------------------------------------------------------------------------------------------
  */
 static void txCsmaPrep(void);
-#ifdef FEATURE_GREEN_POWER
+#if (ZG_BUILD_RTR_TYPE)
 static void txGreenPowerPrep(void);
 #endif
 static void txGo(void);
@@ -236,21 +237,21 @@ MAC_INTERNAL_API void macTxFrame(uint8 txType)
     MAC_RADIO_TX_PREP_SLOTTED();
   }
 
-#ifdef FEATURE_GREEN_POWER
+#if (ZG_BUILD_RTR_TYPE)
   else if (macTxType == MAC_TX_TYPE_GREEN_POWER)
   {
     txGreenPowerPrep();
   }
-#endif /* #ifdef FEATURE_GREEN_POWER */
+#endif
 
   else
   {
     MAC_ASSERT((macTxType == MAC_TX_TYPE_SLOTTED_CSMA) || (macTxType == MAC_TX_TYPE_UNSLOTTED_CSMA));
 
     nb = 0;
-    macTxBe = (pMacDataTx->internal.txOptions & MAC_TXOPTION_ALT_BE) ? macPib.altBe : macPib.minBe;
+    macTxBe = (pMacDataTx->internal.txOptions & MAC_TXOPTION_ALT_BE) ? pMacPib->altBe : pMacPib->minBe;
 
-    if ((macTxType == MAC_TX_TYPE_SLOTTED_CSMA) && (macPib.battLifeExt))
+    if ((macTxType == MAC_TX_TYPE_SLOTTED_CSMA) && (pMacPib->battLifeExt))
     {
       macTxBe = MIN(2, macTxBe);
     }
@@ -361,7 +362,7 @@ static void txCsmaPrep(void)
 }
 
 
-#ifdef FEATURE_GREEN_POWER
+#if (ZG_BUILD_RTR_TYPE)
 /*=================================================================================================
  * @fn          txGreenPowerPrep
  *
@@ -385,7 +386,7 @@ static void txGreenPowerPrep(void)
 
   MAC_RADIO_TX_PREP_GREEN_POWER();
 }
-#endif /* #ifdef FEATURE_GREEN_POWER */
+#endif /* #if (ZG_BUILD_RTR_TYPE) */
 
 
 /*=================================================================================================
@@ -414,12 +415,12 @@ static void txGo(void)
     MAC_RADIO_TX_GO_SLOTTED();
   }
 
-#ifdef FEATURE_GREEN_POWER
+//ifdef FEATURE_GREEN_POWER
   else if (macTxType == MAC_TX_TYPE_GREEN_POWER)
   {
     MAC_RADIO_TX_GO_GREEN_POWER();
   }
-#endif /* #ifdef FEATURE_GREEN_POWER */
+//endif /* #ifdef FEATURE_GREEN_POWER */
 
   else
   {
@@ -535,13 +536,13 @@ MAC_INTERNAL_API void macTxChannelBusyCallback(void)
 
   /*  clear channel assement failed, follow through with CSMA algorithm */
   nb++;
-  if (nb > macPib.maxCsmaBackoffs)
+  if (nb > pMacPib->maxCsmaBackoffs)
   {
     txComplete(MAC_CHANNEL_ACCESS_FAILURE);
   }
   else
   {
-    macTxBe = MIN(macTxBe+1, macPib.maxBe);
+    macTxBe = MIN(macTxBe+1, pMacPib->maxBe);
     txCsmaPrep();
     macTxActive = MAC_TX_ACTIVE_GO;
     txCsmaGo();
@@ -571,6 +572,12 @@ MAC_INTERNAL_API void macTxDoneCallback(void)
   HAL_ENTER_CRITICAL_SECTION(s);
   if (macTxActive == MAC_TX_ACTIVE_GO)
   {
+    if (macRxActive)
+    {
+      /* RX was partly done just before TX. Reset the RX state. */
+      macTxCollisionWithRxCallback();
+    }
+    
     /* see if ACK was requested */
     if (!txAckReq)
     {
@@ -679,7 +686,7 @@ MAC_INTERNAL_API void macTxAckNotReceivedCallback(void)
     macTxActive = MAC_TX_ACTIVE_POST_ACK;
     MAC_RADIO_TX_CANCEL_ACK_TIMEOUT_CALLBACK();
     HAL_EXIT_CRITICAL_SECTION(s);
-
+    
     /* a non-ACK was received when expecting an ACK, per spec transmit is over at this point */
     txComplete(MAC_NO_ACK);
   }
@@ -738,12 +745,12 @@ static void txComplete(uint8 status)
   /* update tx state; turn off receiver if nothing is keeping it on */
   macTxActive = MAC_TX_ACTIVE_NO_ACTIVITY;
 
-  if(macPib.rf4cepowerSavings)
+  if(pMacPib->rf4cepowerSavings)
   {
     /* mark receive as inactive */
     macRxActive = MAC_RX_ACTIVE_NO_ACTIVITY;
   }
-
+  
   /* turn off receive if allowed */
   macRxOffRequest();
 

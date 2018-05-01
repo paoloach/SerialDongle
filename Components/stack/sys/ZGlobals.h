@@ -1,12 +1,12 @@
 /**************************************************************************************************
   Filename:       nwk_globals.h
-  Revised:        $Date: 2014-06-03 18:29:46 -0700 (Tue, 03 Jun 2014) $
-  Revision:       $Revision: 38789 $
+  Revised:        $Date: 2015-01-21 19:28:52 -0800 (Wed, 21 Jan 2015) $
+  Revision:       $Revision: 41954 $
 
   Description:    User definable Z-Stack parameters.
 
 
-  Copyright 2007-2014 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2007-2015 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -86,6 +86,13 @@ extern "C" {
   #define ZG_DEVICE_RTR_TYPE ((zgDeviceLogicalType == ZG_DEVICETYPE_COORDINATOR) || (zgDeviceLogicalType == ZG_DEVICETYPE_ROUTER))
 #endif
 
+#if ( ZSTACK_DEVICE_BUILD == DEVICE_BUILD_ROUTER )
+  #define ZG_DEVICE_RTRONLY_TYPE  1
+#else
+  #define ZG_DEVICE_RTRONLY_TYPE (zgDeviceLogicalType == ZG_DEVICETYPE_ROUTER)
+#endif   
+   
+   
 #if ( ZSTACK_DEVICE_BUILD == DEVICE_BUILD_ENDDEVICE )
   #define ZG_DEVICE_ENDDEVICE_TYPE 1
 #else
@@ -112,6 +119,14 @@ extern "C" {
   #endif
 #else
   #define ZSTACK_END_DEVICE_BUILD       0
+#endif
+
+#if !defined ( BUILD_FLEXABLE )
+  #define BUILD_FLEXABLE 0
+#endif
+
+#if !defined ( BEACON_MESH )
+#define BEACON_MESH 0
 #endif
 
 
@@ -229,6 +244,48 @@ extern "C" {
   #define DEFAULT_APS_DUP_REJ_TIMEOUT             10
 #endif
 
+// Child aging management default values
+// Values are specified in table of nwk_globals.h module
+//timeoutValue[15]
+//    10, // 0	10 seconds
+//     2, // 1	2 minutes
+//     4, // 2	4 minutes
+//     8, // 3	8 minutes
+//    16, // 4	16 minutes
+//    32, // 5	32 minutes
+//    64, // 6	64 minutes
+//   128, // 7	128 minutes
+//   256, // 8	256 minutes
+//   512, // 9	512 minutes
+//  1024, // 10	1024 minutes
+//  2048, // 11	2048 minutes
+//  4096, // 12	4096 minutes
+//  8192, // 13	8192 minutes
+// 16384 // 14	16384 minutes
+//
+// This value is used by the parent ROUTER
+#if !defined ( NWK_END_DEV_TIMEOUT_DEFAULT )
+  #define NWK_END_DEV_TIMEOUT_DEFAULT  8    // Default value per ZigBee core specification is 8
+#endif
+   
+   
+//Timeout after which an EndDevice will be removed from from the indirect MAC messages queue
+   // NOTE: End devices which poll rate is slower than this will not receive the leave request
+#if !defined ( NWK_END_DEVICE_LEAVE_TIMEOUT )   
+  #define NWK_END_DEVICE_LEAVE_TIMEOUT 9  
+#endif
+
+// Value used by END DEVICE when sending End Device Timeout Request
+// This is an index into table timeoutValue[] defined in nwk_globals.c
+#if !defined ( END_DEV_TIMEOUT_VALUE )
+  #define END_DEV_TIMEOUT_VALUE   8   // Default value per ZigBee core specification is 8
+#endif
+
+// Value used by END DEVICE when sending End Device Timeout Request
+#if !defined ( END_DEV_CONFIGURATION )
+  #define END_DEV_CONFIGURATION   0     // Per ZigBee Core spec R21, 0 is the only valid value
+#endif
+
 //--------------------------------------------------------------------
 // Security modes
 //--------------------------------------------------------------------
@@ -274,6 +331,21 @@ extern "C" {
 #define ZG_UNIQUE_LINK_KEY        0x00
 #define ZG_GLOBAL_LINK_KEY        0x01
 
+// Values for KeyAttributes
+#define ZG_PROVISIONAL_KEY          0x00  //Used for IC derived keys
+#define ZG_UNVERIFIED_KEY           0x01  //Unique key that is not verified
+#define ZG_VERIFIED_KEY             0x02  //Unique key that got verified by ZC
+//Internal keyAttribute definitions
+#define ZG_DISTRIBUTED_DEFAULT_KEY  0xFC  //Use default key to join
+#define ZG_NON_R21_NWK_JOINED       0xFD  //Joined a network which is not R21 nwk, so TCLK process finished.
+#define ZG_VERIFIED_KEY_JOINING_DEV 0xFE  //Unique key that got verified by Joining device. This means that key is stored as plain text (not seed hashed)
+#define ZG_DEFAULT_KEY              0xFF  //Entry using default key
+  
+   
+#define ZG_IC_NOT_SUPPORTED           0x00
+#define ZG_IC_SUPPORTED_NOT_REQUIRED  0x01
+#define ZG_IC_MUST_USED               0x02
+   
 /*********************************************************************
  * TYPEDEFS
  */
@@ -282,23 +354,27 @@ extern "C" {
  * NWK GLOBAL VARIABLES
  */
 
-extern uint16 zgPollRate;
+extern uint32 zgPollRate;
+extern uint32 zgSavedPollRate;
 extern uint16 zgQueuedPollRate;
 extern uint16 zgResponsePollRate;
 extern uint16 zgRejoinPollRate;
-
+extern uint32 zgDefaultRejoinBackoff;
+extern uint32 zgDefaultRejoinScan;
 // Variables for number of transmission retries
 extern uint8 zgMaxDataRetries;
 extern uint8 zgMaxPollFailureRetries;
 
 extern uint32 zgDefaultChannelList;
-extern uint8  zgDefaultStartingScanDuration;
-
+#define zgDefaultStartingScanDuration  bdbAttributes.bdbScanDuration
 extern uint8 zgStackProfile;
 
 extern uint8 zgIndirectMsgTimeout;
 extern uint8 zgSecurityMode;
 extern uint8 zgSecurePermitJoin;
+extern uint8 zgAllowRejoins;
+extern uint8 zgAllowInstallCodes;
+extern uint8 zgAllowRemoteTCPolicyChange;
 extern uint8 zgApsTrustCenterAddr[];
 extern uint8 zgRouteDiscoveryTime;
 extern uint8 zgRouteExpiryTime;
@@ -321,7 +397,19 @@ extern uint8 zgRouterOffAssocCleanup;
 
 extern uint8 zgNwkLeaveRequestAllowed;
 
+extern uint8 zgNwkParentInformation;
+
+extern uint8 zgNwkEndDeviceTimeoutDefault;
+
+extern uint8 zgNwkEndDeviceLeaveTimeoutDefault;
+
+extern uint8 zgEndDeviceTimeoutValue;
+
+extern uint8 zgEndDeviceConfiguration;
+
 extern uint8 zgChildAgingEnable;
+
+extern uint8 zTouchLinkNwkStartRtr;
 
 /*********************************************************************
  * APS GLOBAL VARIABLES
@@ -351,12 +439,15 @@ extern uint8 zgUseDefaultTCLK;
 #define TP_GU_ALL            0
 #define TP_GU_SEC_ONLY       1
 #define TP_GU_NONSEC_ONLY    2
+#define TP_GU_BOTH           2   // use both NoAPS and APS security
 
 extern uint8 guTxApsSecON;
 extern uint8 guEnforceRxApsSec;
 #endif
 
 extern uint8 zgApsAllowR19Sec;
+extern uint8 zgSwitchCoordKey;
+extern uint8 zgSwitchCoordKeyIndex;
 
 /*********************************************************************
  * ZDO GLOBAL VARIABLES

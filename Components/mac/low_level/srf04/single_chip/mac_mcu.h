@@ -1,12 +1,12 @@
 /**************************************************************************************************
   Filename:       mac_mcu.h
-  Revised:        $Date: 2013-05-17 11:05:33 -0700 (Fri, 17 May 2013) $
-  Revision:       $Revision: 34353 $
+  Revised:        $Date: 2015-02-17 14:17:44 -0800 (Tue, 17 Feb 2015) $
+  Revision:       $Revision: 42683 $
 
   Description:    Describe the purpose and contents of the file.
 
 
-  Copyright 2006-2013 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2006-2015 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -93,7 +93,7 @@
 /* RFIRQF0 */
 #define IRQ_SFD         BV(1)
 #define IRQ_FIFOP       BV(2)
-
+   
 /* RFIRQF1 */
 #define IRQ_TXACKDONE   BV(0)
 #define IRQ_TXDONE      BV(1)
@@ -185,13 +185,11 @@
 
 #define MAC_MCU_CONFIG_CSP_EVENT1()           st( T2CSPCFG = 1; )
 
-
 /* ------------------------------------------------------------------------------------------------
  *                                   Global Variable Externs
  * ------------------------------------------------------------------------------------------------
  */
 extern uint8 macChipVersion;
-
 
 /* ------------------------------------------------------------------------------------------------
  *                                       Prototypes

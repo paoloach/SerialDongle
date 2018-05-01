@@ -1,12 +1,12 @@
 /**************************************************************************************************
   Filename:       nwk_util.h
-  Revised:        $Date: 2014-06-03 14:02:45 -0700 (Tue, 03 Jun 2014) $
-  Revision:       $Revision: 38776 $
+  Revised:        $Date: 2015-02-16 12:23:39 -0800 (Mon, 16 Feb 2015) $
+  Revision:       $Revision: 42629 $
 
   Description:    Network layer utility functions.
 
 
-  Copyright 2004-2014 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2004-2015 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -73,13 +73,8 @@ extern "C" {
 #define CMD_ID_LINK_STATUS          0x08
 #define CMD_ID_NETWORK_REPORT       0x09
 #define CMD_ID_NETWORK_UPDATE       0x0A
-
-#define CMD_ID_PING                  7
-#define CMD_ID_PING_RSP              8
-#define CMD_ID_TREE_REQ              9
-#define CMD_ID_TREE_RSP             10
-#define CMD_ID_PARENT_REQ           11
-#define CMD_ID_PARENT_RSP           12
+#define CMD_ID_END_DEV_TIMEOUT_REQ  0x0B
+#define CMD_ID_END_DEV_TIMEOUT_RSP  0x0C
 
 // header fields
 #define NWK_HDR_FRAME_CTRL_LSB 0
@@ -108,7 +103,8 @@ extern "C" {
 #define NWK_FC_SRC_ROUTE    10
 #define NWK_FC_DST_EXTADDR  11
 #define NWK_FC_SRC_EXTADDR  12
-#define NWK_FC_RESERVED     13
+#define NWK_FC_END_DEV_INIT 13
+#define NWK_FC_RESERVED     14
 
 // frame control field masks
 #define NWK_FC_FRAME_TYPE_MASK   0x03
@@ -119,7 +115,8 @@ extern "C" {
 #define NWK_FC_SRC_ROUTE_MASK    0x01
 #define NWK_FC_DST_EXTADDR_MASK  0x01
 #define NWK_FC_SRC_EXTADDR_MASK  0x01
-#define NWK_FC_RESERVED_MASK     0x07
+#define NWK_FC_END_DEV_INIT_MASK 0x01
+#define NWK_FC_RESERVED_MASK     0x03
 
 // Frame Type sub-field
 #define DATA_FRAME_TYPE           0x00
@@ -147,6 +144,8 @@ extern "C" {
 #define NSDU_SIZE_LINK_STATUS_DEFAULT 2
 #define NSDU_SIZE_NETWORK_REPORT      10
 #define NSDU_SIZE_NETWORK_UPDATE      11
+#define NSDU_SIZE_END_DEV_TIMEOUT_REQ 3
+#define NSDU_SIZE_END_DEV_TIMEOUT_RSP 3
 
 #define NWK_AUX_HDR_LEN  14
 // Status Codes for Network Status Command Frame
@@ -207,6 +206,18 @@ extern "C" {
 #define NWKUPDATE_INFO_CNT                  0x1F
 #define NWKUPDATE_CMD_ID                    0xE0
 
+// End Device Timeout Request Timeout values
+#define ENDDEV_REQ_MIN_TIMEOUT_VALUE        0x00
+#define ENDDEV_REQ_MAX_TIMEOUT_VALUE        0x0E
+
+// End Device Timeout Request Configuration mask, for R21 0x00 is the only valid value
+#define ENDDEV_REQ_END_DEV_CFG_INVALID_MASK   0xFF
+
+// End Device Timeout Response status values
+#define ENDDEV_RSP_STATUS_SUCCESS           0x00
+#define ENDDEV_RSP_STATUS_INCORRECT_VALUE   0x01
+
+
 /*********************************************************************
  * TYPEDEFS
  */
@@ -266,6 +277,7 @@ extern ZStatus_t NLDE_DataReqSend( NLDE_DataReq_t* req );
 extern ZStatus_t NLDE_SendMsg( uint8* msdu, uint16 nextHopAddr, uint16 macSrcAddr,
                                uint8 msduLength, uint8 nsduHandle,
                                uint16 nsduHandleOptions,
+                               uint8 apsRetries,
                                nwkDB_UserData_t* ud );
 
 /*
@@ -343,11 +355,6 @@ extern void NLME_RejoinReqCmdProcess( NLDE_FrameFormat_t* ff );
  */
 extern uint16 NLDE_BuildSrcRtgFrame( NLDE_SrcFrameFormat_t* sff, uint16 dstAddr );
 
-/*
- * Sends a Leave command directly to MAC bypassing routing
- */
-extern ZStatus_t NLME_LeaveCmdSendDirectly( NLME_LeaveCmd_t* cmd );
-
 /*********************************************************************
  * HELPERS FUNCTION PROTOTYPES
  */
@@ -389,14 +396,19 @@ extern uint8 NLDE_ParseFrameControl( uint16 fc, NLDE_FrameFormat_t *ff );
 extern void NLME_AddressConflictAssignNewStochastic( void );
 
 // Functions pointers for addressing schemes
-extern void (*pnwk_AssignNewAddr)( void );
-
 extern ZStatus_t NLME_SendNetworkReport( uint16 dstAddr, uint8 reportType, uint8 *EPID,
                                          uint8 reportInfoCnt, uint16 *panIDs );
 extern void NLME_ProcessNetworkReport( NLDE_FrameFormat_t *ff );
 extern ZStatus_t NLME_SendNetworkUpdate( uint16 dstAddr, uint8 updateType, uint8 *EPID,
                                          uint8 updateId, uint16 newPID );
 extern uint8 NLME_ProcessNetworkUpdate( uint8 handle, NLDE_FrameFormat_t *ff );
+
+extern ZStatus_t NLME_SendEndDevTimeoutReq( uint16 dstAddr, uint8 *destExtAddr,
+                                            uint8 reqTimeout, uint8 endDevCfg );
+extern void NLME_ProcessEndDevTimeoutReq( NLDE_FrameFormat_t *ff );
+extern ZStatus_t NLME_SendEndDevTimeoutRsp( uint16 dstAddr, uint8 status, uint8 parentInfo );
+extern void NLME_ProcessEndDevTimeoutRsp( NLDE_FrameFormat_t *ff );
+
 extern void nwkAddPanId( uint16 panID );
 extern void nwkProcessPanIdScan( void );
 extern void nwkChangePanID( void );
@@ -418,9 +430,6 @@ extern ZStatus_t NLME_SendLinkStatus( uint8 neighbors, uint8 options,
                               linkStatusListItem_t *pList );
 extern void NLME_ProcessLinkStatus( NLDE_FrameFormat_t *ff );
 
-extern void (*pNLME_SetLinkStatusTimer)( void );
-extern void (*pNLME_UpdateLinkStatus)( void );
-extern void (*pNLME_ProcessLinkStatus)( NLDE_FrameFormat_t *ff );
 extern uint8 nwkConvertLqiToCost( uint8 lqi );
 
 
@@ -492,25 +501,23 @@ uint16 timeoutCounter;
 
 extern void NwkInitChildAging( void );
 
-#if defined ( ZIGBEE_CHILD_AGING )
 extern nwkNotMyChild_t notMyChildList[];
 
 extern void NwkNotMyChildListInit( void );
 
 extern void NwkNotMyChildListAging( void );
 
-extern uint8 NwkNotMyChildListAdd( uint16 childAddr, uint16 timeoutValue );
+extern uint8 NwkNotMyChildListAdd( uint16 childAddr, uint32 timeoutValue );
 
 extern void NwkNotMyChildListDelete( uint16 devAddr );
 
 extern void NwkNotMyChildSendLeave( uint16 dstAddr );
-#endif // ZIGBEE_CHILD_AGING
 
 extern void (*pAssocChildAging)( void );
 extern uint8 (*pAssocChildTableUpdateTimeout)( uint16 nwkAddr );
 extern void (*pNwkNotMyChildListInit)( void );
 extern void (*pNwkNotMyChildListAging)( void );
-extern uint8 (*pNwkNotMyChildListAdd)( uint16 devAddr, uint16 timeoutValue );
+extern uint8 (*pNwkNotMyChildListAdd)( uint16 devAddr, uint32 timeoutValue );
 extern void (*pNwkNotMyChildListDelete)( uint16 devAddr );
 extern void (*pNwkNotMyChildSendLeave)( uint16 dstAddr );
 

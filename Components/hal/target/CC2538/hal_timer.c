@@ -1,7 +1,7 @@
 /**************************************************************************************************
   Filename:       hal_timer.c
-  Revised:        $Date: 2011-09-20 04:30:28 -0700 (Tue, 20 Sep 2011) $
-  Revision:       $Revision: 27635 $
+  Revised:        $Date: 2014-12-05 13:20:43 -0800 (Fri, 05 Dec 2014) $
+  Revision:       $Revision: 41366 $
 
   Description:   This file contains the interface to the Timer Service.
 

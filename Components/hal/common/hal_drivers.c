@@ -52,6 +52,8 @@
 #include "hal_dma.h"
 #endif
 #include "hal_drivers.h"
+#include "hal_key.h"
+#include "hal_lcd.h"
 #include "hal_led.h"
 #include "hal_sleep.h"
 #include "hal_timer.h"
@@ -70,6 +72,7 @@
 #if (defined HAL_SPI) && (HAL_SPI == TRUE)
 #include "hal_spi.h"
 #endif
+
 
 /**************************************************************************************************
  *                                      GLOBAL VARIABLES
@@ -128,6 +131,11 @@ void HalDriverInit (void)
   HalAesInit();
 #endif
 
+  /* LCD */
+#if (defined HAL_LCD) && (HAL_LCD == TRUE)
+  HalLcdInit();
+#endif
+
   /* LED */
 #if (defined HAL_LED) && (HAL_LED == TRUE)
   HalLedInit();
@@ -138,6 +146,11 @@ void HalDriverInit (void)
   HalUARTInit();
 #endif
 
+  /* KEY */
+#if (defined HAL_KEY) && (HAL_KEY == TRUE)
+  HalKeyInit();
+#endif
+  
   /* SPI */
 #if (defined HAL_SPI) && (HAL_SPI == TRUE)
   HalSpiInit();
@@ -205,6 +218,21 @@ uint16 Hal_ProcessEvent( uint8 task_id, uint16 events )
     return events ^ HAL_LED_BLINK_EVENT;
   }
 
+  if (events & HAL_KEY_EVENT)
+  {
+#if (defined HAL_KEY) && (HAL_KEY == TRUE)
+    /* Check for keys */
+    HalKeyPoll();
+
+    /* if interrupt disabled, do next polling */
+    if (!Hal_KeyIntEnable)
+    {
+      osal_start_timerEx( Hal_TaskID, HAL_KEY_EVENT, 100);
+    }
+#endif
+    return events ^ HAL_KEY_EVENT;
+  }
+
 #if defined POWER_SAVING
   if ( events & HAL_SLEEP_TIMER_EVENT )
   {
@@ -262,7 +290,8 @@ void Hal_ProcessPoll ()
 #if (defined HAL_HID) && (HAL_HID == TRUE)
   usbHidProcessEvents();
 #endif
- 
+
+
 }
 
 /**************************************************************************************************

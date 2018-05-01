@@ -160,11 +160,11 @@
  **************************************************************************************************/
 
 #define HAL_IO_SET(port, pin, val)        HAL_IO_SET_PREP(port, pin, val)
-#define HAL_IO_SET_PREP(port, pin, val)   st( P##port##_##pin## = val; )
+#define HAL_IO_SET_PREP(port, pin, val)   st( P##port##_##pin = val; )
 
 #define HAL_CONFIG_IO_OUTPUT(port, pin, val)      HAL_CONFIG_IO_OUTPUT_PREP(port, pin, val)
 #define HAL_CONFIG_IO_OUTPUT_PREP(port, pin, val) st( P##port##SEL &= ~BV(pin); \
-                                                      P##port##_##pin## = val; \
+                                                      P##port##_##pin = val; \
                                                       P##port##DIR |= BV(pin); )
 
 #define HAL_CONFIG_IO_PERIPHERAL(port, pin)      HAL_CONFIG_IO_PERIPHERAL_PREP(port, pin)
@@ -207,7 +207,6 @@ static uint8 *Lcd_Line1;
 
 void HalLcd_HW_Init(void);
 void HalLcd_HW_WaitUs(uint16 i);
-void HalLcd_HW_Clear(void);
 void HalLcd_HW_ClearAllSpecChars(void);
 void HalLcd_HW_Control(uint8 cmd);
 void HalLcd_HW_Write(uint8 data);
@@ -316,8 +315,11 @@ void HalLcdWriteString ( char *str, uint8 option)
     }
   }
 
-  /* Display the string */
-  HalLcd_HW_WriteLine (option, str);
+  if (option != HAL_LCD_SERIAL_DEBUG_ONLY)
+  {
+    /* Display the string */
+    HalLcd_HW_WriteLine (option, str);
+  }
 
 #endif //HAL_LCD
 
@@ -357,8 +359,8 @@ void HalLcdWriteValue ( uint32 value, const uint8 radix, uint8 option)
 void HalLcdWriteScreen( char *line1, char *line2 )
 {
 #if (HAL_LCD == TRUE)
-  HalLcdWriteString( line1, 1 );
-  HalLcdWriteString( line2, 2 );
+  HalLcdWriteString( line1, HAL_LCD_DEBUG_LINE_1 );
+  HalLcdWriteString( line2, HAL_LCD_DEBUG_LINE_2 );
 #endif
 }
 

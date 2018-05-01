@@ -56,12 +56,12 @@ extern "C"
 /*
  * MonitorTest Task Initialization
  */
-//extern void MT_TaskInit(uint8 task_id);
+extern void MT_TaskInit(uint8 task_id);
 
 /*
  * MonitorTest Event Processor
  */
-//extern UINT16 MT_ProcessEvent(uint8 task_id, uint16 event);
+extern UINT16 MT_ProcessEvent(uint8 task_id, uint16 event);
 
 
 #ifdef __cplusplus

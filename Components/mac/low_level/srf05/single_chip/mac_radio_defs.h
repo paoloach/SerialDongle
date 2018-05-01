@@ -260,6 +260,7 @@
 #define MAC_RADIO_TIMER_TICKS_PER_SYMBOL()            (HAL_CPU_CLOCK_MHZ * MAC_SPEC_USECS_PER_SYMBOL)
 
 #define MAC_RADIO_TIMER_CAPTURE()                     macMcuTimerCapture()
+#define MAC_RADIO_TIMER_CAPTURE_CURRENT()             macMcuTimerCaptureCurrent()
 #define MAC_RADIO_TIMER_FORCE_DELAY(x)                macMcuTimerForceDelay(x)
 
 #define MAC_RADIO_TIMER_SLEEP()                       st( T2CTRL &= ~TIMER2_RUN; while(T2CTRL & TIMER2_STATE); )
@@ -269,6 +270,7 @@
 
 #define MAC_RADIO_BACKOFF_COUNT()                     macMcuOverflowCount()
 #define MAC_RADIO_BACKOFF_CAPTURE()                   macMcuOverflowCapture()
+#define MAC_RADIO_BACKOFF_CAPTURE_CURRENT()           macMcuOverflowCaptureCurrent()
 #define MAC_RADIO_BACKOFF_SET_COUNT(x)                macMcuOverflowSetCount(x)
 #define MAC_RADIO_BACKOFF_SET_COMPARE(x)              macMcuOverflowSetCompare(x)
 

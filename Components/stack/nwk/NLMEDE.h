@@ -1,12 +1,12 @@
 /**************************************************************************************************
   Filename:       NLMEDE.h
-  Revised:        $Date: 2014-03-13 15:53:56 -0700 (Thu, 13 Mar 2014) $
-  Revision:       $Revision: 37678 $
+  Revised:        $Date: 2015-06-02 15:55:43 -0700 (Tue, 02 Jun 2015) $
+  Revision:       $Revision: 43961 $
 
   Description:    Network layer interface NLME and NLDE.
 
 
-  Copyright 2004-2014 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2004-2015 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -197,6 +197,7 @@ typedef enum
   nwkNumNeighborTableEntries,
   nwkNumRoutingTableEntries,
   nwkNwkState,
+  nwkNwkPollTimeOut = 0xD8,
   nwkMAX_NIB_ITEMS            // Must be the last entry
 }ZNwkAttributes_t;
 
@@ -248,6 +249,10 @@ typedef struct
   NLDE_SrcFrameFormat_t srcfd;          //Source route frame data
   uint8* nsdu;
   uint16 macSrcAddr;
+  uint16  txOptions;
+  uint8   apsRetries;
+  uint8   endDevInitiator;
+  uint8   nsduHandle;
 } NLDE_FrameFormat_t;
 
 typedef struct
@@ -281,7 +286,10 @@ typedef struct
   uint8* dstExtAddr;
   uint8* srcExtAddr;
   uint16 transID;     // Only used for local messaging
+  uint16 txOptions;
+  uint8  apsRetries;
   void*  fd;
+  uint8  endDevInitiator;
 } NLDE_FrameData_t;
 
 typedef struct
@@ -365,6 +373,7 @@ typedef struct
 extern byte NLME_PermitJoining;
 extern byte NLME_AssocPermission;
 extern uint16 savedResponseRate;     // Backed response rate for rejoin request
+extern uint16 savedQueuedPollRate;   // Backed queued poll rate
 
 // network discovery scan fields
 extern NLME_ScanFields_t* NLME_ScanFields;
@@ -434,12 +443,15 @@ extern void NLDE_DataIndication( NLDE_FrameFormat_t *ff,  NLDE_Signal_t *sig, ui
  *  byte BeaconOrder,
  *  byte ScanDuration,
  *  byte SuperFrameOrder,
- *  byte BatteryLifeExtension)
+ *  byte BatteryLifeExtension,
+ *  bool DistributedNetwork,
+ *  int16 DistributedNetworkAddress)
  *
  */
 extern ZStatus_t NLME_NetworkFormationRequest( uint16 PanId,  uint8* ExtendedPANID, uint32 ScanChannels,
                                                byte ScanDuration, byte BeaconOrder,
-                                               byte SuperframeOrder, byte BatteryLifeExtension  );
+                                               byte SuperframeOrder, byte BatteryLifeExtension, bool DistributedNetwork, 
+                                               uint16 DistributedNetworkAddress );
 
 /*
  * This function reports the results of the request to form a new
@@ -474,6 +486,8 @@ extern void NLME_NwkDiscTerm( void );
  *
  */
 extern void NLME_NetworkDiscoveryConfirm(uint8 status);
+
+extern uint8 NLME_GetRemainingPermitJoiningDuration( void );
 
 /*
  * This function defines how the next higher layer of a coordinator device
@@ -525,6 +539,15 @@ extern ZStatus_t NLME_DirectJoinRequestWithAddr( byte *DevExtAddress, uint16 sho
  *
  */
 extern ZStatus_t NLME_OrphanJoinRequest( uint32 ScanChannels, byte ScanDuration );
+
+
+
+/*
+ * This function allows the next higher layer to set the nwk state to parent lost.
+ */
+extern void NLME_OrphanStateSet(void);
+
+
 
 /*
  * This function allows the next higher layer to request the device
@@ -699,7 +722,7 @@ extern ZStatus_t NLME_SetRequest( ZNwkAttributes_t NIBAttribute,
 extern ZStatus_t NLME_RouteDiscoveryRequest( uint16 DstAddress, byte options, uint8 radius );
 
 
-/*
+/*?
  * This function allow to indicate to higher layer the existence of
  * concentrator and its nwk address
  */
@@ -760,7 +783,7 @@ extern ZMacStatus_t NwkPollReq( byte securityEnable );
  * newRate is set to 0, it will turn off the auto polling, 1 will do a
  * one time poll.
  */
-extern void NLME_SetPollRate( uint16 newRate );
+extern void NLME_SetPollRate( uint32 newRate );
 
 /*
  * Use this function to set/change the Network Queued Poll Rate.
@@ -778,8 +801,7 @@ extern void NLME_SetResponseRate( uint16 newRate );
 
 /*
  * Initialize the Nwk, Assoc device list, and binding NV Items
- *   returns ZSUCCESS if successful, NV_ITEM_UNINIT if item did not
- *          exist in NV, NV_OPER_FAILED if failure.
+ *   returns SUCCESS if successful otherwise an error bitmask.
  */
 extern byte NLME_InitNV( void );
 
@@ -833,14 +855,9 @@ extern void NLME_DeviceJoiningInit( void );
 
 extern void (*pnwk_ScanPANChanSelect)( ZMacScanCnf_t *param );
 extern void (*pnwk_ScanPANChanVerify)( ZMacScanCnf_t *param );
-extern void (*pnwk_ScanJoiningOrphan)( ZMacScanCnf_t *param );
 extern void (*pNLME_NetworkFormationConfirm)( ZStatus_t Status );
 
-extern void NLME_InitStochasticAddressing( void );
-extern void NLME_InitTreeAddressing( void );
-
 extern ZStatus_t NLME_ReadNwkKeyInfo(uint16 index, uint16 len, void *keyinfo, uint16 NvId);
-
 
 /****************************************************************************
 ****************************************************************************/

@@ -1,12 +1,12 @@
 /******************************************************************************
   Filename:       MT.h
-  Revised:        $Date: 2014-07-25 10:34:31 -0700 (Fri, 25 Jul 2014) $
-  Revision:       $Revision: 39532 $
+  Revised:        $Date: 2015-01-23 10:32:42 -0800 (Fri, 23 Jan 2015) $
+  Revision:       $Revision: 41982 $
 
   Description:    MonitorTest command and response definitions.
 
 
-  Copyright 2008-2014 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2008-2015 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -104,10 +104,20 @@ extern "C"
 #define MT_SYS_OSAL_NV_READ_EXT              0x1C
 #define MT_SYS_OSAL_NV_WRITE_EXT             0x1D
 
+/* Extended Non-Vloatile Memory */
+#define MT_SYS_NV_CREATE                     0x30
+#define MT_SYS_NV_DELETE                     0x31
+#define MT_SYS_NV_LENGTH                     0x32
+#define MT_SYS_NV_READ                       0x33
+#define MT_SYS_NV_WRITE                      0x34
+#define MT_SYS_NV_UPDATE                     0x35
+#define MT_SYS_NV_COMPACT                    0x36
+
 /* AREQ to host */
 #define MT_SYS_RESET_IND                     0x80
 #define MT_SYS_OSAL_TIMER_EXPIRED            0x81
 #define MT_SYS_JAMMER_IND                    0x82
+
 
 #define MT_SYS_RESET_HARD     0
 #define MT_SYS_RESET_SOFT     1
@@ -138,8 +148,8 @@ extern "C"
 #define MT_MAC_SET_RX_GAIN_REQ               0x0f
 
 /* Enhanced Active Scan request */
-#define MT_MAC_ENHANCED_ACTIVE_SCAN_REQ      0x12 
-#define MT_MAC_ENHANCED_ACTIVE_SCAN_RSP      0x13 
+#define MT_MAC_ENHANCED_ACTIVE_SCAN_REQ      0x12
+#define MT_MAC_ENHANCED_ACTIVE_SCAN_RSP      0x13
 
 /* Enhanced MAC interface SREQ/SRSP */
 #define MT_MAC_SRC_MATCH_ENABLE              0x14
@@ -157,7 +167,7 @@ extern "C"
 #define MT_MAC_ADD_DEVICE_REQ                0x35
 #define MT_MAC_DELETE_ALL_DEVICES_REQ        0x36
 #define MT_MAC_UPDATE_PAN_ID                 0x37
-  
+
 /* AREQ from Host */
 #define MT_MAC_ASSOCIATE_RSP                 0x50
 #define MT_MAC_ORPHAN_RSP                    0x51
@@ -257,7 +267,6 @@ extern "C"
 #define MT_ZDO_END_DEV_ANNCE                 0x0A
 #define MT_ZDO_USER_DESC_SET                 0x0B
 #define MT_ZDO_SERVICE_DISC_REQ              0x0C
-#define MT_ZDO_END_DEVICE_TIMEOUT_REQ        0x0D
 #define MT_ZDO_END_DEV_BIND_REQ              0x20
 #define MT_ZDO_BIND_REQ                      0x21
 #define MT_ZDO_UNBIND_REQ                    0x22
@@ -305,6 +314,7 @@ extern "C"
 #define MT_ZDO_FORCE_CONCENTRATOR_CHANGE     0x52
 #define MT_ZDO_EXT_SET_PARAMS                0x53
 
+
 /* AREQ to host */
 #define MT_ZDO_AREQ_TO_HOST                  0x80 /* Mark the start of the ZDO CId AREQs to host. */
 #define MT_ZDO_NWK_ADDR_RSP               /* 0x80 */ ((uint8)NWK_addr_req | 0x80)
@@ -320,8 +330,6 @@ extern "C"
 //                                        /* 0x92 */ ((uint8)Discovery_Cache_req | 0x80)
 #define MT_ZDO_USER_DESC_CONF                0x89
 #define MT_ZDO_SERVER_DISC_RSP               0x8A
-
-#define MT_ZDO_END_DEVICE_TIMEOUT_RSP     /* 0x9F */  ((uint8)End_Device_Timeout_req | 0x80)
 
 #define MT_ZDO_END_DEVICE_BIND_RSP        /* 0xA0 */ ((uint8)End_Device_Bind_req | 0x80)
 #define MT_ZDO_BIND_RSP                   /* 0xA1 */ ((uint8)Bind_req | 0x80)
@@ -349,6 +357,7 @@ extern "C"
 #define MT_ZDO_LEAVE_IND                     0xC9
 #define MT_ZDO_TC_DEVICE_IND                 0xCA
 #define MT_ZDO_PERMIT_JOIN_IND               0xCB
+#define MT_ZDO_SET_REJOIN_PARAMS             0xCC
 
 #define MT_ZDO_MSG_CB_INCOMING               0xFF
 
@@ -434,6 +443,9 @@ extern "C"
 /* AREQ from/to host */
 #define MT_UTIL_SYNC_REQ                     0xE0
 #define MT_UTIL_ZCL_KEY_ESTABLISH_IND        0xE1
+#ifdef FEATURE_GET_PRIMARY_IEEE
+#define MT_UTIL_GET_PRIMARY_IEEE             0xEF
+#endif
 
 /***************************************************************************************************
  * DEBUG COMMANDS
@@ -441,12 +453,51 @@ extern "C"
 
 /* SREQ/SRSP: */
 #define MT_DEBUG_SET_THRESHOLD               0x00
-
 #define MT_DEBUG_MAC_DATA_DUMP               0x10
-
+ 
+//TP2 commands  
+#define MT_DEBUG_TP2_ENABLEAPSSECURITY       0x01
+#define MT_DEBUG_TP2_SET_NODE_R20            0x02
+  
 /* AREQ */
 #define MT_DEBUG_MSG                         0x80
 
+
+  
+/***************************************************************************************************
+ * APP CONFIG COMMANDS
+ ***************************************************************************************************/  
+
+#define MT_APP_CNF_SET_DEFAULT_REMOTE_ENDDEVICE_TIMEOUT    0x01
+#define MT_APP_CNF_SET_ENDDEVICETIMEOUT                    0x02
+#define MT_APP_CNF_SET_ALLOWREJOIN_TC_POLICY               0x03
+#define MT_APP_CNF_BDB_ADD_INSTALLCODE                     0x04
+#define MT_APP_CNF_BDB_START_COMMISSIONING                 0x05
+#define MT_APP_CNF_BDB_SET_JOINUSESINSTALLCODEKEY          0x06
+#define MT_APP_CNF_BDB_SET_ACTIVE_DEFAULT_CENTRALIZED_KEY  0x07
+#define MT_APP_CNF_BDB_SET_CHANNEL                         0x08
+#define MT_APP_CNF_BDB_SET_TC_REQUIRE_KEY_EXCHANGE         0x09    
+#define MT_APP_CNF_BDB_ZED_ATTEMPT_RECOVER_NWK             0x0A
+  
+#define MT_APP_CNF_BDB_COMMISSIONING_NOTIFICATION          0x80    
+//Application debug commands
+#define MT_APP_CNF_SET_NWK_FRAME_COUNTER                   0xFF  
+  
+  
+/***************************************************************************************************
+ * GP COMMANDS
+ ***************************************************************************************************/  
+//From Host to ZNP
+#define MT_GP_DATA_REQ                       0x01
+#define MT_GP_SEC_RSP                        0x02
+
+//From ZNP to Host
+#define MT_GP_SEC_REQ                        0x03
+#define MT_GP_DATA_IND                       0x04
+#define MT_GP_DATA_CNF                       0x05
+ 
+
+  
 /***************************************************************************************************
  * APP COMMANDS
  ***************************************************************************************************/
@@ -454,10 +505,13 @@ extern "C"
 /* SREQ/SRSP: */
 #define MT_APP_MSG                           0x00
 #define MT_APP_USER_TEST                     0x01
+#define MT_APP_PB_ZCL_MSG                    0x02
+#define MT_APP_PB_ZCL_CFG                    0x03
 
 /* SRSP */
 #define MT_APP_RSP                           0x80
-#define MT_APP_ZLL_TL_IND                    0x81
+#define MT_APP_TOUCHLINK_TL_IND              0x81
+#define MT_APP_PB_ZCL_IND                    0x82
 
 /***************************************************************************************************
 * FILE SYSTEM COMMANDS
@@ -701,6 +755,7 @@ extern "C"
 #endif
 #define TP_SET_LEAVE_REQ_ALLOWED    0x005C
 #define TP_SEND_REJOIN_REQ_SECURE   0x005D
+#define TP_SEND_REJOIN_REQ_UNSECURE 0x005E
 #endif
 
 #endif
@@ -766,11 +821,19 @@ extern "C"
   #define MT_CAP_APP    0x0000
 #endif
 
-#if defined ( MT_GP_FUNC )
+#if defined ( MT_GP_CB_FUNC )
   #define MT_CAP_GP     0x0200
 #else
   #define MT_CAP_GP     0x0000
 #endif
+
+#if defined ( MT_APP_CNF_FUNC)
+#define MT_CAP_APP_CNF 0x0400
+#else
+#define MT_CAP_APP_CNF 0x0000
+#endif
+
+
 
 #if defined ( ZPORT )
   #define MT_CAP_ZOAD 0x1000

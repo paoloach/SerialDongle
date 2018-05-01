@@ -12,4 +12,5 @@ void getNodeDescriptor(uint8 * data) {
 	if (ret != ZSuccess){
 		nodeDescriptionResponseMessageError(destAddr.addr.shortAddr, ret);
 	}
+
 }

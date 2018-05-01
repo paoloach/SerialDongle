@@ -1,12 +1,12 @@
 /**************************************************************************************************
   Filename:       reflecttrack.h
-  Revised:        $Date: 2013-05-07 13:02:49 -0700 (Tue, 07 May 2013) $
-  Revision:       $Revision: 34167 $
+  Revised:        $Date: 2015-06-02 15:55:43 -0700 (Tue, 02 Jun 2015) $
+  Revision:       $Revision: 43961 $
 
   Description:    APS Reflect Tracking Database Module
 
 
-  Copyright 2005-2013 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2005-2015 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -22,8 +22,8 @@
   its documentation for any purpose.
 
   YOU FURTHER ACKNOWLEDGE AND AGREE THAT THE SOFTWARE AND DOCUMENTATION ARE
-  PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
-  INCLUDING WITHOUT LIMITATION, ANY WARRANTY OF MERCHANTABILITY, TITLE, 
+  PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS OR IMPLIED,
+  INCLUDING WITHOUT LIMITATION, ANY WARRANTY OF MERCHANTABILITY, TITLE,
   NON-INFRINGEMENT AND FITNESS FOR A PARTICULAR PURPOSE. IN NO EVENT SHALL
   TEXAS INSTRUMENTS OR ITS LICENSORS BE LIABLE OR OBLIGATED UNDER CONTRACT,
   NEGLIGENCE, STRICT LIABILITY, CONTRIBUTION, BREACH OF WARRANTY, OR OTHER
@@ -34,7 +34,7 @@
   (INCLUDING BUT NOT LIMITED TO ANY DEFENSE THEREOF), OR OTHER SIMILAR COSTS.
 
   Should you have any questions regarding your right to use this Software,
-  contact Texas Instruments Incorporated at www.TI.com. 
+  contact Texas Instruments Incorporated at www.TI.com.
 **************************************************************************************************/
 
 #ifndef REFLECTTRACK_H
@@ -97,6 +97,7 @@ typedef struct
   uint8  dstEP;
   uint8  handle;
   uint8  options;
+  uint8  addrMgrIndex;          //Index in address manager to search for short address in case of not having it
 } ReflectDestRec_t;
 
 typedef struct
@@ -109,6 +110,8 @@ typedef struct
   uint16  transID;
   uint8*  asdu;                 // saved asdu
   uint8   numdests;             // number of the destination reflections
+  uint16  txOptions;            // original options from upper layer used to send the message
+  uint8   apsRetries;           // number of times the packet has been APS retry
   ReflectDestRec_t  dests[];    // Arrary of destinations
                                 // - the number of destinations must
                                 // be used to allocate this element
@@ -172,7 +175,7 @@ extern uint8 reflectTracking_GetMaxIndirectAdjusted( ReflectTracking_t *entry );
   * to the list.  It just gets the memory, you must fill in and add to
   * the list by calling
   */
-extern ReflectTracking_t *reflectTrack_GetNewEntry( uint8 numDests, 
+extern ReflectTracking_t *reflectTrack_GetNewEntry( uint8 numDests,
                                                     uint8 asduLen );
 
  /*
@@ -218,6 +221,11 @@ extern ReflectTracking_t *reflectTrack_FindHandle( byte handle );
  * Update (OR in) options for the passed in parameters.
  */
 extern ReflectDestRec_t *reflectTrack_UpdateOption( ReflectTracking_t *ref, byte handle, byte option );
+
+/*
+ * Update the nsduHandle for the passed in parameters.
+ */
+extern void reflectTrack_UpdateHandle( uint8 oldHandle, uint8 newHandle );
 
 /*
  * Find entry in list based on the source address, endpoint,

@@ -195,6 +195,7 @@ extern "C"
 #define ZCL_OTA_IMAGE_QUERY_TO_EVT                    0x0010
 #define ZCL_OTA_IMAGE_BLOCK_REQ_DELAY_EVT             0x0020
 #define ZCL_OTA_SEND_MATCH_DESCRIPTOR_EVT             0x0040
+#define ZCL_OTA_SEND_IEEE_ADD_REQ_EVT                 0x0080
 
 
 // The OTA Upgrade delay is the number of seconds before the client

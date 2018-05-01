@@ -7,9 +7,9 @@
 **************************************************************************************************/
 
 #include "zcl_functions.h"
-//#include "SerialFunctions.h"
+#ifndef NO_SERIAL
 #include "SerialSend/SendMethods.h"
-
+#endif
 /*********************************************************************
  * MACROS
  */
@@ -98,7 +98,9 @@ void zclCoordinatort_ProcessZCLIncomingMsg( zclIncomingMsg_t *pInMsg){
  * @return  none
  */
 static uint8 ZCLProcessInReadRspCmd( zclIncomingMsg_t *pInMsg ){
+	#ifndef NO_SERIAL
 	serialSendAttributeResponseMsg((zclReadRspCmd_t *)pInMsg->attrCmd, pInMsg->clusterId, &(pInMsg->srcAddr));
+#endif
 	return TRUE; 
 }
 

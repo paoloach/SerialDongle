@@ -1,7 +1,7 @@
 /**************************************************************************************************
   Filename:       zmac_internal.h
-  Revised:        $Date: 2014-07-11 13:41:40 -0700 (Fri, 11 Jul 2014) $
-  Revision:       $Revision: 39397 $
+  Revised:        $Date: 2014-07-07 17:47:52 -0700 (Mon, 07 Jul 2014) $
+  Revision:       $Revision: 39365 $
 
   Description:    This file contains the ZStack MAC Porting Layer.
 
@@ -22,8 +22,8 @@
   its documentation for any purpose.
 
   YOU FURTHER ACKNOWLEDGE AND AGREE THAT THE SOFTWARE AND DOCUMENTATION ARE
-  PROVIDED “AS IS” WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS OR IMPLIED,
-  INCLUDING WITHOUT LIMITATION, ANY WARRANTY OF MERCHANTABILITY, TITLE,
+  PROVIDED “AS IS” WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
+  INCLUDING WITHOUT LIMITATION, ANY WARRANTY OF MERCHANTABILITY, TITLE, 
   NON-INFRINGEMENT AND FITNESS FOR A PARTICULAR PURPOSE. IN NO EVENT SHALL
   TEXAS INSTRUMENTS OR ITS LICENSORS BE LIABLE OR OBLIGATED UNDER CONTRACT,
   NEGLIGENCE, STRICT LIABILITY, CONTRIBUTION, BREACH OF WARRANTY, OR OTHER
@@ -34,7 +34,7 @@
   (INCLUDING BUT NOT LIMITED TO ANY DEFENSE THEREOF), OR OTHER SIMILAR COSTS.
 
   Should you have any questions regarding your right to use this Software,
-  contact Texas Instruments Incorporated at www.TI.com.
+  contact Texas Instruments Incorporated at www.TI.com. 
 **************************************************************************************************/
 
 #ifndef ZMAC_INTERNAL_H
@@ -114,7 +114,8 @@ enum
   ZMacAltBE                             = MAC_ALT_BE,
   ZMacDeviceBeaconOrder                 = MAC_DEVICE_BEACON_ORDER,
   ZMacRf4cePowerSavings                 = MAC_RF4CE_POWER_SAVINGS,
-
+  ZMacFrameVersionSupport               = MAC_FRAME_VERSION_SUPPORT,
+    
   // Diagnostics Items
   ZMacDiagsRxCrcPass                    = MAC_DIAGS_RX_CRC_PASS,
   ZMacDiagsRxCrcFail                    = MAC_DIAGS_RX_CRC_FAIL,
@@ -124,9 +125,6 @@ enum
   ZMacDiagsTxUcast                      = MAC_DIAGS_TX_UCAST,
   ZMacDiagsTxUcastRetry                 = MAC_DIAGS_TX_UCAST_RETRY,
   ZMacDiagsTxUcastFail                  = MAC_DIAGS_TX_UCAST_FAIL,
-  
-  // Proprietary Get only Items
-  ZMacRandomSeed                        = MAC_RANDOM_SEED,
 
 #ifdef FEATURE_MAC_SECURITY
   ZMacKeyTable                          = MAC_KEY_TABLE,
@@ -145,7 +143,7 @@ enum
   ZMacDefaultKeySource                  = MAC_DEFAULT_KEY_SOURCE,
   ZMacPanCoordExtendedAddress           = MAC_PAN_COORD_EXTENDED_ADDRESS,
   ZMacPanCoordShortAddress              = MAC_PAN_COORD_SHORT_ADDRESS,
-
+  
   ZMacKeyIdLookupEntry                  = MAC_KEY_ID_LOOKUP_ENTRY,
   ZMacKeyDeviceEntry                    = MAC_KEY_DEVICE_ENTRY,
   ZMacKeyUsageEntry                     = MAC_KEY_USAGE_ENTRY,
@@ -173,7 +171,7 @@ typedef uint8 ZMacStatus_t;
 #define ZMAC_PASSIVE_SCAN              MAC_SCAN_PASSIVE
 #define ZMAC_ORPHAN_SCAN               MAC_SCAN_ORPHAN
 
-/* Adding Enhanced Active Scan request/ Enhanced beacon request */
+/* Adding Enhanced Active Scan request/ Enhanced beacon request */ 
 #define ZMAC_ENHANCED_ACTIVE_SCAN      MAC_SCAN_ACTIVE_ENHANCED
 // Association Status Field Values
 #define ZMAC_SUCCESSFUL_ASSOCIATION    0x00
@@ -218,6 +216,9 @@ typedef uint8 ZMacStatus_t;
 #define ZMAC_TRANSACTION_EXPIRED       MAC_TRANSACTION_EXPIRED
 #define ZMAC_CHANNEL_ACCESS_FAILURE    MAC_CHANNEL_ACCESS_FAILURE
 #define ZMAC_NO_RESOURCES              MAC_NO_RESOURCES
+#define ZMAC_NO_ACK                    MAC_NO_ACK
+#define ZMAC_COUNTER_ERROR             MAC_COUNTER_ERROR
+#define ZMAC_INVALID_PARAMETER         MAC_INVALID_PARAMETER
 
 #define ZMAC_KEY_SOURCE_MAX_LEN        MAC_KEY_SOURCE_MAX_LEN
 

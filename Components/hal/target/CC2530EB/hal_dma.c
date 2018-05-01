@@ -109,6 +109,9 @@ void HalDmaInit( void )
 #endif
 }
 
+#if (HAL_UART_DMA || \
+   ((defined HAL_SPI) && (HAL_SPI == TRUE))  || \
+   ((defined HAL_IRGEN) && (HAL_IRGEN == TRUE)))
 /******************************************************************************
  * @fn      HalDMAInit
  *
@@ -118,8 +121,47 @@ void HalDmaInit( void )
  *
  * @return  None
  *****************************************************************************/
+HAL_ISR_FUNCTION( halDmaIsr, DMA_VECTOR )
+{
+  extern void HalUARTIsrDMA(void);
 
+  HAL_ENTER_ISR();
 
+  DMAIF = 0;
+
+#if HAL_UART_DMA
+  if (HAL_DMA_CHECK_IRQ(HAL_DMA_CH_TX))
+  {
+    HalUARTIsrDMA();
+  }
+#endif // HAL_UART_DMA
+
+#if (defined HAL_SPI) && (HAL_SPI == TRUE)
+  if ( HAL_DMA_CHECK_IRQ( HAL_DMA_CH_RX ) )
+  {
+    HAL_DMA_CLEAR_IRQ( HAL_DMA_CH_RX );
+    HalSpiRxIsr();
+  }
+
+  if ( HAL_DMA_CHECK_IRQ( HAL_DMA_CH_TX ) )
+  {
+    HAL_DMA_CLEAR_IRQ( HAL_DMA_CH_TX );
+    HalSpiTxIsr();
+  }
+#endif // (defined HAL_SPI) && (HAL_SPI == TRUE)
+
+#if (defined HAL_IRGEN) && (HAL_IRGEN == TRUE)
+  if ( HAL_IRGEN == TRUE && HAL_DMA_CHECK_IRQ( HAL_IRGEN_DMA_CH ) )
+  {
+    HAL_DMA_CLEAR_IRQ( HAL_IRGEN_DMA_CH );
+    HalIrGenDmaIsr();
+  }
+#endif // (defined HAL_IRGEN) && (HAL_IRGEN == TRUE)
+
+  CLEAR_SLEEP_MODE();
+  HAL_EXIT_ISR();
+}
+#endif
 #endif  // #if ((defined HAL_DMA) && (HAL_DMA == TRUE))
 /******************************************************************************
 ******************************************************************************/

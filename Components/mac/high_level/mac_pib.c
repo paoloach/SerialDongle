@@ -1,12 +1,12 @@
 /**************************************************************************************************
   Filename:       mac_pib.c
-  Revised:        $Date: 2014-07-22 11:05:31 -0700 (Tue, 22 Jul 2014) $
-  Revision:       $Revision: 39478 $
+  Revised:        $Date: 2015-01-09 12:53:20 -0800 (Fri, 09 Jan 2015) $
+  Revision:       $Revision: 41702 $
 
   Description:    This module contains procedures for the MAC PIB.
 
 
-  Copyright 2006-2014 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2006-2015 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -53,9 +53,9 @@
 #include <stddef.h>
 
 #include "R2R_FlashJT.h"
-#if defined( CC26XX ) || defined( CC26XX_PG2 )
+#if defined (CC26XX)
 #include "R2F_FlashJT.h"
-#endif /* CC26XX || CC26XX_PG2 */
+#endif /* CC26XX */
 
 /* ------------------------------------------------------------------------------------------------
  *                                           Constants
@@ -67,7 +67,7 @@
 #define MAC_ATTR_SET1_END         0x5D
 #define MAC_ATTR_SET1_OFFSET      0
 #define MAC_ATTR_SET2_START       0xE0
-#define MAC_ATTR_SET2_END         0xEF
+#define MAC_ATTR_SET2_END         0xEE
 #define MAC_ATTR_SET2_OFFSET      (MAC_ATTR_SET1_END - MAC_ATTR_SET1_START + MAC_ATTR_SET1_OFFSET + 1)
 
 /* frame response values */
@@ -151,9 +151,11 @@ static CODE const macPib_t macPibDefaults =
   0                                           /* diagsTxUcastFail */
 };
 
+
 /* PIB access and min/max table.  min/max of 0/0 means not checked; if min/max are
  * equal, element is read-only
  */
+#if !defined (CC26XX) || defined (FLASH_ONLY_BUILD)
 static CODE const macPibTbl_t macPibTbl[] =
 {
   {offsetof(macPib_t, ackWaitDuration), sizeof(uint8), 54, 54},                      /* MAC_ACK_WAIT_DURATION */
@@ -208,7 +210,7 @@ static CODE const macPibTbl_t macPibTbl[] =
 
   /* Proprietary PIBs */
   {offsetof(macPib_t, phyTransmitPower), sizeof(uint8), 0, 0xFF},                    /* MAC_PHY_TRANSMIT_POWER_SIGNED */
-  {offsetof(macPib_t, logicalChannel), sizeof(uint8), MAC_CHAN_11, MAC_CHAN_28},     /* MAC_LOGICAL_CHANNEL */
+  {offsetof(macPib_t, logicalChannel), sizeof(uint8), MAC_CHAN_11, MAC_CHAN_29},     /* MAC_LOGICAL_CHANNEL */
   {offsetof(macPib_t, extendedAddress.addr.extAddr), sizeof(sAddrExt_t), 0, 0},      /* MAC_EXTENDED_ADDRESS */
   {offsetof(macPib_t, altBe), sizeof(uint8), 0, 8},                                  /* MAC_ALT_BE */
   {offsetof(macPib_t, deviceBeaconOrder), sizeof(uint8), 0, 15},                     /* MAC_DEVICE_BEACON_ORDER */
@@ -221,9 +223,10 @@ static CODE const macPibTbl_t macPibTbl[] =
   {offsetof(macPib_t, diagsRxUcast), sizeof(uint32), 0, 0},                          /* MAC_DIAGS_RX_UCAST */
   {offsetof(macPib_t, diagsTxUcast), sizeof(uint32), 0, 0},                          /* MAC_DIAGS_TX_UCAST */
   {offsetof(macPib_t, diagsTxUcastRetry), sizeof(uint32), 0, 0},                     /* MAC_DIAGS_TX_UCAST_RETRY */
-  {offsetof(macPib_t, diagsTxUcastFail), sizeof(uint32), 0, 0},                      /* MAC_DIAGS_TX_UCAST_FAIL *//* MAC_DIAGS_TX_UCAST_FAIL */
-  {offsetof(macPib_t, randomSeed), MAC_RANDOM_SEED_LEN, 0xFF, 0xFF}                  /* MAC_RANDOM_SEED */
+  {offsetof(macPib_t, diagsTxUcastFail), sizeof(uint32), 0, 0}                       /* MAC_DIAGS_TX_UCAST_FAIL *//* MAC_DIAGS_TX_UCAST_FAIL */
+
 };
+#endif /* !CC26XX || FLASH_ONLY_BUILD */
 
 /* Invalid PIB table index used for error code */
 #define MAC_PIB_INVALID     ((uint8) (sizeof(macPibTbl) / sizeof(macPibTbl[0])))
@@ -286,18 +289,12 @@ void MAC_MlmeSetActivePib( void* pPib )
  */
 MAC_INTERNAL_API void macPibReset(void)
 {
-  /* Preserve initialized proprietary values. */
-  uint8 randomSeed[MAC_RANDOM_SEED_LEN];
-  osal_memcpy(randomSeed, pMacPib->randomSeed, MAC_RANDOM_SEED_LEN);
-
   /* copy PIB defaults */
 #if defined( FEATURE_MAC_PIB_PTR )  
   *pMacPib = macPibDefaults;
 #else
   macPib = macPibDefaults;
 #endif /* FEATURE_MAC_PIB_PTR */
-  
-  osal_memcpy(pMacPib->randomSeed, randomSeed, MAC_RANDOM_SEED_LEN);
 
   /* initialize random sequence numbers */
   pMacPib->dsn = macRadioRandomByte();
@@ -404,6 +401,7 @@ uint8 MAC_MlmeGetReqSize( uint8 pibAttribute )
   return ( macPibTbl[index].len );
 }
 
+#if !defined (CC26XX) || defined (FLASH_ONLY_BUILD)
 /**************************************************************************************************
  * @fn          MAC_MlmeSetReq
  *
@@ -430,6 +428,24 @@ uint8 MAC_MlmeSetReq(uint8 pibAttribute, void *pValue)
   uint8         i;
   halIntState_t intState;
 
+  if(pibAttribute == MAC_RX_ON_OFF)
+  {
+    if(*(uint8*)pValue == 1)
+    {
+      macRxDisable(MAC_RX_WHEN_IDLE);
+    }
+    else
+    {
+      macRxEnable(MAC_RX_WHEN_IDLE);
+    }
+  }
+  
+  if(pibAttribute == MAC_SUPERFRAME_PAN_COORD)
+  {
+      macPanCoordinator = *(bool*)pValue;
+      macRadioSetPanCoordinator(macPanCoordinator);
+  }
+  
   if (pibAttribute == MAC_BEACON_PAYLOAD)
   {
     pMacPib->pBeaconPayload = pValue;
@@ -526,4 +542,4 @@ uint8 MAC_MlmeSetReq(uint8 pibAttribute, void *pValue)
 
   return MAC_SUCCESS;
 }
-
+#endif /* !CC26XX || FLASH_ONLY_BUILD */

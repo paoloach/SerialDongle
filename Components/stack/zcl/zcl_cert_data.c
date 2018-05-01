@@ -1,13 +1,13 @@
 /**************************************************************************************************
   Filename:       zcl_cert_data.c
-  Revised:        $Date: 2012-04-16 12:47:40 -0700 (Mon, 16 Apr 2012) $
-  Revision:       $Revision: 30210 $
+  Revised:        $Date: 2014-06-27 18:15:32 -0700 (Fri, 27 Jun 2014) $
+  Revision:       $Revision: 39269 $
 
   Description:    This file defines actual data for use as in test & debug when
                   instantiating the Certicom Certificate Data for ECC SECURITY.
 
 
-  Copyright 2010-2011 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2010-2014 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user

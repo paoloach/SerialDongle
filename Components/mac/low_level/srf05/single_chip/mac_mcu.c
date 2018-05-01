@@ -1,7 +1,7 @@
 /**************************************************************************************************
   Filename:       mac_mcu.c
-  Revised:        $Date: 2014-05-21 13:24:18 -0700 (Wed, 21 May 2014) $
-  Revision:       $Revision: 38605 $
+  Revised:        $Date: 2014-09-15 17:04:05 -0700 (Mon, 15 Sep 2014) $
+  Revision:       $Revision: 40157 $
 
   Description:    Describe the purpose and contents of the file.
 
@@ -389,6 +389,31 @@ MAC_INTERNAL_API void macMcuTimerForceDelay(uint16 x)
   HAL_EXIT_CRITICAL_SECTION(s);
 }
 
+
+/**************************************************************************************************
+ * @fn          macMcuTimerCapturecCurrent
+ *
+ * @brief       Returns the Current timer capture.  
+ *
+ * @param       none
+ *
+ * @return      Current capture of hardware timer (full 16-bit value)
+ **************************************************************************************************
+ */
+MAC_INTERNAL_API uint16 macMcuTimerCaptureCurrent(void)
+{
+  uint16         timerCapture;
+  halIntState_t  s;
+
+  HAL_ENTER_CRITICAL_SECTION(s);
+  MAC_MCU_T2_ACCESS_COUNT_VALUE();
+  timerCapture = T2M1 << 8;
+  timerCapture |= T2M0;
+  HAL_EXIT_CRITICAL_SECTION(s);
+
+  return (timerCapture);
+}
+
 /**************************************************************************************************
  * @fn          macMcuTimerCapture
  *
@@ -447,6 +472,33 @@ MAC_INTERNAL_API uint32 macMcuOverflowCount(void)
   HAL_EXIT_CRITICAL_SECTION(s);
 
   return (overflowCount);
+}
+
+/**************************************************************************************************
+ * @fn          macMcuOverflowCaptureCurrent
+ *
+ * @brief       Returns the current capture of the overflow counter.  
+ *
+ * @param       none
+ *
+ * @return      current capture of overflow count
+ **************************************************************************************************
+ */
+MAC_INTERNAL_API uint32 macMcuOverflowCaptureCurrent(void)
+{
+  uint32         overflowCapture;
+  halIntState_t  s;
+
+  /* for efficiency, the 32-bit value is encoded using endian abstracted indexing */
+  HAL_ENTER_CRITICAL_SECTION(s);
+  MAC_MCU_T2_ACCESS_OVF_COUNT_VALUE();
+  ((uint8 *)&overflowCapture)[UINT32_NDX0] = T2MOVF0;
+  ((uint8 *)&overflowCapture)[UINT32_NDX1] = T2MOVF1;
+  ((uint8 *)&overflowCapture)[UINT32_NDX2] = T2MOVF2;
+  ((uint8 *)&overflowCapture)[UINT32_NDX3] = 0;
+  HAL_EXIT_CRITICAL_SECTION(s);
+
+  return (overflowCapture);
 }
 
 
@@ -872,10 +924,31 @@ void macMcuRfIsr(void)
 void macMcuRfErrIsr(void)
 {
   uint8 rferrm;
-  
+
   rferrm = (uint8)RFERRM;
 
-  if ((RFERRF & RFERR_RXOVERF) & ((uint32)rferrm))
+  /* The CPU level RF interrupt flag must be cleared here (before clearing RFERRF). */
+  IntPendClear(INT_RFCOREERR);
+  
+  if ((RFERRF & RFERR_STROBEERR) & ((uint32)rferrm))
+  {
+    /* Clear the strobe error if it occurs. */
+    RFERRF = ~RFERR_STROBEERR;
+  }
+  else if ((RFERRF & RFERR_NLOCK) & ((uint32)rferrm))
+  {
+    /* Clear the synth not lock error if it occurs. */
+    RFERRF = ~RFERR_NLOCK;
+
+    /* Clear all enable flags and turn off receiver and cleanup up the
+     * receive logic after receiver is forced off.
+     */
+    macRxHardDisable();
+    
+    /* Turn receiver back on. */
+    macRxOn();
+  }
+  else if ((RFERRF & RFERR_RXOVERF) & ((uint32)rferrm))
   {
     RFERRF = ~RFERR_RXOVERF;
     macRxFifoOverflowIsr();

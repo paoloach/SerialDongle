@@ -1,13 +1,13 @@
 /**************************************************************************************************
   Filename:       ZDApp.h
-  Revised:        $Date: 2014-01-23 14:00:11 -0800 (Thu, 23 Jan 2014) $
-  Revision:       $Revision: 36956 $
+  Revised:        $Date: 2015-02-12 15:03:08 -0800 (Thu, 12 Feb 2015) $
+  Revision:       $Revision: 42535 $
 
   Description:    This file contains the interface to the Zigbee Device Application. This is the
                   Application part that the use can change. This also contains the Task functions.
 
 
-  Copyright 2004-2014 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2004-2015 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -81,9 +81,11 @@ extern "C"
 #define ZDO_FRAMECOUNTER_CHANGE   0x0200
 #define ZDO_TCLK_FRAMECOUNTER_CHANGE  0x0400
 #define ZDO_APS_FRAMECOUNTER_CHANGE   0x0800
-#if !defined ( ZDP_BIND_SKIP_VALIDATION )
+#if defined ( ZDP_BIND_VALIDATION )
 #define ZDO_PENDING_BIND_REQ_EVT      0x1000
 #endif
+#define ZDO_REJOIN_BACKOFF        0x2000
+#define ZDO_PARENT_ANNCE_EVT      0x4000
 
 // Incoming to ZDO
 #define ZDO_NWK_DISC_CNF        0x01
@@ -94,6 +96,7 @@ extern "C"
 #define ZDO_REMOVE_DEVICE_IND   0x06
 #define ZDO_REQUEST_KEY_IND     0x07
 #define ZDO_SWITCH_KEY_IND      0x08
+#define ZDO_VERIFY_KEY_IND      0x09
 
 //  ZDO command message fields
 #define ZDO_CMD_ID     0
@@ -116,13 +119,21 @@ extern "C"
   ((uint8)                        \
    (sizeof(ZDO_RequestKeyInd_t) ) )
 
+#define ZDO_VERIFY_KEY_IND_LEN   \
+  ((uint8)                        \
+   (sizeof(ZDO_VerifyKeyInd_t) ) )
+
 #define ZDO_SWITCH_KEY_IND_LEN   \
   ((uint8)                       \
    (sizeof(ZDO_SwitchKeyInd_t) ) )
 
+#define ZDO_CONFIRM_KEY_IND_LEN     \
+  ((uint8)                          \
+   (sizeof(APSME_ConfirmKeyReq_t) ) )
+
 #define NWK_RETRY_DELAY                 1000   // in milliseconds
 
-#if !defined ( ZDP_BIND_SKIP_VALIDATION )
+#if defined ( ZDP_BIND_VALIDATION )
 #define AGE_OUT_PEND_BIND_REQ_DELAY     1000   // One second interval to age out the record
 
 #if !defined MAX_TIME_ADDR_REQ
@@ -133,8 +144,12 @@ extern "C"
 #define ZDO_MATCH_DESC_ACCEPT_ACTION    1   // Message field
 
 #if !defined NUM_DISC_ATTEMPTS
-#define NUM_DISC_ATTEMPTS           2
+#define NUM_DISC_ATTEMPTS           4
 #endif
+
+// ZDOInitDevice init modes
+#define ZDO_INITDEV_CENTRALIZED  0x00
+#define ZDO_INITDEV_DISTRIBUTED  0x01
 
 // ZDOInitDevice return values
 #define ZDO_INITDEV_RESTORED_NETWORK_STATE      0x00
@@ -150,38 +165,52 @@ extern "C"
   #define MANAGEDSCAN_TIMES_PRE_CHANNEL         5
   #define MANAGEDSCAN_DELAY_BETWEEN_SCANS       150   // milliseconds
 
-  extern uint8 zdoDiscCounter;
+extern uint8 zdoDiscCounter;
 
 #endif // MANAGED_SCAN
 
 // Use the following to delay application data request after startup.
 #define ZDAPP_HOLD_DATA_REQUESTS_TIMEOUT        0 // in milliseconds
 
+// Init ZDO, but hold and wait for application to start the joining or
+// forming network
+#define ZDO_INIT_HOLD_NWK_START       0xFFFF
+
 #if !defined( MAX_NWK_FRAMECOUNTER_CHANGES )
   // The number of times the frame counter can change before
   // saving to NV
   #define MAX_NWK_FRAMECOUNTER_CHANGES    1000
 #endif
+    
+#if !defined( NWK_FRAMECOUNTER_CHANGES_RESTORE_DELTA )
+// Additional counts to add to the frame counter when restoring from NV
+// This amount is in addition to MAX_NWK_FRAMECOUNTER_CHANGES
+#define NWK_FRAMECOUNTER_CHANGES_RESTORE_DELTA    250
+#endif
 
-
-
+#define STACK_PROFILE_MAX 2
 
 /*********************************************************************
  * TYPEDEFS
  */
 typedef enum
 {
-  DEV_HOLD,               // Initialized - not started automatically
-  DEV_INIT,               // Initialized - not connected to anything
-  DEV_NWK_DISC,           // Discovering PAN's to join
-  DEV_NWK_JOINING,        // Joining a PAN
-  DEV_NWK_REJOIN,         // ReJoining a PAN, only for end devices
-  DEV_END_DEVICE_UNAUTH,  // Joined but not yet authenticated by trust center
-  DEV_END_DEVICE,         // Started as device after authentication
-  DEV_ROUTER,             // Device joined, authenticated and is a router
-  DEV_COORD_STARTING,     // Started as Zigbee Coordinator
-  DEV_ZB_COORD,           // Started as Zigbee Coordinator
-  DEV_NWK_ORPHAN          // Device has lost information about its parent..
+  DEV_HOLD,                                // Initialized - not started automatically
+  DEV_INIT,                                // Initialized - not connected to anything
+  DEV_NWK_DISC,                            // Discovering PAN's to join
+  DEV_NWK_JOINING,                         // Joining a PAN
+  DEV_NWK_SEC_REJOIN_CURR_CHANNEL,         // ReJoining a PAN in secure mode scanning in current channel, only for end devices
+  DEV_END_DEVICE_UNAUTH,                   // Joined but not yet authenticated by trust center
+  DEV_END_DEVICE,                          // Started as device after authentication
+  DEV_ROUTER,                              // Device joined, authenticated and is a router
+  DEV_COORD_STARTING,                      // Started as Zigbee Coordinator
+  DEV_ZB_COORD,                            // Started as Zigbee Coordinator
+  DEV_NWK_ORPHAN,                          // Device has lost information about its parent..
+  DEV_NWK_KA,                              // Device is sending KeepAlive message to its parent
+  DEV_NWK_BACKOFF,                         // Device is waiting before trying to rejoin
+  DEV_NWK_SEC_REJOIN_ALL_CHANNEL,          // ReJoining a PAN in secure mode scanning in all channels, only for end devices
+  DEV_NWK_TC_REJOIN_CURR_CHANNEL,          // ReJoining a PAN in Trust center mode scanning in current channel, only for end devices
+  DEV_NWK_TC_REJOIN_ALL_CHANNEL            // ReJoining a PAN in Trust center mode scanning in all channels, only for end devices
 } devStates_t;
 
 typedef enum
@@ -245,6 +274,16 @@ typedef struct
   uint16           srcAddr;
   uint8            keySeqNum;
 } ZDO_SwitchKeyInd_t;
+
+typedef struct
+{
+  osal_event_hdr_t hdr;
+  uint16           srcAddr;
+  uint8            keyType;
+  uint8            extAddr[Z_EXTADDR_LEN];
+  uint8            keyHash[SEC_KEY_LEN];
+  uint8            verifyKeyStatus;
+} ZDO_VerifyKeyInd_t;
 
 typedef struct
 {
@@ -334,7 +373,7 @@ typedef struct
   uint16 parentAddr;
 } ZDO_TC_Device_t;
 
-#if !defined ( ZDP_BIND_SKIP_VALIDATION )
+#if defined ( ZDP_BIND_VALIDATION )
 typedef struct
 {
   ZDO_BindUnbindReq_t bindReq;
@@ -365,6 +404,8 @@ extern uint8 zdappMgmtNwkDiscStartIndex;
 extern uint8 zdappMgmtSavedNwkState;
 
 extern uint8 ZDO_UseExtendedPANID[Z_EXTADDR_LEN];
+
+extern uint32 runtimeChannel;
 
 /*********************************************************************
  * FUNCTIONS - API
@@ -410,12 +451,37 @@ extern void ZDO_AddrChangeIndicationCB( uint16 newAddr );
  *    ZDO_INITDEV_NEW_NETWORK_STATE - The network state was initialized.
  *          This could mean that ZCD_NV_STARTUP_OPTION said to not restore, or
  *          it could mean that there was no network state to restore.
- *    ZDO_INITDEV_LEAVE_NOT_STARTED - Before the reset, a network leave was issued
- *          with the rejoin option set to TRUE.  So, the device was not
- *          started in the network (one time only).  The next time this
- *          function is called it will start.
  */
-extern uint8 ZDOInitDevice( uint16 startDelay );
+#define ZDOInitDevice(a)  ZDOInitDeviceEx(a,ZDO_INITDEV_CENTRALIZED)  
+  
+/*
+ *  Start the device in the network.  This function will read
+ *   ZCD_NV_STARTUP_OPTION (NV item) to determine whether or not to
+ *   restore the network state of the device.
+ *
+ *  startDelay - timeDelay to start device (in milliseconds).
+ *      There is a jitter added to this delay:
+ *              ((NWK_START_DELAY + startDelay)
+ *              + (osal_rand() & EXTENDED_JOINING_RANDOM_MASK))
+ *
+ *  mode - ZDO_INITDEV_CENTRALIZED or ZDO_INITDEV_DISTRIBUTED to specify
+ *         which mode should the device start with (only has effect on Router devices)
+ *
+ *
+ *  NOTE:   If the application would like to force a "new" join, the
+ *          application should set the ZCD_STARTOPT_DEFAULT_NETWORK_STATE
+ *          bit in the ZCD_NV_STARTUP_OPTION NV item before calling
+ *          this function.
+ *
+ *  returns:
+ *    ZDO_INITDEV_RESTORED_NETWORK_STATE  - The device's network state was
+ *          restored.
+ *    ZDO_INITDEV_NEW_NETWORK_STATE - The network state was initialized.
+ *          This could mean that ZCD_NV_STARTUP_OPTION said to not restore, or
+ *          it could mean that there was no network state to restore.
+ */ 
+uint8 ZDOInitDeviceEx( uint16 startDelay, uint8 mode);
+
 
 /*
  * Sends an osal message to ZDApp with parameter as the msg data byte.
@@ -440,7 +506,7 @@ extern ZStatus_t ZDApp_JoinReq( uint8 channel, uint16 panID,
                                 uint8 *extendedPanID, uint16 chosenParent,
                                 uint8 parentDepth, uint8 stackProfile);
 
-#if !defined ( ZDP_BIND_SKIP_VALIDATION )
+#if defined ( ZDP_BIND_VALIDATION )
 /*
  * Find an empty slot to store pending Bind Request
  */
@@ -601,6 +667,12 @@ extern uint8 ZDApp_StopJoiningCycle( void );
 extern void ZDApp_AnnounceNewAddress( void );
 
 /*
+ * ZDApp_SendParentAnnce
+ *   - Send Parent Announce message
+ */
+extern void ZDApp_SendParentAnnce( void );
+
+/*
  * ZDApp_NVUpdate - Initiate an NV update
  */
 extern void ZDApp_NVUpdate( void );
@@ -635,6 +707,16 @@ extern uint8 ZDApp_DeviceConfigured( void );
  */
 extern void ZDApp_ForceConcentratorChange( void );
 
+/*********************************************************************
+ * @fn          ZDApp_SecInit
+ *
+ * @brief       ZDApp initialize security.
+ *
+ * @param       state - device initialization state
+ *
+ * @return      none
+ */
+extern void ZDApp_SecInit( uint8 state );
 
 /*********************************************************************
  * @fn          ZDO_SrcRtgIndCB
@@ -679,6 +761,42 @@ extern ZStatus_t ZDO_RegisterForZdoCB( uint8 indID, pfnZdoCb pFn );
  * @return      ZSuccess - successful, ZInvalidParameter if not
  */
 extern ZStatus_t ZDO_DeregisterForZdoCB( uint8 indID );
+
+/*********************************************************************
+ * @fn          ZDApp_ChangeState
+ *
+ * @brief       Call this function to change the device state.
+ *
+ * @param       state - new state
+ *
+ * @return      none
+ */
+extern void ZDApp_ChangeState( devStates_t state );
+
+/*
+ * ZDApp_SetRejoinScanDuration
+ *    - Sets scan duration for rejoin for an end device
+ *
+ *    returns  none
+ */
+extern void ZDApp_SetRejoinScanDuration ( uint32 rejoinScanDuration);
+
+/*
+ * ZDApp_SetRejoinScanDuration
+ *    - Sets rejoin backoff duration for rejoin for an end device
+ *
+ *    returns  none
+ */
+extern void ZDApp_SetRejoinBackoffDuration ( uint32 rejoinBackoffDuration);
+
+/*
+ * @brief   Restore the network frame counter associated to this ExtPanID and 
+ *          increment it if found. This can only happens once per reset
+ *
+ *    returns  none
+ */
+extern void ZDApp_RestoreNwkSecMaterial(void);
+
 /*********************************************************************
 *********************************************************************/
 

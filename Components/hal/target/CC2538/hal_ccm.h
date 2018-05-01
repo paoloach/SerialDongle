@@ -1,7 +1,7 @@
 /**************************************************************************************************
   Filename:       hal_ccm.h
-  Revised:        $Date: 2014-07-29 21:18:07 -0700 (Tue, 29 Jul 2014) $
-  Revision:       $Revision: 39577 $
+  Revised:        $Date: 2014-12-05 13:07:19 -0800 (Fri, 05 Dec 2014) $
+  Revision:       $Revision: 41365 $
 
   Description:    Describe the purpose and contents of the file.
 

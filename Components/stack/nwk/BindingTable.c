@@ -1,7 +1,7 @@
 /**************************************************************************************************
   Filename:       BindingTable.c
-  Revised:        $Date: 2014-06-03 14:02:45 -0700 (Tue, 03 Jun 2014) $
-  Revision:       $Revision: 38776 $
+  Revised:        $Date: 2014-10-08 08:37:03 -0700 (Wed, 08 Oct 2014) $
+  Revision:       $Revision: 40512 $
 
   Description:    Device binding table functions.
 
@@ -47,6 +47,11 @@
 #include "AddrMgr.h"
 #include "BindingTable.h"
 #include "nwk_util.h"
+#include "bdb.h"
+#include "bdb_interface.h"
+#if BDB_REPORTING  
+#include "bdb_Reporting.h"
+#endif
 
 /*********************************************************************
  * MACROS
@@ -65,7 +70,6 @@
 typedef struct
 {
   uint8        srcEP;
-  uint16       srcIndex;
   uint16       dstIndex;
   uint8        dstEP;
   uint8        dstAddrMode;
@@ -76,6 +80,9 @@ typedef struct
 /*********************************************************************
  * GLOBAL VARIABLES
  */
+#if (BDB_FINDING_BINDING_CAPABILITY_ENABLED==1) 
+extern bdbGCB_BindNotification_t        pfnBindNotificationCB;
+#endif
 
 /*********************************************************************
  * LOCAL FUNCTIONS
@@ -87,8 +94,13 @@ uint16 bindingAddrMgsHelperFind( zAddrType_t *addr );
 uint8 bindingAddrMgsHelperConvert( uint16 idx, zAddrType_t *addr );
 void bindAddrMgrLocalLoad( void );
 
-static uint8 BindCopyBackupToNewNV( uint16 dupLen, uint16 newLen );
-static uint8 BindUpgradeTableInNV( void );
+#if !defined ( BINDINGTABLE_NV_SINGLES )
+  #if !defined ( DONT_UPGRADE_BIND )
+    static uint8 BindCopyBackupToNewNV( uint16 dupLen, uint16 newLen );
+    static uint8 BindUpgradeTableInNV( void );
+  #endif
+#endif // !BINDINGTABLE_NV_SINGLES
+
 
 /*********************************************************************
  * LOCAL VARIABLES
@@ -262,7 +274,29 @@ BindingEntry_t *bindAddEntry( byte srcEpInt,
   bindTableIndex_t bindIdx;
   BindingEntry_t*  entry;
   bindFields_t     fields;
+  bdbBindNotificationData_t bindData;
+#ifdef BDB_REPORTING  
+  uint8 bindAdded = FALSE;
+#endif
 
+  //Zigbee Spec 2.2.4.3.1.1
+  //Cannot create an endpoint for invalid endpoint index, neither for non-Group 
+  //or Non-Extended IEEE Address modes
+  if( (dstAddr->addrMode != AddrGroup) && (dstAddr->addrMode != Addr64Bit) ||
+      (srcEpInt == 0) || (srcEpInt == 0xFF) )
+  {
+    return NULL;
+  }
+  //Do not accept neither binds to IEEE Addr with invalid endpoints
+  if(( dstAddr->addrMode == Addr64Bit ) && (dstEpInt == 0))
+  {
+    return NULL;
+  }
+  
+    
+  osal_memcpy( &bindData.dstAddr, dstAddr, sizeof( zAddrType_t) );
+  bindData.ep = dstEpInt;
+    
   // initialize results
   entry = NULL;
 
@@ -314,6 +348,21 @@ BindingEntry_t *bindAddEntry( byte srcEpInt,
             // Indicate error if cluster list was full
             entry = NULL;
           }
+          else
+          {
+            // new bind added - notify application
+            bindData.clusterId = clusterIds[index];
+#if (BDB_FINDING_BINDING_CAPABILITY_ENABLED==1)             
+            if ( pfnBindNotificationCB != NULL )
+            {
+              pfnBindNotificationCB( &bindData );
+            }
+#endif
+#ifdef BDB_REPORTING  
+            bdb_RepMarkHasBindingInEndpointClusterArray(srcEpInt, clusterIds[index], BDBREPORTING_FALSE, BDBREPORTING_TRUE); 
+            bindAdded = TRUE;
+#endif
+          }
         }
       }
     }
@@ -335,6 +384,22 @@ BindingEntry_t *bindAddEntry( byte srcEpInt,
         {
           numClusterIds = gMAX_BINDING_CLUSTER_IDS;
         }
+        
+        for(index = 0; index < numClusterIds; index++)
+        {
+          // new bind added - notify application
+          bindData.clusterId = clusterIds[index];
+#if (BDB_FINDING_BINDING_CAPABILITY_ENABLED==1) 
+          if ( pfnBindNotificationCB != NULL )
+          {
+            pfnBindNotificationCB( &bindData );
+          }
+#endif
+#ifdef BDB_REPORTING   
+            bdb_RepMarkHasBindingInEndpointClusterArray(srcEpInt, clusterIds[index], BDBREPORTING_FALSE, BDBREPORTING_TRUE); 
+            bindAdded = TRUE;
+#endif
+        }
 
         entry->numClusterIds = numClusterIds;
 
@@ -344,7 +409,12 @@ BindingEntry_t *bindAddEntry( byte srcEpInt,
       }
     }
   }
-
+#ifdef BDB_REPORTING
+  if(bindAdded == TRUE)
+  {
+    bdb_RepStartOrContinueReporting( );
+  }
+#endif
   return entry;
 }
 
@@ -360,6 +430,9 @@ BindingEntry_t *bindAddEntry( byte srcEpInt,
 byte bindRemoveEntry( BindingEntry_t *pBind )
 {
   osal_memset( pBind, 0xFF, gBIND_REC_SIZE );
+#ifdef BDB_REPORTING
+  bdb_RepUpdateMarkBindings();
+#endif
   return ( TRUE );
 }
 
@@ -407,6 +480,9 @@ byte bindRemoveClusterIdFromList( BindingEntry_t *entry, uint16 clusterId )
   uint16 *listPtr;
   byte numIds;
 
+#ifdef BDB_REPORTING
+  uint8 numRemoved = 0;
+#endif
   if ( entry )
   {
     if ( entry->numClusterIds > 0 )
@@ -424,15 +500,25 @@ byte bindRemoveClusterIdFromList( BindingEntry_t *entry, uint16 clusterId )
         else
         {
           entry->numClusterIds--;
+          
+#ifdef BDB_REPORTING
+           numRemoved++;
+#endif          
           if ( entry->numClusterIds == 0 )
           {
             break;
           }
         }
       }
+      
     }
   }
 
+#ifdef BDB_REPORTING
+  if(numRemoved>0)
+    bdb_RepUpdateMarkBindings();
+#endif 
+  
   if ( entry && (entry->numClusterIds > 0) )
   {
     return ( TRUE );
@@ -470,7 +556,6 @@ byte bindAddClusterIdToList( BindingEntry_t *entry, uint16 clusterId )
  *
  * @brief   Finds an existing src/epint to dst/epint bind record
  *
- * @param   srcAddr - Source address
  * @param   srcEpInt - Source Endpoint/Interface
  * @param   dstAddr - Destination address
  * @param   dstEpInt - Destination Endpoint/Interface
@@ -574,7 +659,6 @@ void bindRemoveDev( zAddrType_t *Addr )
  *   Remove binds(s) associated to device address (source).
  *   Updates binding table.
  *
- * @param   srcAddr - address of device
  * @param   ep - endpoint to remove, 0xFF is all endpoints
  *
  * @return  none
@@ -765,325 +849,6 @@ void bindAddressClear( uint16 dstIdx )
       AddrMgrEntryRelease( &addrEntry );
     }
   }
-}
-
-/*********************************************************************
- * @fn          BindInitNV
- *
- * @brief       Initialize the Binding NV Item
- *
- * @param       none
- *
- * @return      ZSUCCESS if successful, NV_ITEM_UNINIT if item did not
- *              exist in NV, NV_OPER_FAILED if failure.
- */
-byte BindInitNV( void )
-{
-  byte ret;
-
-  // Initialize the device list
-  ret = osal_nv_item_init( ZCD_NV_BINDING_TABLE,
-                  (uint16)( sizeof( nvBindingHdr_t ) + NV_BIND_ITEM_SIZE ), NULL );
-
-  if ( ret != ZSUCCESS )
-  {
-    BindSetDefaultNV();
-  }
-
-  return ( ret );
-}
-
-/*********************************************************************
- * @fn          BindSetDefaultNV
- *
- * @brief       Write the defaults to NV
- *
- * @param       none
- *
- * @return      none
- */
-void BindSetDefaultNV( void )
-{
-  nvBindingHdr_t hdr;
-
-  // Initialize the header
-  hdr.numRecs = 0;
-
-  // Save off the header
-  osal_nv_write( ZCD_NV_BINDING_TABLE, 0, sizeof( nvBindingHdr_t ), &hdr );
-}
-
-/*********************************************************************
- * @fn          BindCopyBackupToNewNV
- *
- * @brief       Creates the New NV item, copies the backup data into
- *              the New NV ID, and Deletes the duplicate NV item.
- *
- * @param       dupLen - NV item length of the old Binding table.
- * @param       newLen - NV item length of the new Binding table to be created.
- *
- * @return      ZSuccess - All the actions were successful.
- *              ZFailure - Any of the actions failed.
- */
-static uint8 BindCopyBackupToNewNV( uint16 dupLen, uint16 newLen )
-{
-  uint16 bindLen;
-  uint8 status = ZSuccess;
-
-  bindLen = osal_nv_item_len( ZCD_NV_BINDING_TABLE );
-
-
-  if ( ( bindLen > 0 ) && ( bindLen != newLen ) )
-  {
-    // The existing item does not match the New length
-    osal_nv_delete( ZCD_NV_BINDING_TABLE, bindLen );
-  }
-
-  // Create Binding Table NV item with the NEW legth
-  if ( osal_nv_item_init( ZCD_NV_BINDING_TABLE, newLen, NULL ) != NV_OPER_FAILED )
-  {
-    nvBindingHdr_t hdrBackup;
-
-    // Copy ONLY the valid records from the duplicate NV table into the new table
-    // at the end of this process the table content will be compacted
-    if ( osal_nv_read( ZCD_NV_DUPLICATE_BINDING_TABLE, 0, sizeof(nvBindingHdr_t), &hdrBackup ) == ZSuccess )
-    {
-      bindTableIndex_t i;
-      uint16 validBackupRecs = 0;
-      BindingEntry_t backupRec;
-
-      // Read in the device list. This loop will stop when:
-      // The total number of valid records has been reached either because:
-      //          The new table is full of valid records OR
-      //          The old table has less valid records than the size of the table
-      for ( i = 0; ( validBackupRecs < gNWK_MAX_BINDING_ENTRIES ) && ( validBackupRecs < hdrBackup.numRecs ); i++ )
-      {
-        if ( osal_nv_read( ZCD_NV_DUPLICATE_BINDING_TABLE,
-                          (uint16)(sizeof(nvBindingHdr_t) + (i * NV_BIND_REC_SIZE)),
-                          NV_BIND_REC_SIZE, &backupRec ) == ZSuccess )
-        {
-          if ( backupRec.srcEP != NV_BIND_EMPTY )
-          {
-            // Save the valid record into the NEW NV table.
-            if ( osal_nv_write( ZCD_NV_BINDING_TABLE,
-                                (uint16)((sizeof(nvBindingHdr_t)) + (validBackupRecs * NV_BIND_REC_SIZE)),
-                                NV_BIND_REC_SIZE, &backupRec ) != ZSuccess )
-            {
-               status = ZFailure;
-               break; // Terminate the loop as soon as a problem with NV is detected
-            }
-
-            validBackupRecs++;
-          }
-        }
-        else
-        {
-           status = ZFailure;
-           break; // Terminate the loop as soon as a problem with NV is detected
-        }
-      }
-
-      // Only save the header and delete the duplicate element if the previous
-      // process was successful
-      if ( status == ZSuccess )
-      {
-        // Save off the header
-        if ( osal_nv_write( ZCD_NV_BINDING_TABLE, 0,
-                            sizeof(nvBindingHdr_t), &validBackupRecs ) == ZSuccess )
-        {
-          // Delete the duplicate NV Item, once the data has been stored in the NEW table
-          if ( osal_nv_delete( ZCD_NV_DUPLICATE_BINDING_TABLE, dupLen ) != ZSuccess )
-          {
-            status = ZFailure;
-          }
-        }
-        else
-        {
-          status = ZFailure;
-        }
-      }
-    }
-    else
-    {
-      status = ZFailure;
-    }
-  }
-  else
-  {
-    status = ZFailure;
-  }
-
-  return ( status );
-}
-
-/*********************************************************************
- * @fn          BindUpgradeTableInNV
- *
- * @brief       Verifies if the existing table in NV has different size
- *              than the table defined by parameters in the current code.
- *              If different, creates a backup table, deletes the existing
- *              table and creates the new table with the new size. After
- *              this process is done ZCD_NV_BINDING_TABLE NV item contains
- *              only valid records retrieved from the original table, up to
- *              the maximum number of records defined by gNWK_MAX_BINDING_ENTRIES
- *
- * @param       none
- *
- * @return      ZSuccess - the Update process was sucessful.
- *              ZFailure - otherwise.
- */
-static uint8 BindUpgradeTableInNV( void )
-{
-  nvBindingHdr_t hdr;
-  uint16 dupLen;
-  uint16 bindLen;
-  uint16 newLen;
-  uint8 status = ZSuccess;
-  bool duplicateReady = FALSE;
-
-  // Size of the Binding table based on current paramenters in the code
-  newLen = sizeof(nvBindingHdr_t) + NV_BIND_ITEM_SIZE;
-
-  // Size of the Binding table NV item, this is the whole size of the item,
-  // it could inculde invalid records also
-  bindLen = osal_nv_item_len( ZCD_NV_BINDING_TABLE );
-
-  // Get the number of valid records from the Binding table
-  osal_nv_read( ZCD_NV_BINDING_TABLE, 0, sizeof(nvBindingHdr_t), &hdr );
-
-  // Identify if there is a duplicate NV item, if it is there, that means an
-  // Upgrade process did not finish properly last time
-  // The length function will return 0 if the Backup NV ID does not exist.
-  dupLen = osal_nv_item_len( ZCD_NV_DUPLICATE_BINDING_TABLE );
-
-  // A duplicate of the original Binding item will be done if:
-  // 1) A duplicate NV item DOES NOT exist AND the size of the original Binding
-  //    item in NV is different (larger/smaller) than the the length calculated
-  //    from the parameters in the code. If they are the same there is no need
-  //    to do the Upgrade process.
-  // 2) A duplicate NV item exists (probably because the previous upgrade
-  //    process was interrupted) and [the original Binding NV items exists AND
-  //    has valid recods (it is important to make sure that valid records exist
-  //    in the binding table because it is possible that the item was created
-  //    but the data was not copied in the previous upgrade process).
-  if ( ( ( dupLen == 0 ) && ( bindLen != newLen ) ) ||
-       ( ( dupLen > 0 ) && ( bindLen > 0 ) && ( hdr.numRecs > 0 ) ) )
-  {
-    // Create a copy from original NV item into a duplicate NV item
-    if ( ( status = nwkCreateDuplicateNV( ZCD_NV_BINDING_TABLE,
-                                          ZCD_NV_DUPLICATE_BINDING_TABLE ) ) == ZSuccess )
-    {
-      // Delete the original NV item once the duplicate is ready
-      if ( osal_nv_delete( ZCD_NV_BINDING_TABLE, bindLen ) != ZSuccess )
-      {
-        status = ZFailure;
-      }
-      else
-      {
-        duplicateReady = TRUE;
-      }
-    }
-  }
-  else if ( ( ( dupLen > 0 ) && ( bindLen == 0 ) ) ||
-            ( ( dupLen > 0 ) && ( bindLen > 0 ) && ( hdr.numRecs == 0 ) ) )
-  {
-    // If for some reason a duplicate NV item was left in the system from a
-    // previous upgrade process and:
-    // 1) The original Binding NV item DOES NOT exist OR
-    // 2) The original Binding NV item exist, but has no valid records.
-    // it is necessary to rely in the data in the Duplicate item to create
-    // the Binding table
-    bindLen = dupLen;
-
-    duplicateReady = TRUE;
-  }
-
-  if ( duplicateReady == TRUE )
-  {
-    // Creates the New Binding table, Copy data from backup and Delete backup NV ID
-    status = BindCopyBackupToNewNV( bindLen, newLen );
-  }
-
-  return ( status );
-}
-
-/*********************************************************************
- * @fn          BindRestoreFromNV
- *
- * @brief       Restore the binding table from NV
- *
- * @param       none
- *
- * @return      Number of entries restored
- */
-uint16 BindRestoreFromNV( void )
-{
-  nvBindingHdr_t hdr;
-
-  hdr.numRecs = 0;
-
-  if ( BindUpgradeTableInNV() == ZSuccess )
-  {
-    if ( osal_nv_read( ZCD_NV_BINDING_TABLE, 0, sizeof(nvBindingHdr_t), &hdr ) == ZSuccess )
-    {
-      bindTableIndex_t x;
-      uint16 validRecsCount = 0;
-
-      // Read in the device list
-      for ( x = 0; ( x < gNWK_MAX_BINDING_ENTRIES ) && ( validRecsCount < hdr.numRecs ); x++ )
-      {
-        if ( osal_nv_read( ZCD_NV_BINDING_TABLE,
-                           (uint16)(sizeof(nvBindingHdr_t) + (x * NV_BIND_REC_SIZE)),
-                           NV_BIND_REC_SIZE, &BindingTable[x] ) == ZSUCCESS )
-        {
-          if ( BindingTable[x].srcEP != NV_BIND_EMPTY )
-          {
-            validRecsCount++;
-          }
-        }
-      }
-    }
-  }
-  return ( hdr.numRecs );
-}
-
-/*********************************************************************
- * @fn          BindWriteNV
- *
- * @brief       Save the Binding Table in NV
- *
- * @param       none
- *
- * @return      none
- */
-void BindWriteNV( void )
-{
-  BindingEntry_t *pBind;
-  BindingEntry_t bind;
-  nvBindingHdr_t hdr;
-  bindTableIndex_t x;
-
-  hdr.numRecs = 0;
-
-  for ( x = 0; x < gNWK_MAX_BINDING_ENTRIES; x++ )
-  {
-    pBind = &BindingTable[x];
-
-    osal_memcpy( &bind, pBind, gBIND_REC_SIZE );
-
-    // Save the record to NV
-    osal_nv_write( ZCD_NV_BINDING_TABLE,
-                   (uint16)((sizeof(nvBindingHdr_t)) + (x * NV_BIND_REC_SIZE)),
-                   NV_BIND_REC_SIZE, &bind );
-
-    if ( pBind->srcEP != NV_BIND_EMPTY )
-    {
-      hdr.numRecs++;
-    }
-  }
-
-  // Save off the header
-  osal_nv_write( ZCD_NV_BINDING_TABLE, 0, sizeof(nvBindingHdr_t), &hdr );
 }
 
 /*********************************************************************
@@ -1326,6 +1091,431 @@ BindingEntry_t *GetBindingTableEntry( uint16 Nth )
 
   return rtrn;
 }
+
+#if !defined ( BINDINGTABLE_NV_SINGLES )
+/*********************************************************************
+ * @fn          BindInitNV
+ *
+ * @brief       Initialize the Binding NV Item
+ *
+ * @param       none
+ *
+ * @return      ZSUCCESS if successful, NV_ITEM_UNINIT if item did not
+ *              exist in NV, NV_OPER_FAILED if failure.
+ */
+byte BindInitNV( void )
+{
+  byte ret;
+
+  // Initialize the device list
+  ret = osal_nv_item_init( ZCD_NV_BINDING_TABLE,
+                  (uint16)( sizeof( nvBindingHdr_t ) + NV_BIND_ITEM_SIZE ), NULL );
+
+  if (ret == NV_ITEM_UNINIT) 
+  {
+    BindSetDefaultNV();
+  }
+
+  return ( ret );
+}
+
+/*********************************************************************
+ * @fn          BindSetDefaultNV
+ *
+ * @brief       Write the defaults to NV
+ *
+ * @param       none
+ *
+ * @return      none
+ */
+void BindSetDefaultNV( void )
+{
+  nvBindingHdr_t hdr;
+
+  // Initialize the header
+  hdr.numRecs = 0;
+
+  // Save off the header
+  osal_nv_write( ZCD_NV_BINDING_TABLE, 0, sizeof( nvBindingHdr_t ), &hdr );
+}
+
+#if !defined ( DONT_UPGRADE_BIND )
+/*********************************************************************
+ * @fn          BindCopyBackupToNewNV
+ *
+ * @brief       Creates the New NV item, copies the backup data into
+ *              the New NV ID, and Deletes the duplicate NV item.
+ *
+ * @param       dupLen - NV item length of the old Binding table.
+ * @param       newLen - NV item length of the new Binding table to be created.
+ *
+ * @return      ZSuccess - All the actions were successful.
+ *              ZFailure - Any of the actions failed.
+ */
+static uint8 BindCopyBackupToNewNV( uint16 dupLen, uint16 newLen )
+{
+  uint8 status = ZSuccess;
+  uint16 bindLen;
+
+  bindLen = osal_nv_item_len( ZCD_NV_BINDING_TABLE );
+
+
+  if ( ( bindLen > 0 ) && ( bindLen != newLen ) )
+  {
+    // The existing item does not match the New length
+    osal_nv_delete( ZCD_NV_BINDING_TABLE, bindLen );
+  }
+
+  // Create Binding Table NV item with the NEW legth
+  if ( osal_nv_item_init( ZCD_NV_BINDING_TABLE, newLen, NULL ) != NV_OPER_FAILED )
+  {
+    nvBindingHdr_t hdrBackup;
+
+    // Copy ONLY the valid records from the duplicate NV table into the new table
+    // at the end of this process the table content will be compacted
+    if ( osal_nv_read( ZCD_NV_DUPLICATE_BINDING_TABLE, 0, sizeof(nvBindingHdr_t), &hdrBackup ) == ZSuccess )
+    {
+      bindTableIndex_t i;
+      uint16 validBackupRecs = 0;
+      BindingEntry_t backupRec;
+
+      // Read in the device list. This loop will stop when:
+      // The total number of valid records has been reached either because:
+      //          The new table is full of valid records OR
+      //          The old table has less valid records than the size of the table
+      for ( i = 0; ( validBackupRecs < gNWK_MAX_BINDING_ENTRIES ) && ( validBackupRecs < hdrBackup.numRecs ); i++ )
+      {
+        if ( osal_nv_read( ZCD_NV_DUPLICATE_BINDING_TABLE,
+                          (uint16)(sizeof(nvBindingHdr_t) + (i * NV_BIND_REC_SIZE)),
+                          NV_BIND_REC_SIZE, &backupRec ) == ZSuccess )
+        {
+          if ( backupRec.srcEP != NV_BIND_EMPTY )
+          {
+            // Save the valid record into the NEW NV table.
+            if ( osal_nv_write( ZCD_NV_BINDING_TABLE,
+                                (uint16)((sizeof(nvBindingHdr_t)) + (validBackupRecs * NV_BIND_REC_SIZE)),
+                                NV_BIND_REC_SIZE, &backupRec ) != ZSuccess )
+            {
+               status = ZFailure;
+               break; // Terminate the loop as soon as a problem with NV is detected
+            }
+
+            validBackupRecs++;
+          }
+        }
+        else
+        {
+           status = ZFailure;
+           break; // Terminate the loop as soon as a problem with NV is detected
+        }
+      }
+
+      // Only save the header and delete the duplicate element if the previous
+      // process was successful
+      if ( status == ZSuccess )
+      {
+        // Save off the header
+        if ( osal_nv_write( ZCD_NV_BINDING_TABLE, 0,
+                            sizeof(nvBindingHdr_t), &validBackupRecs ) == ZSuccess )
+        {
+          // Delete the duplicate NV Item, once the data has been stored in the NEW table
+          if ( osal_nv_delete( ZCD_NV_DUPLICATE_BINDING_TABLE, dupLen ) != ZSuccess )
+          {
+            status = ZFailure;
+          }
+        }
+        else
+        {
+          status = ZFailure;
+        }
+      }
+    }
+    else
+    {
+      status = ZFailure;
+    }
+  }
+  else
+  {
+    status = ZFailure;
+  }
+
+  return ( status );
+}
+#endif // !DONT_UPGRADE_BIND
+
+#if !defined ( DONT_UPGRADE_BIND )
+/*********************************************************************
+ * @fn          BindUpgradeTableInNV
+ *
+ * @brief       Verifies if the existing table in NV has different size
+ *              than the table defined by parameters in the current code.
+ *              If different, creates a backup table, deletes the existing
+ *              table and creates the new table with the new size. After
+ *              this process is done ZCD_NV_BINDING_TABLE NV item contains
+ *              only valid records retrieved from the original table, up to
+ *              the maximum number of records defined by gNWK_MAX_BINDING_ENTRIES
+ *
+ * @param       none
+ *
+ * @return      ZSuccess - the Update process was sucessful.
+ *              ZFailure - otherwise.
+ */
+static uint8 BindUpgradeTableInNV( void )
+{
+  uint8 status = ZSuccess;
+  nvBindingHdr_t hdr;
+  uint16 dupLen;
+  uint16 bindLen;
+  uint16 newLen;
+  bool duplicateReady = FALSE;
+
+  // Size of the Binding table based on current paramenters in the code
+  newLen = sizeof(nvBindingHdr_t) + NV_BIND_ITEM_SIZE;
+
+  // Size of the Binding table NV item, this is the whole size of the item,
+  // it could inculde invalid records also
+  bindLen = osal_nv_item_len( ZCD_NV_BINDING_TABLE );
+
+  // Get the number of valid records from the Binding table
+  osal_nv_read( ZCD_NV_BINDING_TABLE, 0, sizeof(nvBindingHdr_t), &hdr );
+
+  // Identify if there is a duplicate NV item, if it is there, that means an
+  // Upgrade process did not finish properly last time
+  // The length function will return 0 if the Backup NV ID does not exist.
+  dupLen = osal_nv_item_len( ZCD_NV_DUPLICATE_BINDING_TABLE );
+
+  // A duplicate of the original Binding item will be done if:
+  // 1) A duplicate NV item DOES NOT exist AND the size of the original Binding
+  //    item in NV is different (larger/smaller) than the the length calculated
+  //    from the parameters in the code. If they are the same there is no need
+  //    to do the Upgrade process.
+  // 2) A duplicate NV item exists (probably because the previous upgrade
+  //    process was interrupted) and [the original Binding NV items exists AND
+  //    has valid recods (it is important to make sure that valid records exist
+  //    in the binding table because it is possible that the item was created
+  //    but the data was not copied in the previous upgrade process).
+  if ( ( ( dupLen == 0 ) && ( bindLen != newLen ) ) ||
+       ( ( dupLen > 0 ) && ( bindLen > 0 ) && ( hdr.numRecs > 0 ) ) )
+  {
+    // Create a copy from original NV item into a duplicate NV item
+    if ( ( status = nwkCreateDuplicateNV( ZCD_NV_BINDING_TABLE,
+                                          ZCD_NV_DUPLICATE_BINDING_TABLE ) ) == ZSuccess )
+    {
+      // Delete the original NV item once the duplicate is ready
+      if ( osal_nv_delete( ZCD_NV_BINDING_TABLE, bindLen ) != ZSuccess )
+      {
+        status = ZFailure;
+      }
+      else
+      {
+        duplicateReady = TRUE;
+      }
+    }
+  }
+  else if ( ( ( dupLen > 0 ) && ( bindLen == 0 ) ) ||
+            ( ( dupLen > 0 ) && ( bindLen > 0 ) && ( hdr.numRecs == 0 ) ) )
+  {
+    // If for some reason a duplicate NV item was left in the system from a
+    // previous upgrade process and:
+    // 1) The original Binding NV item DOES NOT exist OR
+    // 2) The original Binding NV item exist, but has no valid records.
+    // it is necessary to rely in the data in the Duplicate item to create
+    // the Binding table
+    bindLen = dupLen;
+
+    duplicateReady = TRUE;
+  }
+
+  if ( duplicateReady == TRUE )
+  {
+    // Creates the New Binding table, Copy data from backup and Delete backup NV ID
+    status = BindCopyBackupToNewNV( bindLen, newLen );
+  }
+  return ( status );
+}
+#endif // !DONT_UPGRADE_BIND
+
+/*********************************************************************
+ * @fn          BindRestoreFromNV
+ *
+ * @brief       Restore the binding table from NV
+ *
+ * @param       none
+ *
+ * @return      Number of entries restored
+ */
+uint16 BindRestoreFromNV( void )
+{
+  nvBindingHdr_t hdr;
+
+  hdr.numRecs = 0;
+
+#if !defined ( DONT_UPGRADE_BIND )
+  if ( BindUpgradeTableInNV() == ZSuccess )
+#endif
+  {
+    if ( osal_nv_read( ZCD_NV_BINDING_TABLE, 0, sizeof(nvBindingHdr_t), &hdr ) == ZSuccess )
+    {
+      bindTableIndex_t x;
+      uint16 validRecsCount = 0;
+
+      // Read in the device list
+      for ( x = 0; ( x < gNWK_MAX_BINDING_ENTRIES ) && ( validRecsCount < hdr.numRecs ); x++ )
+      {
+        if ( osal_nv_read( ZCD_NV_BINDING_TABLE,
+                           (uint16)(sizeof(nvBindingHdr_t) + (x * NV_BIND_REC_SIZE)),
+                           NV_BIND_REC_SIZE, &BindingTable[x] ) == ZSUCCESS )
+        {
+          if ( BindingTable[x].srcEP != NV_BIND_EMPTY )
+          {
+            validRecsCount++;
+          }
+        }
+      }
+    }
+  }
+  return ( hdr.numRecs );
+}
+
+/*********************************************************************
+ * @fn          BindWriteNV
+ *
+ * @brief       Save the Binding Table in NV
+ *
+ * @param       none
+ *
+ * @return      none
+ */
+void BindWriteNV( void )
+{
+  BindingEntry_t *pBind;
+  BindingEntry_t bind;
+  nvBindingHdr_t hdr;
+  bindTableIndex_t x;
+
+  hdr.numRecs = 0;
+
+  for ( x = 0; x < gNWK_MAX_BINDING_ENTRIES; x++ )
+  {
+    pBind = &BindingTable[x];
+
+    osal_memcpy( &bind, pBind, gBIND_REC_SIZE );
+
+    // Save the record to NV
+    osal_nv_write( ZCD_NV_BINDING_TABLE,
+                   (uint16)((sizeof(nvBindingHdr_t)) + (x * NV_BIND_REC_SIZE)),
+                   NV_BIND_REC_SIZE, &bind );
+
+    if ( pBind->srcEP != NV_BIND_EMPTY )
+    {
+      hdr.numRecs++;
+    }
+  }
+
+  // Save off the header
+  osal_nv_write( ZCD_NV_BINDING_TABLE, 0, sizeof(nvBindingHdr_t), &hdr );
+}
+
+#else // !BINDINGTABLE_NV_SINGLES
+/*********************************************************************
+ * @fn          BindInitNV
+ *
+ * @brief       Initialize the Binding NV Item
+ *
+ * @param       none
+ *
+ * @return      ZSUCCESS if successful, NV_ITEM_UNINIT if item did not
+ *              exist in NV, NV_OPER_FAILED if failure.
+ */
+byte BindInitNV( void )
+{
+  bindTableIndex_t x;
+
+  for ( x = 0; x < gNWK_MAX_BINDING_ENTRIES; x++ )
+  {
+    // Initialize each binding record
+    osal_nv_item_init_ex( ZCD_NV_EX_BINDING_TABLE, x, NV_BIND_REC_SIZE, NULL );
+  }
+  return ( ZSUCCESS );
+}
+
+/*********************************************************************
+ * @fn          BindSetDefaultNV
+ *
+ * @brief       Write the defaults to NV
+ *
+ * @param       none
+ *
+ * @return      none
+ */
+void BindSetDefaultNV( void )
+{
+  BindingEntry_t bind;
+  bindTableIndex_t x;
+
+  // Initialize a binding record
+  osal_memset( &bind, 0xFF, sizeof ( BindingEntry_t ) );
+
+  for ( x = 0; x < gNWK_MAX_BINDING_ENTRIES; x++ )
+  {
+    // Over write each binding record with an "empty" record
+    osal_nv_write_ex( ZCD_NV_EX_BINDING_TABLE, x, 0, NV_BIND_REC_SIZE, &bind );
+  }
+}
+
+/*********************************************************************
+ * @fn          BindRestoreFromNV
+ *
+ * @brief       Restore the binding table from NV
+ *
+ * @param       none
+ *
+ * @return      Number of entries restored (non-emtpy)
+ */
+uint16 BindRestoreFromNV( void )
+{
+  bindTableIndex_t x;
+  uint16 validRecsCount = 0;
+
+  // Read in the device list
+  for ( x = 0; x < gNWK_MAX_BINDING_ENTRIES; x++ )
+  {
+    if ( osal_nv_read_ex( ZCD_NV_EX_BINDING_TABLE, x, 0,
+                     (uint16)NV_BIND_REC_SIZE, &BindingTable[x] ) == ZSUCCESS )
+    {
+      // Check for non-empty record
+      if ( BindingTable[x].srcEP != NV_BIND_EMPTY )
+      {
+        // Count non-empty records
+        validRecsCount++;
+      }
+    }
+  }
+  return ( validRecsCount );
+}
+
+/*********************************************************************
+ * @fn          BindWriteNV
+ *
+ * @brief       Copy the Binding Table in NV
+ *
+ * @param       none
+ *
+ * @return      none
+ */
+void BindWriteNV( void )
+{
+  bindTableIndex_t x;
+
+  for ( x = 0; x < gNWK_MAX_BINDING_ENTRIES; x++ )
+  {
+    // Save the record to NV
+    osal_nv_write_ex( ZCD_NV_EX_BINDING_TABLE, x, 0,
+                     (uint16)NV_BIND_REC_SIZE, &BindingTable[x] );
+  }
+}
+#endif // BINDINGTABLE_NV_SINGLES
 
 /*********************************************************************
 *********************************************************************/

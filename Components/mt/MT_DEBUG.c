@@ -21,7 +21,7 @@
   its documentation for any purpose.
 
   YOU FURTHER ACKNOWLEDGE AND AGREE THAT THE SOFTWARE AND DOCUMENTATION ARE
-  PROVIDED “AS IS” WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS OR IMPLIED,
+  PROVIDED ï¿½AS ISï¿½ WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS OR IMPLIED,
   INCLUDING WITHOUT LIMITATION, ANY WARRANTY OF MERCHANTABILITY, TITLE,
   NON-INFRINGEMENT AND FITNESS FOR A PARTICULAR PURPOSE. IN NO EVENT SHALL
   TEXAS INSTRUMENTS OR ITS LICENSORS BE LIABLE OR OBLIGATED UNDER CONTRACT,
@@ -50,7 +50,22 @@
 #include "mac_rx.h"
 #include "mac_tx.h"
 #include "nwk_globals.h"
+#include "nwk_util.h"
 #include "mac_radio_defs.h"
+#include "OSAL_Nv.h"
+
+#include "bdb.h"
+#if (ZG_BUILD_COORDINATOR_TYPE)
+#include "ssp_hash.h"
+#include "APSMEDE.h"
+#endif
+
+#include "ZGlobals.h"
+#include "nwk_util.h"
+#ifdef APP_TP2
+#include "ZDConfig.h"
+#endif
+
 
 /***************************************************************************************************
  * LOCAL FUNCTIONs
@@ -58,8 +73,18 @@
 
 #if defined (MT_DEBUG_FUNC)
 static void MT_DebugSetThreshold(uint8 *pBuf);
+#if defined ( APP_TP2 )
+  extern uint8 TP2_securityEnabled;
+  extern uint8 zgAllowRejoins;
+  static void MT_TP2_EnableApsSecurity(uint8 *pBuf);
+  static void MT_TP2_SetR20NodeDesc(uint8 *pBuf);
+  #define EN_SECURITY                     0x40
+#endif
+
+
 static void MT_DebugMacDataDump(void);
 #endif
+
 
 #if defined (MT_DEBUG_FUNC)
 /***************************************************************************************************
@@ -81,7 +106,19 @@ uint8 MT_DebugCommandProcessing(uint8 *pBuf)
       MT_DebugSetThreshold(pBuf);
       break;
 
-  case MT_DEBUG_MAC_DATA_DUMP:
+      
+
+#if defined ( APP_TP2 )
+  case MT_DEBUG_TP2_ENABLEAPSSECURITY:
+    MT_TP2_EnableApsSecurity(pBuf);
+  break;
+  case MT_DEBUG_TP2_SET_NODE_R20:
+    MT_TP2_SetR20NodeDesc(pBuf);
+  break;
+#endif
+
+
+    case MT_DEBUG_MAC_DATA_DUMP:
       MT_DebugMacDataDump();
       break;
 
@@ -118,6 +155,64 @@ static void MT_DebugSetThreshold(uint8 *pBuf)
   /* Build and send back the response */
   MT_BuildAndSendZToolResponse(((uint8)MT_RPC_CMD_SRSP | (uint8)MT_RPC_SYS_DBG), cmdId, 1, &retValue);
 }
+
+#if defined ( APP_TP2 )
+/***************************************************************************************************
+ * @fn      MT_TP2_EnableApsSecurity
+ *
+ * @brief   Set the APS security on TP2 messages
+ *
+ * @param   pBuf - pointer to received buffer
+ *
+ * @return  void
+ ***************************************************************************************************/
+static void MT_TP2_EnableApsSecurity(uint8 *pBuf)
+{
+  uint8 retValue = ZSuccess;
+  uint8 cmdId;
+
+  /* parse header */
+  cmdId = pBuf[MT_RPC_POS_CMD1];
+  pBuf += MT_RPC_FRAME_HDR_SZ;
+ 
+  if(*pBuf)
+  {
+    TP2_securityEnabled = EN_SECURITY;
+  }
+  else
+  {
+    TP2_securityEnabled = 0;
+  }
+
+  /* Build and send back the response */
+  MT_BuildAndSendZToolResponse(((uint8)MT_RPC_CMD_SRSP | (uint8)MT_RPC_SYS_DBG), cmdId, 1, &retValue);
+}
+
+/***************************************************************************************************
+ * @fn      MT_TP2_SetR20NodeDesc
+ *
+ * @brief   Set the device rev R20
+ *
+ * @param   pBuf - pointer to received buffer
+ *
+ * @return  void
+ ***************************************************************************************************/
+static void MT_TP2_SetR20NodeDesc(uint8 *pBuf)
+{
+  uint8 retValue = ZSuccess;
+  uint8 cmdId;
+  uint8 revPositionBit = 0x09;
+
+  /* parse header */
+  cmdId = pBuf[MT_RPC_POS_CMD1];
+  
+  ZDO_Config_Node_Descriptor.ServerMask &= ~(0x01 << revPositionBit);
+   
+  /* Build and send back the response */
+  MT_BuildAndSendZToolResponse(((uint8)MT_RPC_CMD_SRSP | (uint8)MT_RPC_SYS_DBG), cmdId, 1, &retValue);
+}
+#endif
+
 
 /***************************************************************************************************
  * @fn      MT_DebugMacDataDump

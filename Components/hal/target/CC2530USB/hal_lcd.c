@@ -164,11 +164,11 @@
  **************************************************************************************************/
 
 #define HAL_IO_SET(port, pin, val)        HAL_IO_SET_PREP(port, pin, val)
-#define HAL_IO_SET_PREP(port, pin, val)   st( P##port##_##pin## = val; )
+#define HAL_IO_SET_PREP(port, pin, val)   st( P##port##_##pin = val; )
 
 #define HAL_CONFIG_IO_OUTPUT(port, pin, val)      HAL_CONFIG_IO_OUTPUT_PREP(port, pin, val)
 #define HAL_CONFIG_IO_OUTPUT_PREP(port, pin, val) st( P##port##SEL &= ~BV(pin); \
-                                                      P##port##_##pin## = val; \
+                                                      P##port##_##pin = val; \
                                                       P##port##DIR |= BV(pin); )
 
 #define HAL_CONFIG_IO_PERIPHERAL(port, pin)      HAL_CONFIG_IO_PERIPHERAL_PREP(port, pin)
@@ -211,7 +211,7 @@ static uint8 *Lcd_Line1;
 
 void HalLcd_HW_Init(void);
 void HalLcd_HW_WaitUs(uint16 i);
-void HalLcd_HW_Clear(void);
+//void HalLcd_HW_Clear(void);
 void HalLcd_HW_ClearAllSpecChars(void);
 void HalLcd_HW_Control(uint8 cmd);
 void HalLcd_HW_Write(uint8 data);

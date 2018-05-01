@@ -1,13 +1,13 @@
 /*******************************************************************************
   Filename:       R2R_FlashJT.h
-  Revised:        $Date: 2014-05-15 11:21:32 -0700 (Thu, 15 May 2014) $
-  Revision:       $Revision: 38553 $
+  Revised:        $Date: 2014-12-15 17:16:20 -0800 (Mon, 15 Dec 2014) $
+  Revision:       $Revision: 41505 $
 
-  Description:    This file contains the defines for every LL and HCI function
-                  which can be mapped to either itself (for Flash-Only build),
-                  or to jump table offset in flash (ROM build). The latter can
-                  be used to relocate any function to flash in the event that
-                  software needs to be replaced.
+  Description:    This file contains the defines for every High Level MAC
+                  function which can be mapped to either itself (for Flash-Only
+                  build), or to jump table offset in flash (ROM build). The
+                  latter can be used to relocate any function to flash in the
+                  event that software needs to be replaced.
 
   Copyright 2014 Texas Instruments Incorporated. All rights reserved.
 
@@ -304,7 +304,7 @@ extern uint32 RAM_BASE_ADDR[];
 
 #else // Flash Only Build
 
-// HCI ROM-to-ROM Functions
+// High Level MAC ROM-to-ROM Functions
 #define MAP_MAC_Init                               MAC_Init
 #define MAP_MAC_InitBeaconCoord                    MAC_InitBeaconCoord 
 #define MAP_MAC_InitBeaconDevice                   MAC_InitBeaconDevice

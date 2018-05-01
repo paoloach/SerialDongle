@@ -1,12 +1,12 @@
 /**************************************************************************************************
   Filename:       nwk_bufs.h
-  Revised:        $Date: 2014-03-26 10:01:05 -0700 (Wed, 26 Mar 2014) $
-  Revision:       $Revision: 37899 $
+  Revised:        $Date: 2014-11-18 02:32:26 -0800 (Tue, 18 Nov 2014) $
+  Revision:       $Revision: 41160 $
 
   Description:    Network buffer utility functions.
 
 
-  Copyright 2004-2010 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2004-2014 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -22,7 +22,7 @@
   its documentation for any purpose.
 
   YOU FURTHER ACKNOWLEDGE AND AGREE THAT THE SOFTWARE AND DOCUMENTATION ARE
-  PROVIDED �AS IS� WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS OR IMPLIED,
+  PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS OR IMPLIED,
   INCLUDING WITHOUT LIMITATION, ANY WARRANTY OF MERCHANTABILITY, TITLE,
   NON-INFRINGEMENT AND FITNESS FOR A PARTICULAR PURPOSE. IN NO EVENT SHALL
   TEXAS INSTRUMENTS OR ITS LICENSORS BE LIABLE OR OBLIGATED UNDER CONTRACT,
@@ -92,6 +92,7 @@ extern "C" {
 typedef struct
 {
   uint8 type;
+  uint16 txOptions;
   void* load;
 } nwkDB_UserData_t;
 
@@ -100,13 +101,14 @@ typedef struct
   ZMacDataReq_t *pDataReq;
   void *next;
   uint16 dataX;
-  uint16 handleOptions;    // Packet type options
-  byte nsduHandle;         // unique ID
-  byte state;              // state of buffer
-  byte retries;            // number of retries
-  uint8 lastCnfStatus;     // The last MAC_MCPS_DATA_CNF status
-  nwkDB_UserData_t ud; // user data
+  uint16 handleOptions;     // Packet type options
+  uint8 nsduHandle;         // unique ID
+  uint8 state;              // state of buffer
+  uint8 retries;            // number of APS retries
+  uint8 lastCnfStatus;      // The last MAC_MCPS_DATA_CNF status
+  nwkDB_UserData_t ud;      // user data
   uint16 macSrcAddr;        // original MAC src address
+  uint8  apsRetries;        // Number of retries by APS layer
 } nwkDB_t;
 
 typedef uint8 (*nwkDB_FindMatchCB_t)( nwkDB_t* db, void* mf );
@@ -128,6 +130,11 @@ extern void nwkbufs_init( void );
  * Send the next buffer
  */
 extern void nwk_SendNextDataBuf( void );
+
+/*
+ * Delete all buffers for a device
+ */
+extern uint8 nwk_DeleteDataBufs( uint16 nwkAddr );
 
 /*
  * Determines whether or not the data buffers are full.

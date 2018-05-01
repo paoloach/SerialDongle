@@ -1,7 +1,7 @@
 /***************************************************************************************************
   Filename:       MT_TASK.c
-  Revised:        $Date: 2013-11-12 09:10:23 -0800 (Tue, 12 Nov 2013) $
-  Revision:       $Revision: 36036 $
+  Revised:        $Date: 2015-01-30 11:15:01 -0800 (Fri, 30 Jan 2015) $
+  Revision:       $Revision: 42161 $
 
   Description:    MonitorTest Task handling routines
 
@@ -65,6 +65,10 @@ static void MT_ProcessIncomingCommand( mtOSALSerialData_t *msg );
 void MT_ProcessSrngEvent(void); 
 #endif
 
+#if defined(NPI)
+extern uint8_t npiframe_calcMTFCS(uint8_t *msg_ptr, uint8_t len);
+#endif
+
 /***************************************************************************************************
  * GLOBALS
  ***************************************************************************************************/
@@ -81,16 +85,17 @@ uint8 MT_TaskID;
  *
  * @return  void
  ***************************************************************************************************/
-static void MT_TaskInit(uint8 task_id)
+void MT_TaskInit(uint8 task_id)
 {
   MT_TaskID = task_id;
 
   /* Initialize the Serial port */
+#if !defined(NPI)
   MT_UartInit();
 
   /* Register taskID - Do this after UartInit() because it will reset the taskID */
   MT_UartRegisterTaskID(task_id);
-
+#endif /* NPI */
   osal_set_event(task_id, MT_SECONDARY_INIT_EVENT);
 }
 
@@ -104,7 +109,7 @@ static void MT_TaskInit(uint8 task_id)
  *
  * @return  Bit mask of the unprocessed MT Task events.
  **************************************************************************************************/
-static UINT16 MT_ProcessEvent(uint8 task_id, uint16 events)
+UINT16 MT_ProcessEvent(uint8 task_id, uint16 events)
 {
   /* Could be multiple events, so switch won't work */
   if ( events & SYS_EVENT_MSG )
@@ -114,7 +119,6 @@ static UINT16 MT_ProcessEvent(uint8 task_id, uint16 events)
     if (msg_ptr != NULL)
     {
       MT_ProcessIncomingCommand((mtOSALSerialData_t *)msg_ptr);
-
       osal_msg_deallocate(msg_ptr);
     }
 
@@ -263,7 +267,11 @@ static void MT_ProcessIncomingCommand( mtOSALSerialData_t *msg )
         FCS goes to the last byte in the message and is calculated over all
         the bytes except FCS and SOP
       */
+#if !defined(NPI)
       msg_ptr[len-1] = MT_UartCalcFCS(msg_ptr + 1, (uint8)(len-2));
+#else
+      msg_ptr[len-1] = npiframe_calcMTFCS(msg_ptr + 1, (uint8)(len-2));
+#endif
 
 #ifdef MT_UART_DEFAULT_PORT
       HalUARTWrite ( MT_UART_DEFAULT_PORT, msg_ptr, len );
@@ -284,7 +292,7 @@ static void MT_ProcessIncomingCommand( mtOSALSerialData_t *msg )
 #if defined (MT_UTIL_FUNC)
 #if defined ZCL_KEY_ESTABLISH
     case ZCL_KEY_ESTABLISH_IND:
-      MT_UtilKeyEstablishInd((keyEstablishmentInd_t *)msg);
+      MT_UtilKeyEstablishInd((zclKE_StatusInd_t *)msg);
       break;
 #endif
 #endif

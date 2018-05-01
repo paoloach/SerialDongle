@@ -2243,7 +2243,7 @@
                 <name>$PROJ_DIR$\..\Source\endpointRequestList.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\Tools\f8wCoord.cfg</name>
+                <name>$PROJ_DIR$\..\Components\ZMain\OnBoard.h</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Source\OSAL_Coordinator.c</name>
@@ -2271,6 +2271,9 @@
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Source\ZigBeeSerialBridge.c</name>
+                <configuration>
+                    <name>Coordinator2592</name>
+                </configuration>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Source\ZigBeeSerialBridge.h</name>
@@ -2279,6 +2282,75 @@
                 <name>$PROJ_DIR$\..\Source\ZigBeeSerialBridge_data.h</name>
             </file>
         </group>
+    </group>
+    <group>
+        <name>BDB</name>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\bdb\bdb.c</name>
+            <configuration>
+                <name>Coordinator2592</name>
+            </configuration>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\bdb\bdb.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\bdb\bdb_FindingAndBinding.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\bdb\bdb_interface.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\bdb\bdb_Reporting.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\bdb\bdb_Reporting.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\bdb\bdb_tlCommissioning.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\bdb\bdb_tlCommissioning.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\bdb\bdb_touchlink.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\bdb\bdb_touchlink.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\bdb\bdb_touchlink_initiator.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\bdb\bdb_touchlink_initiator.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\bdb\bdb_touchlink_target.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\bdb\bdb_touchlink_target.h</name>
+        </file>
+    </group>
+    <group>
+        <name>GP</name>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\GP\cGP_stub.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\GP\dGP_stub.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\GP\gp_common.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\GP\gp_common.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\GP\gp_interface.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\stack\GP\gp_proxyTbl.c</name>
+        </file>
     </group>
     <group>
         <name>HAL</name>
@@ -2301,9 +2373,6 @@
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Components\hal\include\hal_board.h</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\Components\hal\target\CC2531_USBDONGLE\hal_board_cfg.h</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Components\hal\include\hal_defs.h</name>
@@ -2339,66 +2408,57 @@
         <group>
             <name>Target</name>
             <group>
-                <name>CC2530EB</name>
-                <group>
-                    <name>Config</name>
-                </group>
-                <group>
-                    <name>Drivers</name>
-                    <file>
-                        <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_adc.c</name>
-                    </file>
-                    <file>
-                        <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_dma.c</name>
-                    </file>
-                    <file>
-                        <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_flash.c</name>
-                    </file>
-                    <file>
-                        <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_key.c</name>
-                    </file>
-                    <file>
-                        <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_lcd.c</name>
-                    </file>
-                    <file>
-                        <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_led.c</name>
-                    </file>
-                    <file>
-                        <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_sleep.c</name>
-                    </file>
-                    <file>
-                        <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_startup.c</name>
-                    </file>
-                    <file>
-                        <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_timer.c</name>
-                    </file>
-                </group>
-                <group>
-                    <name>Includes</name>
-                    <file>
-                        <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_aes.h</name>
-                    </file>
-                    <file>
-                        <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_ccm.h</name>
-                    </file>
-                    <file>
-                        <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_dma.h</name>
-                    </file>
-                    <file>
-                        <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_mcu.h</name>
-                    </file>
-                    <file>
-                        <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_types.h</name>
-                    </file>
-                </group>
+                <name>Config</name>
+                <file>
+                    <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_board_cfg.h</name>
+                </file>
             </group>
             <group>
-                <name>CC2531_USBDONGLE</name>
+                <name>Drivers</name>
                 <file>
-                    <name>$PROJ_DIR$\..\Components\hal\target\CC2531_USBDONGLE\hal_usbdongle_cfg.c</name>
+                    <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_adc.c</name>
                 </file>
                 <file>
-                    <name>$PROJ_DIR$\..\Components\hal\target\CC2531_USBDONGLE\hal_usbdongle_cfg.h</name>
+                    <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_dma.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_flash.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_key.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_led.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_sleep.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_startup.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_timer.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_uart.c</name>
+                </file>
+            </group>
+            <group>
+                <name>Includes</name>
+                <file>
+                    <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_aes.h</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_ccm.h</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_dma.h</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_mcu.h</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Components\hal\target\CC2530EB\hal_types.h</name>
                 </file>
             </group>
         </group>
@@ -2518,6 +2578,15 @@
         </group>
     </group>
     <group>
+        <name>MT</name>
+        <file>
+            <name>$PROJ_DIR$\..\Components\mt\MT_GP.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\mt\MT_GP.h</name>
+        </file>
+    </group>
+    <group>
         <name>NWK</name>
         <file>
             <name>$PROJ_DIR$\..\Components\stack\nwk\AddrMgr.h</name>
@@ -2547,12 +2616,6 @@
             <name>$PROJ_DIR$\..\Components\stack\nwk\BindingTable.h</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\Components\stack\nwk\bindTable2.c</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\Components\stack\nwk\bindTable2.h</name>
-        </file>
-        <file>
             <name>$PROJ_DIR$\..\Components\stack\nwk\NLMEDE.h</name>
         </file>
         <file>
@@ -2571,16 +2634,16 @@
             <name>$PROJ_DIR$\..\Components\stack\nwk\nwk_util.h</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\..\Components\osal\mcu\cc2530\OSAL_Math.s51</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Components\osal\mcu\cc2530\OSAL_Nv.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\Components\stack\nwk\reflecttrack.h</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\Components\stack\nwk\rtg.h</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\Components\stack\sapi\sapi.c</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\Components\stack\sapi\sapi.h</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\Components\stack\nwk\stub_aps.c</name>
@@ -2610,7 +2673,7 @@
             <name>$PROJ_DIR$\..\Components\osal\common\OSAL.c</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\Components\osal\include\osal.h</name>
+            <name>$PROJ_DIR$\..\Components\osal\include\OSAL.h</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\Components\osal\common\OSAL_Clock.c</name>
@@ -2619,19 +2682,10 @@
             <name>$PROJ_DIR$\..\Components\osal\include\OSAL_Clock.h</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\Components\osal\mcu\cc2530\OSAL_Math.s51</name>
-        </file>
-        <file>
             <name>$PROJ_DIR$\..\Components\osal\common\OSAL_Memory.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\Components\osal\include\OSAL_Memory.h</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\Source\OSAL_Memory2.c</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\Components\osal\mcu\cc2530\OSAL_Nv.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\Components\osal\include\OSAL_Nv.h</name>
@@ -2641,9 +2695,6 @@
         </file>
         <file>
             <name>$PROJ_DIR$\..\Components\osal\include\OSAL_PwrMgr.h</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\Components\osal\include\osal_task.h</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\Components\osal\include\OSAL_Tasks.h</name>
@@ -2679,28 +2730,22 @@
             <name>$PROJ_DIR$\..\Components\stack\zcl\zcl_diagnostic.h</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\Components\stack\zcl\zcl_ezmode.c</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\Components\stack\zcl\zcl_ezmode.h</name>
-        </file>
-        <file>
             <name>$PROJ_DIR$\..\Components\stack\zcl\zcl_general.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\Components\stack\zcl\zcl_general.h</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\Source\ha\zcl_ha.c</name>
+            <name>$PROJ_DIR$\..\Components\stack\zcl\zcl_green_power.c</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\Source\ha\zcl_ha.h</name>
+            <name>$PROJ_DIR$\..\Components\stack\zcl\zcl_green_power.h</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\Components\stack\zcl\zcl_LinkQuality.c</name>
+            <name>$PROJ_DIR$\..\Components\external\zcl_ha.c</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\Components\stack\zcl\zcl_LinkQuality.h</name>
+            <name>$PROJ_DIR$\..\Components\external\zcl_ha.h</name>
         </file>
     </group>
     <group>
@@ -2730,13 +2775,7 @@
             <name>$PROJ_DIR$\..\Tools\f8wConfig.cfg</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\Tools\f8wConfig_test.cfg</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\Tools\f8wEndev.cfg</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\Tools\f8wRouter.cfg</name>
+            <name>$PROJ_DIR$\..\Tools\f8wCoord.cfg</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\Tools\f8wZCL.cfg</name>
@@ -2799,16 +2838,13 @@
     <group>
         <name>ZMain</name>
         <file>
-            <name>$PROJ_DIR$\..\Source\zmain\chipcon_cstartup.s51</name>
+            <name>$PROJ_DIR$\..\Components\ZMain\chipcon_cstartup.s51</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\Source\zmain\OnBoard.c</name>
+            <name>$PROJ_DIR$\..\Components\ZMain\OnBoard.c</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\Source\zmain\OnBoard.h</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\Source\zmain\ZMain.c</name>
+            <name>$PROJ_DIR$\..\Components\ZMain\ZMain.c</name>
         </file>
     </group>
 </project>

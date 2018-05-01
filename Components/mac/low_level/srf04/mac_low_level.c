@@ -1,12 +1,12 @@
 /**************************************************************************************************
   Filename:       mac_low_level.c
-  Revised:        $Date: 2014-03-13 10:50:10 -0700 (Thu, 13 Mar 2014) $
-  Revision:       $Revision: 37663 $
+  Revised:        $Date: 2015-02-17 14:17:44 -0800 (Tue, 17 Feb 2015) $
+  Revision:       $Revision: 42683 $
 
   Description:    Describe the purpose and contents of the file.
 
 
-  Copyright 2006-2014 Texas Instruments Incorporated. All rights reserved.
+  Copyright 2006-2015 Texas Instruments Incorporated. All rights reserved.
 
   IMPORTANT: Your use of this Software is limited to those specific rights
   granted under the terms of a software license agreement between the user
@@ -59,11 +59,17 @@
 #include "mac_backoff_timer.h"
 #include "mac_sleep.h"
 
+/* high level */
+#include "mac_pib.h"
+
 /* target specific */
 #include "mac_radio_defs.h"
 
 /* debug */
 #include "mac_assert.h"
+
+/* turn on additional power savings */
+#define MAC_EXTRA_POWER_SAVINGS  1
 
 #if !defined ( HAL_CLOCK_CRYSTAL )
 /* DCO has a frequency error of 2% */
@@ -150,6 +156,9 @@ MAC_INTERNAL_API void macLowLevelReset(void)
 
   /* power up the radio */
   macSleepWakeUp();
+  
+  /* Turn on extra power savings*/
+  pMacPib->rf4cepowerSavings = MAC_EXTRA_POWER_SAVINGS;
 }
 
 
