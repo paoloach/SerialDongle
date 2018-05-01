@@ -2,7 +2,11 @@
 
 "C:\Program Files\IAR Systems\Embedded Workbench 8.0\8051\bin\8051emu_cc.dll" 
 
+<<<<<<< HEAD
 "C:\Users\paolo\Documents\GitHub\SerialDongle - Copia\CC2530DB\CoordinatorEB\Exe\SerialDongle.d51" 
+=======
+"C:\Users\paolo\Documents\GitHub\SerialDongle\CC2530DB\CoordinatorEB\Exe\SerialDongle.d51" 
+>>>>>>> b165a929ccce67b54b5b25f0e96039c5406cf4e6
 
 --plugin "C:\Program Files\IAR Systems\Embedded Workbench 8.0\8051\bin\8051bat.dll" 
 

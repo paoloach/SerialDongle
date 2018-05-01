@@ -25,7 +25,7 @@ if not "%~1" == "" goto debugFile
 
 @echo on 
 
-"C:\Program Files\IAR Systems\Embedded Workbench 8.0\common\bin\cspybat" -f "C:\Users\paolo\Documents\GitHub\SerialDongle - Copia\CC2530DB\settings\SerialDongle.CoordinatorEB.general.xcl" --backend -f "C:\Users\paolo\Documents\GitHub\SerialDongle - Copia\CC2530DB\settings\SerialDongle.CoordinatorEB.driver.xcl" 
+"C:\Program Files\IAR Systems\Embedded Workbench 8.0\common\bin\cspybat" -f "C:\Users\paolo\Documents\GitHub\SerialDongle\CC2530DB\settings\SerialDongle.CoordinatorEB.general.xcl" --backend -f "C:\Users\paolo\Documents\GitHub\SerialDongle\CC2530DB\settings\SerialDongle.CoordinatorEB.driver.xcl" 
 
 @echo off 
 goto end 
@@ -34,7 +34,7 @@ goto end
 
 @echo on 
 
-"C:\Program Files\IAR Systems\Embedded Workbench 8.0\common\bin\cspybat" -f "C:\Users\paolo\Documents\GitHub\SerialDongle - Copia\CC2530DB\settings\SerialDongle.CoordinatorEB.general.xcl" "--debug_file=%~1" --backend -f "C:\Users\paolo\Documents\GitHub\SerialDongle - Copia\CC2530DB\settings\SerialDongle.CoordinatorEB.driver.xcl" 
+"C:\Program Files\IAR Systems\Embedded Workbench 8.0\common\bin\cspybat" -f "C:\Users\paolo\Documents\GitHub\SerialDongle\CC2530DB\settings\SerialDongle.CoordinatorEB.general.xcl" "--debug_file=%~1" --backend -f "C:\Users\paolo\Documents\GitHub\SerialDongle\CC2530DB\settings\SerialDongle.CoordinatorEB.driver.xcl" 
 
 @echo off 
 :end

@@ -23,9 +23,9 @@ param([String]$debugfile = "");
 
 if ($debugfile -eq "")
 {
-& "C:\Program Files\IAR Systems\Embedded Workbench 8.0\common\bin\cspybat" -f "C:\Users\paolo\Documents\GitHub\SerialDongle - Copia\CC2530DB\settings\SerialDongle.CoordinatorEB.general.xcl" --backend -f "C:\Users\paolo\Documents\GitHub\SerialDongle - Copia\CC2530DB\settings\SerialDongle.CoordinatorEB.driver.xcl" 
+& "C:\Program Files\IAR Systems\Embedded Workbench 8.0\common\bin\cspybat" -f "C:\Users\paolo\Documents\GitHub\SerialDongle\CC2530DB\settings\SerialDongle.CoordinatorEB.general.xcl" --backend -f "C:\Users\paolo\Documents\GitHub\SerialDongle\CC2530DB\settings\SerialDongle.CoordinatorEB.driver.xcl" 
 }
 else
 {
-& "C:\Program Files\IAR Systems\Embedded Workbench 8.0\common\bin\cspybat" -f "C:\Users\paolo\Documents\GitHub\SerialDongle - Copia\CC2530DB\settings\SerialDongle.CoordinatorEB.general.xcl" --debug_file=$debugfile --backend -f "C:\Users\paolo\Documents\GitHub\SerialDongle - Copia\CC2530DB\settings\SerialDongle.CoordinatorEB.driver.xcl" 
+& "C:\Program Files\IAR Systems\Embedded Workbench 8.0\common\bin\cspybat" -f "C:\Users\paolo\Documents\GitHub\SerialDongle\CC2530DB\settings\SerialDongle.CoordinatorEB.general.xcl" --debug_file=$debugfile --backend -f "C:\Users\paolo\Documents\GitHub\SerialDongle\CC2530DB\settings\SerialDongle.CoordinatorEB.driver.xcl" 
 }
